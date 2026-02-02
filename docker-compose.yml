@@ -1,0 +1,84 @@
+services:
+  # =============================================================================
+  # API Server
+  # =============================================================================
+  trademate-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+      target: development
+    container_name: trademate-api
+    ports:
+      - "29000:29000"
+    environment:
+      - NODE_ENV=development
+      - PORT=29000
+      - DATABASE_URL=postgresql://trademate:${POSTGRES_PASSWORD:-trademate_dev_2026}@trademate-postgres:5432/trademate
+      - REDIS_URL=redis://trademate-redis:6379
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - JWT_SECRET=${JWT_SECRET:-trademate_jwt_dev_secret_2026}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-trademate_jwt_refresh_dev_2026}
+    depends_on:
+      trademate-postgres:
+        condition: service_healthy
+      trademate-redis:
+        condition: service_healthy
+    volumes:
+      - ./apps/api/src:/app/src:ro
+      - ./apps/api/package.json:/app/package.json:ro
+      - ./apps/api/tsconfig.json:/app/tsconfig.json:ro
+      - ./apps/api/jest.config.js:/app/jest.config.js:ro
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:29000/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+    restart: unless-stopped
+
+  # =============================================================================
+  # PostgreSQL Database
+  # =============================================================================
+  trademate-postgres:
+    image: postgres:16-alpine
+    container_name: trademate-postgres
+    environment:
+      POSTGRES_USER: trademate
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-trademate_dev_2026}
+      POSTGRES_DB: trademate
+    ports:
+      - "29432:5432"
+    volumes:
+      - trademate_postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trademate -d trademate"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # =============================================================================
+  # Redis Cache
+  # =============================================================================
+  trademate-redis:
+    image: redis:7-alpine
+    container_name: trademate-redis
+    ports:
+      - "29379:6379"
+    volumes:
+      - trademate_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  trademate_postgres_data:
+  trademate_redis_data:
+
+networks:
+  default:
+    name: trademate-network

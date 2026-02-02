@@ -1,0 +1,223 @@
+{
+  "templateType": "risk-assessment",
+  "version": "1.0",
+  "nzRegulations": [
+    "Health and Safety at Work Act 2015",
+    "Health and Safety at Work (General Risk and Workplace Management) Regulations 2016"
+  ],
+  "riskMatrix": {
+    "likelihood": [
+      { "level": 1, "label": "Rare", "description": "May occur only in exceptional circumstances" },
+      { "level": 2, "label": "Unlikely", "description": "Could occur at some time but not expected" },
+      { "level": 3, "label": "Possible", "description": "Might occur at some time" },
+      { "level": 4, "label": "Likely", "description": "Will probably occur in most circumstances" },
+      { "level": 5, "label": "Almost Certain", "description": "Expected to occur in most circumstances" }
+    ],
+    "consequence": [
+      { "level": 1, "label": "Insignificant", "description": "No injury or first aid only" },
+      { "level": 2, "label": "Minor", "description": "First aid treatment required" },
+      { "level": 3, "label": "Moderate", "description": "Medical treatment required" },
+      { "level": 4, "label": "Major", "description": "Serious injury, hospitalisation" },
+      { "level": 5, "label": "Catastrophic", "description": "Death or permanent disability" }
+    ],
+    "riskLevels": {
+      "1-4": { "level": "Low", "color": "#22C55E", "action": "Manage by routine procedures" },
+      "5-9": { "level": "Medium", "color": "#EAB308", "action": "Specific monitoring required" },
+      "10-14": { "level": "High", "color": "#F97316", "action": "Senior management attention needed" },
+      "15-25": { "level": "Extreme", "color": "#EF4444", "action": "Immediate action required" }
+    }
+  },
+  "sections": [
+    {
+      "id": "details",
+      "title": "Assessment Details",
+      "fields": [
+        {
+          "id": "assessmentTitle",
+          "type": "text",
+          "label": "Assessment Title",
+          "required": true
+        },
+        {
+          "id": "location",
+          "type": "text",
+          "label": "Location/Site",
+          "required": true
+        },
+        {
+          "id": "assessor",
+          "type": "text",
+          "label": "Assessor Name",
+          "required": true
+        },
+        {
+          "id": "assessmentDate",
+          "type": "date",
+          "label": "Assessment Date",
+          "required": true
+        },
+        {
+          "id": "reviewDate",
+          "type": "date",
+          "label": "Review Date",
+          "required": true
+        },
+        {
+          "id": "activity",
+          "type": "textarea",
+          "label": "Activity/Task Description",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "hazardAssessment",
+      "title": "Hazard Assessment",
+      "repeatable": true,
+      "fields": [
+        {
+          "id": "hazard",
+          "type": "text",
+          "label": "Hazard",
+          "placeholder": "What could cause harm?",
+          "required": true
+        },
+        {
+          "id": "harmPotential",
+          "type": "textarea",
+          "label": "Potential Harm",
+          "placeholder": "What harm could occur? Who could be affected?"
+        },
+        {
+          "id": "existingControls",
+          "type": "textarea",
+          "label": "Existing Controls",
+          "placeholder": "What controls are already in place?"
+        },
+        {
+          "id": "likelihood",
+          "type": "select",
+          "label": "Likelihood (with existing controls)",
+          "options": ["1 - Rare", "2 - Unlikely", "3 - Possible", "4 - Likely", "5 - Almost Certain"],
+          "required": true
+        },
+        {
+          "id": "consequence",
+          "type": "select",
+          "label": "Consequence",
+          "options": ["1 - Insignificant", "2 - Minor", "3 - Moderate", "4 - Major", "5 - Catastrophic"],
+          "required": true
+        },
+        {
+          "id": "riskRating",
+          "type": "calculated",
+          "label": "Risk Rating",
+          "formula": "likelihood * consequence"
+        },
+        {
+          "id": "additionalControls",
+          "type": "textarea",
+          "label": "Additional Controls Required",
+          "placeholder": "What additional controls are needed to reduce risk?"
+        },
+        {
+          "id": "residualLikelihood",
+          "type": "select",
+          "label": "Residual Likelihood (after additional controls)",
+          "options": ["1 - Rare", "2 - Unlikely", "3 - Possible", "4 - Likely", "5 - Almost Certain"]
+        },
+        {
+          "id": "residualConsequence",
+          "type": "select",
+          "label": "Residual Consequence",
+          "options": ["1 - Insignificant", "2 - Minor", "3 - Moderate", "4 - Major", "5 - Catastrophic"]
+        },
+        {
+          "id": "residualRisk",
+          "type": "calculated",
+          "label": "Residual Risk Rating",
+          "formula": "residualLikelihood * residualConsequence"
+        },
+        {
+          "id": "responsiblePerson",
+          "type": "text",
+          "label": "Responsible Person"
+        },
+        {
+          "id": "completionDate",
+          "type": "date",
+          "label": "Target Completion Date"
+        }
+      ]
+    },
+    {
+      "id": "hierarchyOfControls",
+      "title": "Hierarchy of Controls Reference",
+      "type": "info",
+      "content": [
+        {
+          "level": 1,
+          "name": "Elimination",
+          "description": "Physically remove the hazard",
+          "example": "Use pre-fabricated components instead of on-site cutting"
+        },
+        {
+          "level": 2,
+          "name": "Substitution",
+          "description": "Replace the hazard with something safer",
+          "example": "Use water-based products instead of solvent-based"
+        },
+        {
+          "level": 3,
+          "name": "Engineering Controls",
+          "description": "Isolate people from the hazard",
+          "example": "Install guards, barriers, ventilation systems"
+        },
+        {
+          "level": 4,
+          "name": "Administrative Controls",
+          "description": "Change the way people work",
+          "example": "Training, procedures, signage, job rotation"
+        },
+        {
+          "level": 5,
+          "name": "PPE",
+          "description": "Protect the worker with personal equipment",
+          "example": "Safety glasses, gloves, hearing protection"
+        }
+      ]
+    },
+    {
+      "id": "signoff",
+      "title": "Sign-off",
+      "fields": [
+        {
+          "id": "assessorSignature",
+          "type": "signature",
+          "label": "Assessor Signature",
+          "required": true
+        },
+        {
+          "id": "assessorDate",
+          "type": "date",
+          "label": "Date",
+          "required": true
+        },
+        {
+          "id": "reviewerName",
+          "type": "text",
+          "label": "Reviewed By"
+        },
+        {
+          "id": "reviewerSignature",
+          "type": "signature",
+          "label": "Reviewer Signature"
+        }
+      ]
+    }
+  ],
+  "aiPrompts": {
+    "hazardIdentification": "You are a NZ workplace health and safety expert. Given the work activity and location, identify potential hazards. For each hazard, describe what harm could occur and who could be affected. Consider NZ-specific regulations and WorkSafe guidance.",
+    "controlSuggestions": "You are a NZ workplace health and safety expert. For the identified hazard, suggest appropriate control measures following the hierarchy of controls. Start with elimination and work down. Be specific and practical for the NZ context."
+  }
+}

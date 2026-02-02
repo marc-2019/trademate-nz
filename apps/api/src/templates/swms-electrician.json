@@ -1,0 +1,279 @@
+{
+  "tradeType": "electrician",
+  "version": "1.0",
+  "nzRegulations": [
+    "Health and Safety at Work Act 2015",
+    "Electricity Act 1992",
+    "Electricity (Safety) Regulations 2010",
+    "WorkSafe NZ Electrical Guidance"
+  ],
+  "sections": [
+    {
+      "id": "scope",
+      "title": "Scope of Work",
+      "fields": [
+        {
+          "id": "jobDescription",
+          "type": "text",
+          "label": "Job Description",
+          "placeholder": "Describe the electrical work to be performed",
+          "required": true
+        },
+        {
+          "id": "location",
+          "type": "text",
+          "label": "Site Address",
+          "placeholder": "Full street address",
+          "required": true
+        },
+        {
+          "id": "clientName",
+          "type": "text",
+          "label": "Client Name",
+          "required": true
+        },
+        {
+          "id": "duration",
+          "type": "select",
+          "label": "Expected Duration",
+          "options": ["< 1 day", "1-3 days", "1 week", "2+ weeks"],
+          "required": true
+        },
+        {
+          "id": "workersOnSite",
+          "type": "number",
+          "label": "Number of Workers",
+          "min": 1,
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "hazards",
+      "title": "Hazard Identification",
+      "aiAssisted": true,
+      "description": "Identify all hazards present at the work site",
+      "fields": [
+        {
+          "id": "electricalHazards",
+          "type": "checklist",
+          "label": "Electrical Hazards",
+          "options": [
+            "Live circuits",
+            "High voltage (>1000V)",
+            "Damaged cables/wiring",
+            "Wet/damp conditions",
+            "Overhead power lines",
+            "Underground cables",
+            "Faulty equipment",
+            "Arc flash risk",
+            "Static electricity",
+            "Switchboard work"
+          ]
+        },
+        {
+          "id": "physicalHazards",
+          "type": "checklist",
+          "label": "Physical Hazards",
+          "options": [
+            "Working at height (>2m)",
+            "Ladder work",
+            "Roof access",
+            "Confined spaces",
+            "Manual handling (heavy items)",
+            "Hot work (soldering)",
+            "Asbestos risk (pre-2000 building)",
+            "Dust/particles",
+            "Sharp edges",
+            "Trip hazards"
+          ]
+        },
+        {
+          "id": "environmentalHazards",
+          "type": "checklist",
+          "label": "Environmental Hazards",
+          "options": [
+            "Extreme heat",
+            "Extreme cold",
+            "Poor lighting",
+            "Noise",
+            "UV exposure (outdoor)",
+            "Weather conditions",
+            "Traffic nearby",
+            "Public access area"
+          ]
+        },
+        {
+          "id": "otherHazards",
+          "type": "textarea",
+          "label": "Other Identified Hazards",
+          "placeholder": "List any additional hazards specific to this job"
+        }
+      ]
+    },
+    {
+      "id": "controls",
+      "title": "Risk Controls",
+      "aiAssisted": true,
+      "description": "Controls following hierarchy: Elimination > Substitution > Engineering > Administrative > PPE",
+      "fields": [
+        {
+          "id": "isolationProcedure",
+          "type": "textarea",
+          "label": "Isolation Procedure",
+          "placeholder": "Describe the isolation and lockout/tagout procedure",
+          "required": true,
+          "defaultValue": "1. Identify circuit(s) to be isolated\n2. Notify affected parties\n3. Switch off at distribution board\n4. Lock off with personal lock\n5. Test for dead using approved voltage tester\n6. Attach danger tag\n7. Test tester on known live source"
+        },
+        {
+          "id": "ppe",
+          "type": "checklist",
+          "label": "PPE Required",
+          "options": [
+            "Safety glasses/goggles",
+            "Insulated gloves (Class 00/0)",
+            "Hard hat (AS/NZS 1801)",
+            "Hi-vis vest/clothing",
+            "Safety boots (EH rated)",
+            "Hearing protection",
+            "Dust mask/respirator",
+            "Face shield (arc flash)",
+            "Fall arrest harness",
+            "Knee pads"
+          ]
+        },
+        {
+          "id": "engineeringControls",
+          "type": "checklist",
+          "label": "Engineering Controls",
+          "options": [
+            "Residual Current Device (RCD) protection",
+            "Isolation transformer",
+            "Insulated tools",
+            "Barriers/fencing",
+            "Signage",
+            "Temporary lighting",
+            "Ventilation",
+            "Scaffolding/work platform"
+          ]
+        },
+        {
+          "id": "administrativeControls",
+          "type": "checklist",
+          "label": "Administrative Controls",
+          "options": [
+            "Permit to work system",
+            "Toolbox talk completed",
+            "Site induction completed",
+            "Emergency procedures reviewed",
+            "Communication plan in place",
+            "Work sequence documented",
+            "Supervision requirements"
+          ]
+        },
+        {
+          "id": "emergencyPlan",
+          "type": "textarea",
+          "label": "Emergency Response Plan",
+          "required": true,
+          "defaultValue": "In case of electrical shock:\n1. DO NOT touch the person if still in contact with electricity\n2. Isolate power source immediately\n3. Call 111 for emergency services\n4. If safe, begin CPR if person is unresponsive\n5. Treat for burns - do not remove clothing stuck to skin\n\nNearest hospital: [To be filled]\nFirst aid kit location: [To be filled]\nFire extinguisher location: [To be filled]"
+        }
+      ]
+    },
+    {
+      "id": "workSequence",
+      "title": "High Risk Work Sequence",
+      "description": "Step-by-step sequence for high risk activities",
+      "fields": [
+        {
+          "id": "steps",
+          "type": "steps",
+          "label": "Work Steps",
+          "placeholder": "Add step-by-step work sequence",
+          "fields": [
+            {"id": "step", "label": "Step", "type": "text"},
+            {"id": "hazard", "label": "Hazard", "type": "text"},
+            {"id": "control", "label": "Control", "type": "text"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "communication",
+      "title": "Communication",
+      "fields": [
+        {
+          "id": "supervisorName",
+          "type": "text",
+          "label": "Supervisor Name"
+        },
+        {
+          "id": "supervisorPhone",
+          "type": "text",
+          "label": "Supervisor Phone"
+        },
+        {
+          "id": "emergencyContact",
+          "type": "text",
+          "label": "Emergency Contact",
+          "defaultValue": "111"
+        },
+        {
+          "id": "toolboxTalkDate",
+          "type": "date",
+          "label": "Toolbox Talk Date"
+        },
+        {
+          "id": "toolboxTalkTopics",
+          "type": "textarea",
+          "label": "Toolbox Talk Topics Covered"
+        }
+      ]
+    },
+    {
+      "id": "signoff",
+      "title": "Sign-off",
+      "description": "All workers must sign before commencing work",
+      "fields": [
+        {
+          "id": "workerDeclaration",
+          "type": "checkbox",
+          "label": "I have read and understood this SWMS, and agree to follow the safe work procedures outlined",
+          "required": true
+        },
+        {
+          "id": "workerName",
+          "type": "text",
+          "label": "Worker Name",
+          "required": true
+        },
+        {
+          "id": "workerSignature",
+          "type": "signature",
+          "label": "Worker Signature",
+          "required": true
+        },
+        {
+          "id": "workerDate",
+          "type": "date",
+          "label": "Date",
+          "required": true
+        },
+        {
+          "id": "supervisorSignature",
+          "type": "signature",
+          "label": "Supervisor Signature (if applicable)"
+        },
+        {
+          "id": "supervisorDate",
+          "type": "date",
+          "label": "Supervisor Date"
+        }
+      ]
+    }
+  ],
+  "aiPrompts": {
+    "hazardSuggestions": "You are a NZ workplace health and safety expert specializing in electrical work. Given the job description and site details, suggest specific hazards that should be considered for this SWMS. Focus on NZ-specific regulations (Health and Safety at Work Act 2015, Electricity Safety Regulations 2010, WorkSafe NZ guidelines). Be specific and practical.",
+    "controlSuggestions": "You are a NZ workplace health and safety expert. For each hazard, provide specific control measures following the hierarchy of controls (elimination > substitution > engineering > administrative > PPE). Reference NZ electrical safety standards and WorkSafe guidance where applicable."
+  }
+}

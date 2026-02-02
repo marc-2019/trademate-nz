@@ -1,0 +1,66 @@
+# TradeMate NZ API - Multi-stage Dockerfile
+# Supports both development (with hot reload) and production builds
+
+# =============================================================================
+# BASE STAGE - Common dependencies
+# =============================================================================
+FROM node:20-alpine AS base
+WORKDIR /app
+RUN apk add --no-cache dumb-init
+
+# =============================================================================
+# DEPENDENCIES STAGE - Install production dependencies
+# =============================================================================
+FROM base AS deps
+COPY apps/api/package*.json ./
+RUN npm install --only=production && npm cache clean --force
+
+# =============================================================================
+# BUILD STAGE - Compile TypeScript
+# =============================================================================
+FROM base AS builder
+COPY apps/api/package*.json ./
+RUN npm install
+COPY apps/api/tsconfig.json ./
+COPY apps/api/src ./src
+RUN npm run build
+# Copy JSON templates to dist (TypeScript doesn't copy JSON files)
+RUN cp -r src/templates dist/templates
+
+# =============================================================================
+# PRODUCTION STAGE - Minimal production image
+# =============================================================================
+FROM base AS production
+ENV NODE_ENV=production
+USER node
+
+COPY --chown=node:node --from=deps /app/node_modules ./node_modules
+COPY --chown=node:node --from=builder /app/dist ./dist
+COPY --chown=node:node --from=builder /app/dist/templates ./dist/templates
+COPY --chown=node:node apps/api/package*.json ./
+
+EXPOSE 29000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:29000/health || exit 1
+
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "dist/index.js"]
+
+# =============================================================================
+# DEVELOPMENT STAGE - With hot reload support
+# =============================================================================
+FROM base AS development
+ENV NODE_ENV=development
+WORKDIR /app
+
+COPY apps/api/package*.json ./
+RUN npm install
+
+COPY apps/api/tsconfig.json ./
+COPY apps/api/jest.config.js ./
+COPY apps/api/src ./src
+
+EXPOSE 29000
+
+CMD ["npm", "run", "dev"]

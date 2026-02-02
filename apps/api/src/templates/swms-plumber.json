@@ -1,0 +1,237 @@
+{
+  "tradeType": "plumber",
+  "version": "1.0",
+  "nzRegulations": [
+    "Health and Safety at Work Act 2015",
+    "Plumbers, Gasfitters, and Drainlayers Act 2006",
+    "Building Act 2004",
+    "WorkSafe NZ Guidance"
+  ],
+  "sections": [
+    {
+      "id": "scope",
+      "title": "Scope of Work",
+      "fields": [
+        {
+          "id": "jobDescription",
+          "type": "text",
+          "label": "Job Description",
+          "placeholder": "Describe the plumbing work to be performed",
+          "required": true
+        },
+        {
+          "id": "location",
+          "type": "text",
+          "label": "Site Address",
+          "placeholder": "Full street address",
+          "required": true
+        },
+        {
+          "id": "clientName",
+          "type": "text",
+          "label": "Client Name",
+          "required": true
+        },
+        {
+          "id": "duration",
+          "type": "select",
+          "label": "Expected Duration",
+          "options": ["< 1 day", "1-3 days", "1 week", "2+ weeks"],
+          "required": true
+        },
+        {
+          "id": "workType",
+          "type": "checklist",
+          "label": "Type of Work",
+          "options": [
+            "Water supply installation",
+            "Hot water system",
+            "Drainage work",
+            "Gas fitting",
+            "Roof plumbing",
+            "Sanitary plumbing",
+            "Backflow prevention",
+            "Maintenance/repairs"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hazards",
+      "title": "Hazard Identification",
+      "aiAssisted": true,
+      "fields": [
+        {
+          "id": "plumbingHazards",
+          "type": "checklist",
+          "label": "Plumbing-Specific Hazards",
+          "options": [
+            "Scalding (hot water >60°C)",
+            "Gas leaks",
+            "Sewage/contaminated water",
+            "Pressurised systems",
+            "Legionella risk",
+            "Chemical exposure (flux, solvents)",
+            "Lead pipes (older buildings)",
+            "Asbestos cement pipes",
+            "Underground services",
+            "Backflow contamination"
+          ]
+        },
+        {
+          "id": "physicalHazards",
+          "type": "checklist",
+          "label": "Physical Hazards",
+          "options": [
+            "Working at height (roof work)",
+            "Confined spaces (manholes, ceiling spaces)",
+            "Excavation/trenching",
+            "Manual handling (heavy pipes)",
+            "Hot work (soldering, brazing)",
+            "Slip/trip hazards (wet surfaces)",
+            "Sharp edges (cut pipes)",
+            "Noise (power tools)",
+            "Poor access/egress"
+          ]
+        },
+        {
+          "id": "environmentalHazards",
+          "type": "checklist",
+          "label": "Environmental Hazards",
+          "options": [
+            "Extreme temperatures",
+            "Poor lighting",
+            "Dust/particles",
+            "Biological hazards",
+            "Weather exposure",
+            "Traffic nearby",
+            "Unstable ground"
+          ]
+        },
+        {
+          "id": "otherHazards",
+          "type": "textarea",
+          "label": "Other Identified Hazards"
+        }
+      ]
+    },
+    {
+      "id": "controls",
+      "title": "Risk Controls",
+      "aiAssisted": true,
+      "fields": [
+        {
+          "id": "isolationProcedure",
+          "type": "textarea",
+          "label": "Water/Gas Isolation Procedure",
+          "required": true,
+          "defaultValue": "Water Isolation:\n1. Locate main shut-off valve\n2. Turn off water supply\n3. Open lowest tap to drain system\n4. Verify no flow at work area\n\nGas Isolation (if applicable):\n1. Locate gas meter/isolation valve\n2. Turn off gas supply\n3. Wait minimum 5 minutes for gas to clear\n4. Test with gas detector before work"
+        },
+        {
+          "id": "ppe",
+          "type": "checklist",
+          "label": "PPE Required",
+          "options": [
+            "Safety glasses/goggles",
+            "Waterproof gloves",
+            "Chemical-resistant gloves",
+            "Steel-cap boots",
+            "Hard hat",
+            "Hi-vis clothing",
+            "Hearing protection",
+            "Dust mask/respirator",
+            "Knee pads",
+            "Face shield (hot work)"
+          ]
+        },
+        {
+          "id": "engineeringControls",
+          "type": "checklist",
+          "label": "Engineering Controls",
+          "options": [
+            "Temporary barriers",
+            "Shoring (excavations)",
+            "Ventilation (confined spaces)",
+            "Gas detection equipment",
+            "Pressure testing equipment",
+            "Temporary drainage",
+            "Spill containment"
+          ]
+        },
+        {
+          "id": "emergencyPlan",
+          "type": "textarea",
+          "label": "Emergency Response Plan",
+          "required": true,
+          "defaultValue": "Gas Leak Emergency:\n1. Do not create ignition sources\n2. Ventilate area if safe\n3. Evacuate and call 111\n4. Call gas emergency: 0800 GAS LEAK (0800 427 532)\n\nWater Emergency:\n1. Locate and close main shut-off\n2. Isolate electrical if flooding\n3. Contact client/property owner\n\nNearest hospital: [To be filled]\nFirst aid kit location: [To be filled]"
+        }
+      ]
+    },
+    {
+      "id": "permits",
+      "title": "Permits & Certifications",
+      "fields": [
+        {
+          "id": "registrationNumber",
+          "type": "text",
+          "label": "PGDB Registration Number",
+          "required": true
+        },
+        {
+          "id": "gasCert",
+          "type": "checkbox",
+          "label": "Valid Gas Fitting Certificate (if gas work)"
+        },
+        {
+          "id": "buildingConsent",
+          "type": "checkbox",
+          "label": "Building consent obtained (if required)"
+        },
+        {
+          "id": "confinedSpacePermit",
+          "type": "checkbox",
+          "label": "Confined space entry permit (if applicable)"
+        }
+      ]
+    },
+    {
+      "id": "signoff",
+      "title": "Sign-off",
+      "fields": [
+        {
+          "id": "workerDeclaration",
+          "type": "checkbox",
+          "label": "I have read and understood this SWMS, and agree to follow the safe work procedures outlined",
+          "required": true
+        },
+        {
+          "id": "workerName",
+          "type": "text",
+          "label": "Worker Name",
+          "required": true
+        },
+        {
+          "id": "workerSignature",
+          "type": "signature",
+          "label": "Worker Signature",
+          "required": true
+        },
+        {
+          "id": "workerDate",
+          "type": "date",
+          "label": "Date",
+          "required": true
+        },
+        {
+          "id": "supervisorSignature",
+          "type": "signature",
+          "label": "Supervisor Signature (if applicable)"
+        }
+      ]
+    }
+  ],
+  "aiPrompts": {
+    "hazardSuggestions": "You are a NZ workplace health and safety expert specializing in plumbing work. Given the job description, suggest specific hazards considering NZ regulations (Health and Safety at Work Act 2015, Plumbers Gasfitters and Drainlayers Act 2006). Include specific risks for the type of plumbing work described.",
+    "controlSuggestions": "You are a NZ workplace health and safety expert. For each hazard, provide specific control measures following the hierarchy of controls. Reference NZ plumbing standards and PGDB requirements where applicable."
+  }
+}

@@ -1,0 +1,205 @@
+/**
+ * Auth Context
+ * Manages authentication state and token storage
+ */
+
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import * as SecureStore from 'expo-secure-store';
+import { api, setAuthToken } from '../services/api';
+
+interface User {
+  id: string;
+  email: string;
+  name: string | null;
+  phone: string | null;
+  tradeType: string | null;
+  businessName: string | null;
+  isVerified: boolean;
+}
+
+interface AuthContextType {
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  register: (data: RegisterData) => Promise<void>;
+  logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
+}
+
+interface RegisterData {
+  email: string;
+  password: string;
+  name?: string;
+  phone?: string;
+  tradeType?: string;
+  businessName?: string;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const TOKEN_KEY = 'trademate_access_token';
+const REFRESH_KEY = 'trademate_refresh_token';
+const USER_KEY = 'trademate_user';
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load stored auth on mount
+  useEffect(() => {
+    loadStoredAuth();
+  }, []);
+
+  async function loadStoredAuth() {
+    try {
+      const [token, storedUser] = await Promise.all([
+        SecureStore.getItemAsync(TOKEN_KEY),
+        SecureStore.getItemAsync(USER_KEY),
+      ]);
+
+      if (token && storedUser) {
+        setAuthToken(token);
+        setUser(JSON.parse(storedUser));
+
+        // Verify token is still valid
+        try {
+          const response = await api.get('/api/v1/auth/me');
+          if (response.data.success) {
+            setUser(response.data.data.user);
+          }
+        } catch {
+          // Token expired, try refresh
+          await tryRefreshToken();
+        }
+      }
+    } catch (error) {
+      console.error('Error loading stored auth:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function tryRefreshToken() {
+    try {
+      const refreshToken = await SecureStore.getItemAsync(REFRESH_KEY);
+      if (!refreshToken) {
+        await clearAuth();
+        return;
+      }
+
+      const response = await api.post('/api/v1/auth/refresh', { refreshToken });
+      if (response.data.success) {
+        const { tokens } = response.data.data;
+        await storeTokens(tokens.accessToken, tokens.refreshToken);
+        setAuthToken(tokens.accessToken);
+
+        // Fetch user
+        const userResponse = await api.get('/api/v1/auth/me');
+        if (userResponse.data.success) {
+          const userData = userResponse.data.data.user;
+          setUser(userData);
+          await SecureStore.setItemAsync(USER_KEY, JSON.stringify(userData));
+        }
+      }
+    } catch {
+      await clearAuth();
+    }
+  }
+
+  async function storeTokens(accessToken: string, refreshToken: string) {
+    await Promise.all([
+      SecureStore.setItemAsync(TOKEN_KEY, accessToken),
+      SecureStore.setItemAsync(REFRESH_KEY, refreshToken),
+    ]);
+  }
+
+  async function clearAuth() {
+    await Promise.all([
+      SecureStore.deleteItemAsync(TOKEN_KEY),
+      SecureStore.deleteItemAsync(REFRESH_KEY),
+      SecureStore.deleteItemAsync(USER_KEY),
+    ]);
+    setAuthToken(null);
+    setUser(null);
+  }
+
+  async function login(email: string, password: string) {
+    const response = await api.post('/api/v1/auth/login', { email, password });
+
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Login failed');
+    }
+
+    const { user: userData, tokens } = response.data.data;
+
+    await storeTokens(tokens.accessToken, tokens.refreshToken);
+    await SecureStore.setItemAsync(USER_KEY, JSON.stringify(userData));
+    setAuthToken(tokens.accessToken);
+    setUser(userData);
+  }
+
+  async function register(data: RegisterData) {
+    const response = await api.post('/api/v1/auth/register', data);
+
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Registration failed');
+    }
+
+    const { user: userData, tokens } = response.data.data;
+
+    await storeTokens(tokens.accessToken, tokens.refreshToken);
+    await SecureStore.setItemAsync(USER_KEY, JSON.stringify(userData));
+    setAuthToken(tokens.accessToken);
+    setUser(userData);
+  }
+
+  async function logout() {
+    try {
+      const refreshToken = await SecureStore.getItemAsync(REFRESH_KEY);
+      if (refreshToken) {
+        await api.post('/api/v1/auth/logout', { refreshToken });
+      }
+    } catch {
+      // Ignore logout errors
+    }
+    await clearAuth();
+  }
+
+  async function refreshUser() {
+    try {
+      const response = await api.get('/api/v1/auth/me');
+      if (response.data.success) {
+        const userData = response.data.data.user;
+        setUser(userData);
+        await SecureStore.setItemAsync(USER_KEY, JSON.stringify(userData));
+      }
+    } catch (error) {
+      console.error('Error refreshing user:', error);
+    }
+  }
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: !!user,
+        isLoading,
+        login,
+        register,
+        logout,
+        refreshUser,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}
