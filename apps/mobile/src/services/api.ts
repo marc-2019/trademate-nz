@@ -6,7 +6,7 @@
 import Constants from 'expo-constants';
 
 // Get API URL from environment or use default
-const API_BASE_URL = Constants.expoConfig?.extra?.apiUrl || 'http://192.168.50.128:29000';
+const API_BASE_URL = Constants.expoConfig?.extra?.apiUrl || 'http://192.168.50.170:29000';
 
 let authToken: string | null = null;
 
@@ -101,6 +101,78 @@ export const swmsApi = {
 
   sign: (id: string, signature: string, role: 'worker' | 'supervisor') =>
     api.post(`/api/v1/swms/${id}/sign`, { signature, role }),
+};
+
+// Invoices API
+export const invoicesApi = {
+  create: (data: {
+    clientName: string;
+    clientEmail?: string;
+    clientPhone?: string;
+    swmsId?: string;
+    jobDescription?: string;
+    lineItems: { description: string; amount: number }[];
+    includeGst?: boolean;
+    dueDate?: string;
+    bankAccountName?: string;
+    bankAccountNumber?: string;
+    notes?: string;
+  }) => api.post('/api/v1/invoices', data),
+
+  list: (params?: { status?: string; limit?: number; offset?: number }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.offset) queryParams.append('offset', params.offset.toString());
+    const query = queryParams.toString();
+    return api.get(`/api/v1/invoices${query ? `?${query}` : ''}`);
+  },
+
+  get: (id: string) => api.get(`/api/v1/invoices/${id}`),
+
+  update: (id: string, data: Record<string, unknown>) => api.put(`/api/v1/invoices/${id}`, data),
+
+  delete: (id: string) => api.delete(`/api/v1/invoices/${id}`),
+
+  markAsSent: (id: string) => api.post(`/api/v1/invoices/${id}/send`),
+
+  markAsPaid: (id: string) => api.post(`/api/v1/invoices/${id}/paid`),
+};
+
+// Certifications API
+export const certificationsApi = {
+  create: (data: {
+    type: string;
+    name: string;
+    certNumber?: string;
+    issuingBody?: string;
+    issueDate?: string;
+    expiryDate?: string;
+  }) => api.post('/api/v1/certifications', data),
+
+  list: (params?: { limit?: number; offset?: number }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.offset) queryParams.append('offset', params.offset.toString());
+    const query = queryParams.toString();
+    return api.get(`/api/v1/certifications${query ? `?${query}` : ''}`);
+  },
+
+  get: (id: string) => api.get(`/api/v1/certifications/${id}`),
+
+  update: (id: string, data: Record<string, unknown>) => api.put(`/api/v1/certifications/${id}`, data),
+
+  delete: (id: string) => api.delete(`/api/v1/certifications/${id}`),
+
+  getExpiring: (days?: number) => {
+    const queryParams = days ? `?days=${days}` : '';
+    return api.get(`/api/v1/certifications/expiring${queryParams}`);
+  },
+};
+
+// Stats API
+export const statsApi = {
+  getDashboard: () => api.get('/api/v1/stats/dashboard'),
 };
 
 export default api;

@@ -1,6 +1,12 @@
 /**
  * Tabs Layout
  * Bottom tab navigation for main app sections
+ *
+ * New Tab Structure:
+ * - Home: Dashboard, stats, quick actions
+ * - Work: SWMS documents (future: jobs, site briefings)
+ * - People: Certifications (future: staff, visa compliance)
+ * - Money: Invoices (future: cashflow forecasting)
  */
 
 import { Tabs } from 'expo-router';
@@ -45,30 +51,49 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="work"
+        options={{
+          title: 'Work',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="briefcase" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="people"
+        options={{
+          title: 'People',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="people" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="money"
+        options={{
+          title: 'Money',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="wallet" size={size} color={color} />
+          ),
+        }}
+      />
+      {/* Hide old tabs that are being replaced */}
+      <Tabs.Screen
         name="swms"
         options={{
-          title: 'SWMS',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="document-text" size={size} color={color} />
-          ),
+          href: null, // Hide from tab bar
         }}
       />
       <Tabs.Screen
         name="certifications"
         options={{
-          title: 'Certs',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="ribbon" size={size} color={color} />
-          ),
+          href: null, // Hide from tab bar
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size} color={color} />
-          ),
+          href: null, // Hide from tab bar
         }}
       />
     </Tabs>

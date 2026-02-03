@@ -23,6 +23,9 @@ import { errorHandler, notFoundHandler } from './middleware/error.js';
 import healthRoutes from './routes/health.js';
 import authRoutes from './routes/auth.js';
 import swmsRoutes from './routes/swms.js';
+import invoicesRoutes from './routes/invoices.js';
+import certificationsRoutes from './routes/certifications.js';
+import statsRoutes from './routes/stats.js';
 
 const app = express();
 
@@ -88,6 +91,9 @@ app.use('/health', healthRoutes);
 // API v1 routes
 app.use('/api/v1/auth', authLimiter, authRoutes);
 app.use('/api/v1/swms', apiLimiter, swmsRoutes);
+app.use('/api/v1/invoices', apiLimiter, invoicesRoutes);
+app.use('/api/v1/certifications', apiLimiter, certificationsRoutes);
+app.use('/api/v1/stats', apiLimiter, statsRoutes);
 
 // Compliance alias (points to swms for backwards compatibility)
 app.use('/api/v1/compliance', apiLimiter, swmsRoutes);
@@ -136,6 +142,9 @@ app.listen(PORT, () => {
 ║    Health:    http://localhost:${PORT}/health                      ║
 ║    Auth:      http://localhost:${PORT}/api/v1/auth                 ║
 ║    SWMS:      http://localhost:${PORT}/api/v1/swms                 ║
+║    Invoices:  http://localhost:${PORT}/api/v1/invoices             ║
+║    Certs:     http://localhost:${PORT}/api/v1/certifications       ║
+║    Stats:     http://localhost:${PORT}/api/v1/stats                ║
 ╚═══════════════════════════════════════════════════════════════╝
   `);
 });

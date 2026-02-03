@@ -1,0 +1,434 @@
+/**
+ * Money Tab
+ * Invoice list with status filtering
+ * Future: Cashflow forecasting, Xero integration
+ */
+
+import { useCallback, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  RefreshControl,
+  TextInput,
+} from 'react-native';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { invoicesApi } from '../../src/services/api';
+
+interface Invoice {
+  id: string;
+  invoice_number: string;
+  client_name: string;
+  total: number;
+  status: 'draft' | 'sent' | 'paid' | 'overdue';
+  due_date: string | null;
+  created_at: string;
+}
+
+export default function MoneyScreen() {
+  const router = useRouter();
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [unpaidTotal, setUnpaidTotal] = useState(0);
+
+  const loadInvoices = useCallback(async () => {
+    try {
+      const response = await invoicesApi.list({ status: statusFilter || undefined });
+      if (response.data.success) {
+        const invoiceList = response.data.data.invoices || [];
+        setInvoices(invoiceList);
+
+        // Calculate unpaid total
+        const unpaid = invoiceList
+          .filter((inv: Invoice) => inv.status === 'sent' || inv.status === 'overdue')
+          .reduce((sum: number, inv: Invoice) => sum + inv.total, 0);
+        setUnpaidTotal(unpaid);
+      }
+    } catch (error) {
+      console.error('Failed to load invoices:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [statusFilter]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadInvoices();
+    }, [loadInvoices])
+  );
+
+  async function handleRefresh() {
+    setIsRefreshing(true);
+    await loadInvoices();
+    setIsRefreshing(false);
+  }
+
+  function formatCurrency(cents: number): string {
+    return '$' + (cents / 100).toLocaleString('en-NZ', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  }
+
+  function formatDate(dateString: string | null): string {
+    if (!dateString) return 'No due date';
+    return new Date(dateString).toLocaleDateString('en-NZ', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  }
+
+  function getStatusColor(status: string): string {
+    switch (status) {
+      case 'paid':
+        return '#10B981';
+      case 'sent':
+        return '#2563EB';
+      case 'overdue':
+        return '#EF4444';
+      default:
+        return '#6B7280';
+    }
+  }
+
+  function getStatusLabel(status: string): string {
+    switch (status) {
+      case 'paid':
+        return 'Paid';
+      case 'sent':
+        return 'Sent';
+      case 'overdue':
+        return 'Overdue';
+      default:
+        return 'Draft';
+    }
+  }
+
+  const filteredInvoices = invoices.filter((inv) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      inv.client_name.toLowerCase().includes(query) ||
+      inv.invoice_number.toLowerCase().includes(query)
+    );
+  });
+
+  function renderInvoice({ item }: { item: Invoice }) {
+    return (
+      <TouchableOpacity
+        style={styles.invoiceCard}
+        onPress={() => router.push(`/invoices/${item.id}`)}
+      >
+        <View style={styles.invoiceHeader}>
+          <View style={styles.invoiceInfo}>
+            <Text style={styles.invoiceNumber}>{item.invoice_number}</Text>
+            <Text style={styles.clientName}>{item.client_name}</Text>
+          </View>
+          <View style={styles.invoiceAmountContainer}>
+            <Text style={styles.invoiceAmount}>{formatCurrency(item.total)}</Text>
+            <View
+              style={[
+                styles.statusBadge,
+                { backgroundColor: getStatusColor(item.status) + '20' },
+              ]}
+            >
+              <Text
+                style={[styles.statusText, { color: getStatusColor(item.status) }]}
+              >
+                {getStatusLabel(item.status)}
+              </Text>
+            </View>
+          </View>
+        </View>
+        <View style={styles.invoiceMeta}>
+          <View style={styles.metaItem}>
+            <Ionicons name="calendar-outline" size={14} color="#6B7280" />
+            <Text style={styles.metaText}>
+              {item.status === 'paid' ? 'Paid' : `Due: ${formatDate(item.due_date)}`}
+            </Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      {/* Unpaid Summary Card */}
+      {unpaidTotal > 0 && (
+        <View style={styles.summaryCard}>
+          <View style={styles.summaryContent}>
+            <Text style={styles.summaryLabel}>Unpaid Invoices</Text>
+            <Text style={styles.summaryAmount}>{formatCurrency(unpaidTotal)}</Text>
+          </View>
+          <Ionicons name="trending-up" size={32} color="#2563EB" />
+        </View>
+      )}
+
+      <View style={styles.searchContainer}>
+        <View style={styles.searchBox}>
+          <Ionicons name="search" size={20} color="#9CA3AF" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search invoices..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholderTextColor="#9CA3AF"
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <Ionicons name="close-circle" size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
+      <View style={styles.filterRow}>
+        {['all', 'draft', 'sent', 'paid', 'overdue'].map((filter) => (
+          <TouchableOpacity
+            key={filter}
+            style={[
+              styles.filterChip,
+              (statusFilter === filter || (filter === 'all' && !statusFilter)) &&
+                styles.filterChipActive,
+            ]}
+            onPress={() => setStatusFilter(filter === 'all' ? null : filter)}
+          >
+            <Text
+              style={[
+                styles.filterText,
+                (statusFilter === filter || (filter === 'all' && !statusFilter)) &&
+                  styles.filterTextActive,
+              ]}
+            >
+              {filter.charAt(0).toUpperCase() + filter.slice(1)}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <FlatList
+        data={filteredInvoices}
+        keyExtractor={(item) => item.id}
+        renderItem={renderInvoice}
+        contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyState}>
+            <Ionicons name="receipt-outline" size={48} color="#D1D5DB" />
+            <Text style={styles.emptyText}>
+              {searchQuery ? 'No matching invoices' : 'No invoices yet'}
+            </Text>
+            {!searchQuery && (
+              <TouchableOpacity
+                style={styles.emptyButton}
+                onPress={() => router.push('/invoices/create')}
+              >
+                <Text style={styles.emptyButtonText}>Create Your First Invoice</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        }
+      />
+
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => router.push('/invoices/create')}
+      >
+        <Ionicons name="add" size={28} color="#fff" />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+  },
+  summaryCard: {
+    backgroundColor: '#EFF6FF',
+    margin: 16,
+    marginBottom: 0,
+    padding: 16,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  summaryContent: {
+    flex: 1,
+  },
+  summaryLabel: {
+    fontSize: 14,
+    color: '#1E40AF',
+    fontWeight: '500',
+  },
+  summaryAmount: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#1E40AF',
+    marginTop: 4,
+  },
+  searchContainer: {
+    padding: 16,
+    paddingBottom: 8,
+    backgroundColor: '#fff',
+    marginTop: 8,
+  },
+  searchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    height: 44,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 8,
+    fontSize: 16,
+    color: '#111827',
+  },
+  filterRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  filterChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: '#F3F4F6',
+  },
+  filterChipActive: {
+    backgroundColor: '#2563EB',
+  },
+  filterText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#6B7280',
+  },
+  filterTextActive: {
+    color: '#fff',
+  },
+  listContent: {
+    padding: 16,
+    paddingBottom: 100,
+  },
+  invoiceCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  invoiceHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  invoiceInfo: {
+    flex: 1,
+  },
+  invoiceNumber: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2563EB',
+  },
+  clientName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+    marginTop: 2,
+  },
+  invoiceAmountContainer: {
+    alignItems: 'flex-end',
+  },
+  invoiceAmount: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginTop: 4,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  invoiceMeta: {
+    flexDirection: 'row',
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  metaText: {
+    fontSize: 13,
+    color: '#6B7280',
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  emptyText: {
+    color: '#6B7280',
+    fontSize: 16,
+    marginTop: 12,
+  },
+  emptyButton: {
+    marginTop: 16,
+    backgroundColor: '#2563EB',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  emptyButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#2563EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#2563EB',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+});

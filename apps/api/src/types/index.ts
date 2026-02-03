@@ -206,6 +206,111 @@ export interface Certification {
 
 export type CertificationType = 'electrical' | 'gas' | 'plumbing' | 'lpg' | 'first_aid' | 'site_safe' | 'other';
 
+export interface CertificationCreateInput {
+  type: CertificationType;
+  name: string;
+  certNumber?: string;
+  issuingBody?: string;
+  issueDate?: string;
+  expiryDate?: string;
+}
+
+export interface CertificationUpdateInput {
+  type?: CertificationType;
+  name?: string;
+  certNumber?: string;
+  issuingBody?: string;
+  issueDate?: string;
+  expiryDate?: string;
+}
+
+// =============================================================================
+// INVOICE TYPES
+// =============================================================================
+
+export interface Invoice {
+  id: string;
+  userId: string;
+  invoiceNumber: string;
+  clientName: string;
+  clientEmail: string | null;
+  clientPhone: string | null;
+  swmsId: string | null;
+  jobDescription: string | null;
+  lineItems: InvoiceLineItem[];
+  subtotal: number; // in cents
+  gstAmount: number; // in cents
+  total: number; // in cents
+  status: InvoiceStatus;
+  dueDate: string | null; // ISO date string
+  paidAt: Date | null;
+  bankAccountName: string | null;
+  bankAccountNumber: string | null;
+  notes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface InvoiceLineItem {
+  id: string;
+  description: string;
+  amount: number; // in cents
+}
+
+export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue';
+
+export interface InvoiceCreateInput {
+  clientName: string;
+  clientEmail?: string;
+  clientPhone?: string;
+  swmsId?: string;
+  jobDescription?: string;
+  lineItems: { description: string; amount: number }[]; // amount in cents
+  includeGst?: boolean; // default true
+  dueDate?: string; // ISO date string
+  bankAccountName?: string;
+  bankAccountNumber?: string;
+  notes?: string;
+}
+
+export interface InvoiceUpdateInput {
+  clientName?: string;
+  clientEmail?: string;
+  clientPhone?: string;
+  swmsId?: string;
+  jobDescription?: string;
+  lineItems?: { description: string; amount: number }[];
+  includeGst?: boolean;
+  dueDate?: string;
+  bankAccountName?: string;
+  bankAccountNumber?: string;
+  notes?: string;
+}
+
+// =============================================================================
+// STATS TYPES
+// =============================================================================
+
+export interface DashboardStats {
+  swms: {
+    total: number;
+    thisMonth: number;
+    signed: number;
+    draft: number;
+  };
+  invoices: {
+    total: number;
+    unpaid: number;
+    unpaidAmount: number; // in cents
+    thisMonth: number;
+  };
+  certifications: {
+    total: number;
+    expiringSoon: number;
+    expired: number;
+  };
+}
+
 // =============================================================================
 // API RESPONSE TYPES
 // =============================================================================

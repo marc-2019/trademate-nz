@@ -2,7 +2,7 @@
 
 ## Project Brain
 
-**Version**: 0.1.0 | **Status**: Foundation | **Updated**: February 2, 2026
+**Version**: 0.2.0 | **Status**: Value Features | **Updated**: February 3, 2026
 
 ---
 
@@ -204,9 +204,23 @@ Copy `.env.example` to `.env` and fill in your credentials.
 | `CLAUDE.md` | This file - project brain |
 | `apps/api/src/index.ts` | API entry point |
 | `apps/api/src/services/claude.ts` | AI integration |
+| `apps/api/src/services/invoices.ts` | Invoice business logic |
+| `apps/api/src/services/certifications.ts` | Certification business logic |
+| `apps/api/src/routes/invoices.ts` | Invoice API endpoints |
+| `apps/api/src/routes/certifications.ts` | Certification API endpoints |
+| `apps/api/src/routes/stats.ts` | Dashboard stats endpoint |
 | `apps/api/src/templates/*.json` | SWMS templates |
 | `apps/mobile/App.tsx` | Mobile app entry |
-| `apps/mobile/src/services/offline.ts` | SQLite offline layer |
+| `apps/mobile/app/(tabs)/_layout.tsx` | Tab navigation (Home, Work, People, Money) |
+| `apps/mobile/app/(tabs)/index.tsx` | Home screen with stats |
+| `apps/mobile/app/(tabs)/work.tsx` | SWMS document list |
+| `apps/mobile/app/(tabs)/people.tsx` | Certifications list |
+| `apps/mobile/app/(tabs)/money.tsx` | Invoices list |
+| `apps/mobile/app/invoices/create.tsx` | Create invoice form |
+| `apps/mobile/app/invoices/[id].tsx` | Invoice detail view |
+| `apps/mobile/app/certifications/add.tsx` | Add certification form |
+| `apps/mobile/app/settings.tsx` | Settings screen |
+| `apps/mobile/src/services/api.ts` | API client with all endpoints |
 | `docker-compose.yml` | Infrastructure |
 | `PORTS.md` | Port assignments |
 
@@ -240,16 +254,30 @@ Copy `.env.example` to `.env` and fill in your credentials.
 - `DELETE /documents/:id` - Delete document
 
 ### Certifications
-- `GET /certifications` - List certifications
-- `POST /certifications` - Add certification
-- `PUT /certifications/:id` - Update certification
-- `DELETE /certifications/:id` - Delete certification
+- `GET /api/v1/certifications` - List certifications
+- `POST /api/v1/certifications` - Add certification
+- `GET /api/v1/certifications/expiring` - Get expiring certifications
+- `GET /api/v1/certifications/:id` - Get certification
+- `PUT /api/v1/certifications/:id` - Update certification
+- `DELETE /api/v1/certifications/:id` - Delete certification
+
+### Invoices
+- `POST /api/v1/invoices` - Create invoice
+- `GET /api/v1/invoices` - List invoices (with ?status filter)
+- `GET /api/v1/invoices/:id` - Get invoice
+- `PUT /api/v1/invoices/:id` - Update invoice (draft only)
+- `DELETE /api/v1/invoices/:id` - Delete invoice
+- `POST /api/v1/invoices/:id/send` - Mark as sent
+- `POST /api/v1/invoices/:id/paid` - Mark as paid
+
+### Stats
+- `GET /api/v1/stats/dashboard` - Get dashboard stats (SWMS, invoices, certifications)
 
 ---
 
 ## Current Status
 
-**Version**: 0.1.0 | **Phase**: Foundation Complete
+**Version**: 0.2.0 | **Phase**: Value Features
 
 ### What's Done
 - [x] Project structure defined
@@ -260,14 +288,18 @@ Copy `.env.example` to `.env` and fill in your credentials.
 - [x] **SWMS generation endpoint** - AI-powered document generation
 - [x] **SWMS templates** - Electrician, plumber, builder templates
 - [x] **Claude AI integration** - Hazard suggestions and control measures
-- [x] **Database schema** - Users, SWMS documents, certifications
+- [x] **Database schema** - Users, SWMS documents, certifications, invoices
 - [x] **Test suite** - 33 passing tests for all routes
 - [x] **Health checks** - Liveness, readiness probes
 - [x] **Mobile app scaffolding** - React Native/Expo with expo-router
 - [x] **Mobile auth screens** - Login, Register with SecureStore
 - [x] **Mobile SWMS screens** - List, Generate, Detail, Sign
-- [x] **Mobile navigation** - Tab navigation with 4 main sections
 - [x] **Offline SQLite setup** - expo-sqlite with sync queue
+- [x] **New 4-tab navigation** - Home, Work, People, Money
+- [x] **Simple invoicing** - Create, view, mark sent/paid
+- [x] **Working certifications** - Full CRUD with API integration
+- [x] **Dashboard stats** - Overview card with SWMS, invoices, certifications
+- [x] **Settings screen** - Profile moved from tab to header icon
 
 ### What's In Progress
 - [ ] PDF export functionality
@@ -276,7 +308,7 @@ Copy `.env.example` to `.env` and fill in your credentials.
 ### What's Next
 - [ ] Digital signature capture (react-native-signature-canvas)
 - [ ] Risk assessment builder
-- [ ] Certification tracker API integration
+- [ ] Push notifications for cert expiry
 - [ ] Push notifications for cert expiry
 
 ---
