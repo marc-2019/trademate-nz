@@ -2,7 +2,7 @@
 
 ## Project Brain
 
-**Version**: 0.2.0 | **Status**: Value Features | **Updated**: February 3, 2026
+**Version**: 0.2.0 | **Status**: Value Features | **Updated**: February 4, 2026
 
 ---
 
@@ -309,7 +309,7 @@ Copy `.env.example` to `.env` and fill in your credentials.
 - [ ] Digital signature capture (react-native-signature-canvas)
 - [ ] Risk assessment builder
 - [ ] Push notifications for cert expiry
-- [ ] Push notifications for cert expiry
+- [ ] Xero integration (cashflow module)
 
 ---
 
@@ -421,9 +421,35 @@ This project is managed by CortexForge and benefits from:
 - **Observability**: Usage metrics and error tracking
 
 ### Project Registration
-- **Project ID**: `trademate-nz`
-- **Local Path**: `D:\TradeMate-NZ`
-- **Compound Score**: Calculated nightly
+| Field | Value |
+|-------|-------|
+| **CortexForge ID** | `495` |
+| **Project Slug** | `trademate-nz` |
+| **Local Path** | `D:\TradeMate-NZ` |
+| **Primary Language** | TypeScript |
+| **Framework** | React Native + Express |
+
+### Quick API Reference
+```bash
+# CortexForge Base URL
+http://localhost:9000
+
+# Auth: admin@cortexforge.dev / admin123
+
+# Get project
+GET /api/projects/495
+
+# Update SDLC phase
+PUT /api/projects/495/sdlc/{phase}
+Body: {"status": "in_progress", "notes": "..."}
+
+# Create artifact
+POST /api/projects/495/artifacts
+Body: {"name": "...", "type": "markdown", "content": "..."}
+```
+
+### Documentation
+See [docs/technical/CORTEXFORGE_INTEGRATION.md](docs/technical/CORTEXFORGE_INTEGRATION.md) for full API reference and update procedures.
 
 ---
 
