@@ -439,10 +439,28 @@ export async function updateInvoice(
 
 /**
  * Delete invoice
+ * Only draft invoices can be deleted. Sent/paid invoices must be voided instead.
  */
 export async function deleteInvoice(invoiceId: string, userId: string): Promise<boolean> {
+  // Safety guard: only allow deletion of draft invoices
+  const invoice = await db.query<{ status: string }>(
+    'SELECT status FROM invoices WHERE id = $1 AND user_id = $2',
+    [invoiceId, userId]
+  );
+
+  if (invoice.rows.length === 0) {
+    return false;
+  }
+
+  if (invoice.rows[0].status !== 'draft') {
+    throw Object.assign(new Error('Only draft invoices can be deleted. Sent or paid invoices cannot be removed.'), {
+      statusCode: 400,
+      code: 'INVOICE_NOT_DELETABLE',
+    });
+  }
+
   const result = await db.query(
-    'DELETE FROM invoices WHERE id = $1 AND user_id = $2',
+    'DELETE FROM invoices WHERE id = $1 AND user_id = $2 AND status = \'draft\'',
     [invoiceId, userId]
   );
   return (result.rowCount ?? 0) > 0;

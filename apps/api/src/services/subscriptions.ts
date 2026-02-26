@@ -311,11 +311,12 @@ export async function canAddTeamMember(userId: string, tier: SubscriptionTier): 
     return { allowed: true };
   }
 
+  // Count non-owner team members only (owner is automatically a member but shouldn't count against the limit)
   const result = await db.query<{ count: string }>(
-    `SELECT COUNT(*) as count FROM team_members
-     WHERE team_id IN (
-       SELECT id FROM teams WHERE owner_id = $1
-     )`,
+    `SELECT COUNT(*) as count FROM team_members tm
+     JOIN teams t ON tm.team_id = t.id
+     WHERE t.owner_id = $1
+       AND tm.user_id != $1`,
     [userId]
   );
 
@@ -323,7 +324,7 @@ export async function canAddTeamMember(userId: string, tier: SubscriptionTier): 
   if (count >= limits.teamMembers) {
     return {
       allowed: false,
-      reason: `Team plan allows up to ${limits.teamMembers} team members. Contact support for larger teams.`,
+      reason: `Team plan allows up to ${limits.teamMembers} additional team members. Contact support for larger teams.`,
     };
   }
 

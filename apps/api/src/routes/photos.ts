@@ -113,6 +113,15 @@ router.post('/', authenticate, attachSubscription, requireFeature('photos'), upl
         return;
       }
     }
+    // Handle file filter rejection (invalid file type)
+    if (error instanceof Error && error.message.includes('Only image files')) {
+      res.status(400).json({
+        success: false,
+        error: 'INVALID_FILE_TYPE',
+        message: error.message,
+      });
+      return;
+    }
     throw error;
   }
 });

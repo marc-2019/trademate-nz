@@ -7,6 +7,7 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import authService from '../services/auth.js';
 import { authenticate } from '../middleware/auth.js';
+import config from '../config/index.js';
 
 // App error type for error handling
 interface AppError extends Error {
@@ -73,7 +74,7 @@ router.post('/register', async (req: Request, res: Response) => {
       data: {
         user,
         tokens,
-        verificationCode, // Included for dev/testing; in production, sent via email only
+        ...(config.isDevelopment && { verificationCode }), // Only include in dev; production uses email
       },
       message: 'Registration successful. Please verify your email.',
     });
@@ -390,7 +391,9 @@ router.post('/resend-verification', authenticate, async (req: Request, res: Resp
 
     res.json({
       success: true,
-      data: { verificationCode }, // Included for dev/testing; in production, sent via email only
+      data: {
+        ...(config.isDevelopment && { verificationCode }), // Only include in dev; production uses email
+      },
       message: 'Verification code sent',
     });
   } catch (error) {

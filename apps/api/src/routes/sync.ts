@@ -67,7 +67,7 @@ router.post('/batch', authenticate, async (req, res) => {
   // Process each operation
   for (const op of operations) {
     try {
-      const result = await processSyncOperation(Number(userId), op);
+      const result = await processSyncOperation(userId, op);
       results.push(result);
     } catch (error) {
       console.error('[Sync Batch] Error processing operation:', error);
@@ -94,7 +94,7 @@ router.post('/batch', authenticate, async (req, res) => {
  * Process a single sync operation
  */
 async function processSyncOperation(
-  userId: number,
+  userId: string,
   operation: SyncOperation
 ): Promise<SyncResult> {
   const { id, entity_type, entity_id, action } = operation;
@@ -139,7 +139,7 @@ async function processSyncOperation(
  * Process SWMS document operations
  */
 async function processSWMSOperation(
-  userId: number,
+  userId: string,
   entityId: string,
   action: string,
   _payload: unknown
@@ -213,7 +213,7 @@ async function processSWMSOperation(
  * Process invoice operations
  */
 async function processInvoiceOperation(
-  userId: number,
+  userId: string,
   entityId: string,
   action: string,
   _payload: unknown
@@ -232,7 +232,7 @@ async function processInvoiceOperation(
  * Process quote operations
  */
 async function processQuoteOperation(
-  userId: number,
+  userId: string,
   entityId: string,
   action: string,
   _payload: unknown
@@ -249,7 +249,7 @@ async function processQuoteOperation(
  * Process expense operations
  */
 async function processExpenseOperation(
-  userId: number,
+  userId: string,
   entityId: string,
   action: string,
   _payload: unknown
@@ -266,7 +266,7 @@ async function processExpenseOperation(
  * Process job log operations
  */
 async function processJobLogOperation(
-  userId: number,
+  userId: string,
   entityId: string,
   action: string,
   _payload: unknown
@@ -283,7 +283,7 @@ async function processJobLogOperation(
  * Process certification operations
  */
 async function processCertificationOperation(
-  userId: number,
+  userId: string,
   entityId: string,
   action: string,
   _payload: unknown

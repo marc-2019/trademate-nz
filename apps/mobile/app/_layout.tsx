@@ -182,38 +182,11 @@ function RootLayoutNav() {
           headerTintColor: '#2563EB',
         }}
       />
-      {/* Settings */}
+      {/* Settings (group with its own _layout.tsx) */}
       <Stack.Screen
         name="settings"
         options={{
-          headerShown: true,
-          title: 'Settings',
-          headerTintColor: '#2563EB',
-        }}
-      />
-      {/* Settings sub-screens */}
-      <Stack.Screen
-        name="settings/profile"
-        options={{
-          headerShown: true,
-          title: 'Profile',
-          headerTintColor: '#2563EB',
-        }}
-      />
-      <Stack.Screen
-        name="settings/business-profile"
-        options={{
-          headerShown: true,
-          title: 'Business Details',
-          headerTintColor: '#2563EB',
-        }}
-      />
-      <Stack.Screen
-        name="settings/bank-details"
-        options={{
-          headerShown: true,
-          title: 'Bank Details',
-          headerTintColor: '#2563EB',
+          headerShown: false,
         }}
       />
       {/* Subscription */}
