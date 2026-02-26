@@ -6,7 +6,9 @@
 import { Router, Request, Response } from 'express';
 import db from '../services/database.js';
 import invoicesService from '../services/invoices.js';
+import quotesService from '../services/quotes.js';
 import certificationsService from '../services/certifications.js';
+import insightsService from '../services/insights.js';
 import { authenticate } from '../middleware/auth.js';
 import { DashboardStats } from '../types/index.js';
 
@@ -40,6 +42,9 @@ router.get('/dashboard', authenticate, async (req: Request, res: Response) => {
     // Get invoice stats
     const invoiceStats = await invoicesService.getInvoiceStats(userId);
 
+    // Get quote stats
+    const quoteStats = await quotesService.getQuoteStats(userId);
+
     // Get certification stats
     const certStats = await certificationsService.getCertificationStats(userId);
 
@@ -51,12 +56,31 @@ router.get('/dashboard', authenticate, async (req: Request, res: Response) => {
         draft: parseInt(swmsRow.draft, 10),
       },
       invoices: invoiceStats,
+      quotes: quoteStats,
       certifications: certStats,
     };
 
     res.json({
       success: true,
       data: { stats },
+    });
+  } catch (error) {
+    throw error;
+  }
+});
+
+/**
+ * GET /api/v1/stats/insights
+ * Get business insights: revenue trends, invoice aging, top customers
+ */
+router.get('/insights', authenticate, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+    const insights = await insightsService.getInsights(userId);
+
+    res.json({
+      success: true,
+      data: { insights },
     });
   } catch (error) {
     throw error;

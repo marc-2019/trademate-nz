@@ -3,20 +3,23 @@
  * User registration, login, and token management
  */
 
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { config } from '../config/index.js';
 import db from './database.js';
+import teamsService from './teams.js';
 import { User, UserCreateInput, UserLoginInput, AuthTokens, JwtPayload } from '../types/index.js';
 import { createError } from '../middleware/error.js';
+import { isSmtpConfigured, sendPasswordResetEmail } from './email.js';
 
 const SALT_ROUNDS = 12;
 
 /**
  * Register a new user
  */
-export async function register(input: UserCreateInput): Promise<{ user: User; tokens: AuthTokens }> {
+export async function register(input: UserCreateInput): Promise<{ user: User; tokens: AuthTokens; verificationCode: string }> {
   // Check if user already exists
   const existingUser = await db.query<{ id: string }>(
     'SELECT id FROM users WHERE email = $1',
@@ -30,12 +33,19 @@ export async function register(input: UserCreateInput): Promise<{ user: User; to
   // Hash password
   const passwordHash = await bcrypt.hash(input.password, SALT_ROUNDS);
 
+  // Generate 6-digit verification code
+  const verificationCode = generateVerificationCode();
+  const codeExpiresAt = new Date();
+  codeExpiresAt.setMinutes(codeExpiresAt.getMinutes() + 30); // 30 min expiry
+
   // Create user
   const result = await db.query<User>(
-    `INSERT INTO users (id, email, password_hash, name, phone, trade_type, business_name, is_verified, is_active)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, false, true)
+    `INSERT INTO users (id, email, password_hash, name, phone, trade_type, business_name, is_verified, onboarding_completed, is_active, verification_code, verification_code_expires_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, false, false, true, $8, $9)
      RETURNING id, email, name, phone, trade_type as "tradeType", business_name as "businessName",
-               is_verified as "isVerified", is_active as "isActive", created_at as "createdAt", updated_at as "updatedAt"`,
+               is_verified as "isVerified", onboarding_completed as "onboardingCompleted",
+               is_active as "isActive", created_at as "createdAt", updated_at as "updatedAt",
+               subscription_tier as "subscriptionTier"`,
     [
       uuidv4(),
       input.email.toLowerCase(),
@@ -44,16 +54,23 @@ export async function register(input: UserCreateInput): Promise<{ user: User; to
       input.phone || null,
       input.tradeType || null,
       input.businessName || null,
+      verificationCode,
+      codeExpiresAt,
     ]
   );
 
   const user = result.rows[0];
-  const tokens = generateTokens(user);
+  const tokens = await generateTokens(user);
 
   // Store refresh token
   await storeRefreshToken(user.id, tokens.refreshToken);
 
-  return { user, tokens };
+  // Log verification code in dev only (in production, send via email)
+  if (config.isDevelopment) {
+    console.log(`[VERIFY] Code for ${user.email}: ${verificationCode}`);
+  }
+
+  return { user, tokens, verificationCode };
 }
 
 /**
@@ -64,7 +81,9 @@ export async function login(input: UserLoginInput): Promise<{ user: User; tokens
   const result = await db.query<User & { password_hash: string }>(
     `SELECT id, email, password_hash, name, phone, trade_type as "tradeType",
             business_name as "businessName", is_verified as "isVerified",
-            is_active as "isActive", created_at as "createdAt", updated_at as "updatedAt"
+            onboarding_completed as "onboardingCompleted",
+            is_active as "isActive", created_at as "createdAt", updated_at as "updatedAt",
+            subscription_tier as "subscriptionTier"
      FROM users
      WHERE email = $1 AND is_active = true`,
     [input.email.toLowerCase()]
@@ -85,7 +104,7 @@ export async function login(input: UserLoginInput): Promise<{ user: User; tokens
   // Remove password hash from user object
   const { password_hash: _, ...user } = userWithHash;
 
-  const tokens = generateTokens(user as User);
+  const tokens = await generateTokens(user as User);
 
   // Store refresh token
   await storeRefreshToken(user.id, tokens.refreshToken);
@@ -116,7 +135,9 @@ export async function refreshToken(token: string): Promise<AuthTokens> {
     const userResult = await db.query<User>(
       `SELECT id, email, name, phone, trade_type as "tradeType",
               business_name as "businessName", is_verified as "isVerified",
-              is_active as "isActive", created_at as "createdAt", updated_at as "updatedAt"
+              onboarding_completed as "onboardingCompleted",
+              is_active as "isActive", created_at as "createdAt", updated_at as "updatedAt",
+              subscription_tier as "subscriptionTier"
        FROM users WHERE id = $1 AND is_active = true`,
       [decoded.userId]
     );
@@ -134,7 +155,7 @@ export async function refreshToken(token: string): Promise<AuthTokens> {
     );
 
     // Generate new tokens
-    const tokens = generateTokens(user);
+    const tokens = await generateTokens(user);
 
     // Store new refresh token
     await storeRefreshToken(user.id, tokens.refreshToken);
@@ -174,12 +195,124 @@ export async function getUserById(userId: string): Promise<User | null> {
   const result = await db.query<User>(
     `SELECT id, email, name, phone, trade_type as "tradeType",
             business_name as "businessName", is_verified as "isVerified",
-            is_active as "isActive", created_at as "createdAt", updated_at as "updatedAt"
+            onboarding_completed as "onboardingCompleted",
+            is_active as "isActive", created_at as "createdAt", updated_at as "updatedAt",
+            subscription_tier as "subscriptionTier"
      FROM users WHERE id = $1 AND is_active = true`,
     [userId]
   );
 
   return result.rows[0] || null;
+}
+
+/**
+ * Verify email with 6-digit code
+ */
+export async function verifyEmail(userId: string, code: string): Promise<User> {
+  const result = await db.query<User & { verification_code: string; verification_code_expires_at: Date }>(
+    `SELECT id, email, name, phone, trade_type as "tradeType",
+            business_name as "businessName", is_verified as "isVerified",
+            onboarding_completed as "onboardingCompleted",
+            is_active as "isActive", created_at as "createdAt", updated_at as "updatedAt",
+            subscription_tier as "subscriptionTier",
+            verification_code, verification_code_expires_at
+     FROM users WHERE id = $1 AND is_active = true`,
+    [userId]
+  );
+
+  if (result.rows.length === 0) {
+    throw createError('User not found', 404, 'USER_NOT_FOUND');
+  }
+
+  const user = result.rows[0];
+
+  if (user.isVerified) {
+    throw createError('Email already verified', 400, 'ALREADY_VERIFIED');
+  }
+
+  if (!user.verification_code) {
+    throw createError('No verification code found. Please request a new one.', 400, 'NO_CODE');
+  }
+
+  if (new Date() > new Date(user.verification_code_expires_at)) {
+    throw createError('Verification code expired. Please request a new one.', 400, 'CODE_EXPIRED');
+  }
+
+  if (user.verification_code !== code) {
+    throw createError('Invalid verification code', 400, 'INVALID_CODE');
+  }
+
+  // Mark as verified and clear the code
+  const updated = await db.query<User>(
+    `UPDATE users SET is_verified = true, verification_code = NULL, verification_code_expires_at = NULL, updated_at = NOW()
+     WHERE id = $1
+     RETURNING id, email, name, phone, trade_type as "tradeType",
+               business_name as "businessName", is_verified as "isVerified",
+               onboarding_completed as "onboardingCompleted",
+               is_active as "isActive", created_at as "createdAt", updated_at as "updatedAt",
+               subscription_tier as "subscriptionTier"`,
+    [userId]
+  );
+
+  return updated.rows[0];
+}
+
+/**
+ * Resend verification code
+ */
+export async function resendVerification(userId: string): Promise<{ verificationCode: string }> {
+  const result = await db.query<User>(
+    `SELECT id, email, is_verified as "isVerified"
+     FROM users WHERE id = $1 AND is_active = true`,
+    [userId]
+  );
+
+  if (result.rows.length === 0) {
+    throw createError('User not found', 404, 'USER_NOT_FOUND');
+  }
+
+  if (result.rows[0].isVerified) {
+    throw createError('Email already verified', 400, 'ALREADY_VERIFIED');
+  }
+
+  const verificationCode = generateVerificationCode();
+  const codeExpiresAt = new Date();
+  codeExpiresAt.setMinutes(codeExpiresAt.getMinutes() + 30);
+
+  await db.query(
+    `UPDATE users SET verification_code = $1, verification_code_expires_at = $2, updated_at = NOW()
+     WHERE id = $3`,
+    [verificationCode, codeExpiresAt, userId]
+  );
+
+  // Log verification code in dev only (in production, send via email)
+  if (config.isDevelopment) {
+    console.log(`[VERIFY] New code for ${result.rows[0].email}: ${verificationCode}`);
+  }
+
+  return { verificationCode };
+}
+
+/**
+ * Complete onboarding
+ */
+export async function completeOnboarding(userId: string): Promise<User> {
+  const result = await db.query<User>(
+    `UPDATE users SET onboarding_completed = true, updated_at = NOW()
+     WHERE id = $1 AND is_active = true
+     RETURNING id, email, name, phone, trade_type as "tradeType",
+               business_name as "businessName", is_verified as "isVerified",
+               onboarding_completed as "onboardingCompleted",
+               is_active as "isActive", created_at as "createdAt", updated_at as "updatedAt",
+               subscription_tier as "subscriptionTier"`,
+    [userId]
+  );
+
+  if (result.rows.length === 0) {
+    throw createError('User not found', 404, 'USER_NOT_FOUND');
+  }
+
+  return result.rows[0];
 }
 
 /**
@@ -222,22 +355,119 @@ export async function updateUser(
      WHERE id = $${paramIndex} AND is_active = true
      RETURNING id, email, name, phone, trade_type as "tradeType",
                business_name as "businessName", is_verified as "isVerified",
-               is_active as "isActive", created_at as "createdAt", updated_at as "updatedAt"`,
+               onboarding_completed as "onboardingCompleted",
+               is_active as "isActive", created_at as "createdAt", updated_at as "updatedAt",
+               subscription_tier as "subscriptionTier"`,
     values
   );
 
   return result.rows[0] || null;
 }
 
+/**
+ * Forgot password - generate reset code and send email
+ */
+export async function forgotPassword(email: string): Promise<void> {
+  const result = await db.query<{ id: string; email: string }>(
+    'SELECT id, email FROM users WHERE email = $1 AND is_active = true',
+    [email.toLowerCase()]
+  );
+
+  // Always return success to prevent email enumeration
+  if (result.rows.length === 0) {
+    return;
+  }
+
+  const user = result.rows[0];
+  const resetCode = generateVerificationCode();
+  const codeExpiresAt = new Date();
+  codeExpiresAt.setMinutes(codeExpiresAt.getMinutes() + 30);
+
+  await db.query(
+    `UPDATE users SET verification_code = $1, verification_code_expires_at = $2, updated_at = NOW()
+     WHERE id = $3`,
+    [resetCode, codeExpiresAt, user.id]
+  );
+
+  // Send email if SMTP is configured, otherwise log for dev
+  if (isSmtpConfigured()) {
+    try {
+      await sendPasswordResetEmail(user.email, resetCode);
+    } catch (err) {
+      console.error(`[RESET] Failed to send reset email to ${user.email}:`, err);
+    }
+  } else if (config.isDevelopment) {
+    console.log(`[RESET] Code for ${user.email}: ${resetCode}`);
+  }
+}
+
+/**
+ * Reset password with code
+ */
+export async function resetPassword(email: string, code: string, newPassword: string): Promise<void> {
+  const result = await db.query<{ id: string; verification_code: string; verification_code_expires_at: Date }>(
+    `SELECT id, verification_code, verification_code_expires_at
+     FROM users WHERE email = $1 AND is_active = true`,
+    [email.toLowerCase()]
+  );
+
+  if (result.rows.length === 0) {
+    throw createError('Invalid email or reset code', 400, 'INVALID_RESET');
+  }
+
+  const user = result.rows[0];
+
+  if (!user.verification_code) {
+    throw createError('No reset code found. Please request a new one.', 400, 'NO_CODE');
+  }
+
+  if (new Date() > new Date(user.verification_code_expires_at)) {
+    throw createError('Reset code expired. Please request a new one.', 400, 'CODE_EXPIRED');
+  }
+
+  if (user.verification_code !== code) {
+    throw createError('Invalid reset code', 400, 'INVALID_CODE');
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+  await db.query(
+    `UPDATE users SET password_hash = $1, verification_code = NULL, verification_code_expires_at = NULL, updated_at = NOW()
+     WHERE id = $2`,
+    [passwordHash, user.id]
+  );
+
+  // Revoke all refresh tokens for security
+  await db.query(
+    'UPDATE refresh_tokens SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL',
+    [user.id]
+  );
+}
+
 // =============================================================================
 // HELPER FUNCTIONS
 // =============================================================================
 
-function generateTokens(user: User): AuthTokens {
+function generateVerificationCode(): string {
+  return crypto.randomInt(100000, 1000000).toString();
+}
+
+async function generateTokens(user: User): Promise<AuthTokens> {
   const payload: JwtPayload = {
     userId: user.id,
     email: user.email,
   };
+
+  // Enrich JWT with team info if user belongs to a team
+  try {
+    const teamInfo = await teamsService.getUserTeamInfo(user.id);
+    if (teamInfo) {
+      payload.teamId = teamInfo.teamId;
+      payload.teamRole = teamInfo.teamRole;
+    }
+  } catch {
+    // Team lookup failure shouldn't block auth
+  }
 
   const accessToken = jwt.sign(payload, config.jwt.secret, {
     expiresIn: config.jwt.accessTokenExpiry,
@@ -273,4 +503,9 @@ export default {
   logout,
   getUserById,
   updateUser,
+  verifyEmail,
+  resendVerification,
+  completeOnboarding,
+  forgotPassword,
+  resetPassword,
 };

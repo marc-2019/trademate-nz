@@ -16,7 +16,10 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { invoicesApi } from '../../src/services/api';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
+import { invoicesApi, getAuthToken } from '../../src/services/api';
+import PhotoAttachments from '../../src/components/PhotoAttachments';
 
 interface Invoice {
   id: string;
@@ -29,11 +32,21 @@ interface Invoice {
   subtotal: number;
   gst_amount: number;
   total: number;
+  include_gst: boolean;
   status: 'draft' | 'sent' | 'paid' | 'overdue';
   due_date: string | null;
   paid_at: string | null;
   bank_account_name: string | null;
   bank_account_number: string | null;
+  intl_bank_account_name: string | null;
+  intl_iban: string | null;
+  intl_swift_bic: string | null;
+  intl_bank_name: string | null;
+  intl_bank_address: string | null;
+  company_name: string | null;
+  company_address: string | null;
+  ird_number: string | null;
+  gst_number: string | null;
   notes: string | null;
   created_at: string;
 }
@@ -187,35 +200,112 @@ export default function InvoiceDetailScreen() {
     );
   }
 
-  async function handleShare() {
+  async function handleDownloadPDF() {
+    if (!invoice) return;
+    setIsProcessing(true);
+    try {
+      const token = getAuthToken();
+      const pdfUrl = invoicesApi.getPdfUrl(id);
+      const fileUri = FileSystem.cacheDirectory + `Invoice-${invoice.invoice_number}.pdf`;
+
+      const download = await FileSystem.downloadAsync(pdfUrl, fileUri, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+
+      if (download.status !== 200) {
+        throw new Error('Download failed');
+      }
+
+      const canShare = await Sharing.isAvailableAsync();
+      if (canShare) {
+        await Sharing.shareAsync(download.uri, {
+          mimeType: 'application/pdf',
+          dialogTitle: `Invoice ${invoice.invoice_number}`,
+        });
+      } else {
+        Alert.alert('Success', 'PDF saved to ' + download.uri);
+      }
+    } catch (error) {
+      console.error('Failed to download PDF:', error);
+      Alert.alert('Error', 'Failed to download invoice PDF');
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
+  async function handleEmailInvoice() {
     if (!invoice) return;
 
-    const lineItemsText = invoice.line_items
-      .map((item) => `  - ${item.description}: ${formatCurrency(item.amount)}`)
-      .join('\n');
+    const defaultEmail = invoice.client_email || '';
 
-    const message = `
-Invoice ${invoice.invoice_number}
+    Alert.prompt(
+      'Email Invoice',
+      'Enter recipient email address:',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Send',
+          onPress: async (email?: string) => {
+            const recipientEmail = email?.trim();
+            if (!recipientEmail) {
+              Alert.alert('Error', 'Please enter an email address');
+              return;
+            }
 
-Client: ${invoice.client_name}
-${invoice.job_description ? `Job: ${invoice.job_description}` : ''}
+            // Basic email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(recipientEmail)) {
+              Alert.alert('Error', 'Please enter a valid email address');
+              return;
+            }
 
-Items:
-${lineItemsText}
+            setIsProcessing(true);
+            try {
+              const response = await invoicesApi.emailInvoice(id, recipientEmail);
+              if (response.data.success) {
+                if (response.data.data?.invoice) {
+                  setInvoice(response.data.data.invoice);
+                }
+                Alert.alert('Success', `Invoice emailed to ${recipientEmail}`);
+              }
+            } catch (error: unknown) {
+              const apiError = error as { code?: string; message?: string };
+              if (apiError.code === 'EMAIL_NOT_CONFIGURED') {
+                Alert.alert('Not Available', 'Email sending is not configured yet. Use Download PDF and share it manually.');
+              } else {
+                Alert.alert('Error', apiError.message || 'Failed to send email');
+              }
+            } finally {
+              setIsProcessing(false);
+            }
+          },
+        },
+      ],
+      'plain-text',
+      defaultEmail
+    );
+  }
 
-Subtotal: ${formatCurrency(invoice.subtotal)}
-${invoice.gst_amount > 0 ? `GST (15%): ${formatCurrency(invoice.gst_amount)}` : ''}
-Total: ${formatCurrency(invoice.total)}
+  async function handleShareLink() {
+    if (!invoice) return;
 
-${invoice.due_date ? `Due: ${formatDate(invoice.due_date)}` : ''}
-${invoice.bank_account_name ? `\nPay to: ${invoice.bank_account_name}` : ''}
-${invoice.bank_account_number ? `Account: ${invoice.bank_account_number}` : ''}
-    `.trim();
-
+    setIsProcessing(true);
     try {
-      await Share.share({ message });
+      const response = await invoicesApi.generateShareLink(id);
+      if (response.data.success) {
+        const { shareUrl } = response.data.data;
+        const message = `Invoice ${invoice.invoice_number} from ${invoice.company_name || 'TradeMate NZ'}\nTotal: ${formatCurrency(invoice.total)}\n\nView invoice: ${shareUrl}`;
+
+        await Share.share({
+          message,
+          url: shareUrl,
+        });
+      }
     } catch (error) {
-      console.error('Failed to share:', error);
+      console.error('Failed to generate share link:', error);
+      Alert.alert('Error', 'Failed to generate share link');
+    } finally {
+      setIsProcessing(false);
     }
   }
 
@@ -256,7 +346,7 @@ ${invoice.bank_account_number ? `Account: ${invoice.bank_account_number}` : ''}
             </Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
+        <TouchableOpacity style={styles.headerShareButton} onPress={handleShareLink}>
           <Ionicons name="share-outline" size={24} color="#374151" />
         </TouchableOpacity>
       </View>
@@ -317,6 +407,29 @@ ${invoice.bank_account_number ? `Account: ${invoice.bank_account_number}` : ''}
         </View>
       </View>
 
+      {/* Company Details (if populated) */}
+      {invoice.company_name && (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>From</Text>
+          <Text style={styles.clientName}>{invoice.company_name}</Text>
+          {invoice.company_address && (
+            <Text style={styles.companyDetail}>{invoice.company_address}</Text>
+          )}
+          {invoice.ird_number && (
+            <View style={styles.paymentRow}>
+              <Text style={styles.paymentLabel}>IRD Number</Text>
+              <Text style={styles.paymentValue}>{invoice.ird_number}</Text>
+            </View>
+          )}
+          {invoice.gst_number && (
+            <View style={styles.paymentRow}>
+              <Text style={styles.paymentLabel}>GST Number</Text>
+              <Text style={styles.paymentValue}>{invoice.gst_number}</Text>
+            </View>
+          )}
+        </View>
+      )}
+
       {/* Payment Details */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Payment</Text>
@@ -326,15 +439,44 @@ ${invoice.bank_account_number ? `Account: ${invoice.bank_account_number}` : ''}
         </View>
         {invoice.bank_account_name && (
           <View style={styles.paymentRow}>
-            <Text style={styles.paymentLabel}>Account Name</Text>
+            <Text style={styles.paymentLabel}>NZD Account Name</Text>
             <Text style={styles.paymentValue}>{invoice.bank_account_name}</Text>
           </View>
         )}
         {invoice.bank_account_number && (
           <View style={styles.paymentRow}>
-            <Text style={styles.paymentLabel}>Account Number</Text>
+            <Text style={styles.paymentLabel}>NZD Account Number</Text>
             <Text style={styles.paymentValue}>{invoice.bank_account_number}</Text>
           </View>
+        )}
+        {invoice.intl_iban && (
+          <>
+            <View style={styles.intlDivider}>
+              <Text style={styles.intlDividerText}>International Payment</Text>
+            </View>
+            {invoice.intl_bank_account_name && (
+              <View style={styles.paymentRow}>
+                <Text style={styles.paymentLabel}>Account Name</Text>
+                <Text style={styles.paymentValue}>{invoice.intl_bank_account_name}</Text>
+              </View>
+            )}
+            <View style={styles.paymentRow}>
+              <Text style={styles.paymentLabel}>IBAN</Text>
+              <Text style={styles.paymentValue}>{invoice.intl_iban}</Text>
+            </View>
+            {invoice.intl_swift_bic && (
+              <View style={styles.paymentRow}>
+                <Text style={styles.paymentLabel}>SWIFT/BIC</Text>
+                <Text style={styles.paymentValue}>{invoice.intl_swift_bic}</Text>
+              </View>
+            )}
+            {invoice.intl_bank_name && (
+              <View style={styles.paymentRow}>
+                <Text style={styles.paymentLabel}>Bank Name</Text>
+                <Text style={styles.paymentValue}>{invoice.intl_bank_name}</Text>
+              </View>
+            )}
+          </>
         )}
         {invoice.paid_at && (
           <View style={styles.paymentRow}>
@@ -354,6 +496,8 @@ ${invoice.bank_account_number ? `Account: ${invoice.bank_account_number}` : ''}
         </View>
       )}
 
+      <PhotoAttachments entityType="invoice" entityId={id} editable={invoice.status === 'draft'} />
+
       {/* Actions */}
       <View style={styles.actionsContainer}>
         {invoice.status === 'draft' && (
@@ -369,7 +513,7 @@ ${invoice.bank_account_number ? `Account: ${invoice.bank_account_number}` : ''}
 
             <TouchableOpacity
               style={styles.secondaryButton}
-              onPress={() => router.push(`/invoices/edit/${id}`)}
+              onPress={() => router.push(`/invoices/edit/${id}` as any)}
               disabled={isProcessing}
             >
               <Ionicons name="create-outline" size={20} color="#2563EB" />
@@ -388,6 +532,35 @@ ${invoice.bank_account_number ? `Account: ${invoice.bank_account_number}` : ''}
             <Text style={styles.primaryButtonText}>Mark as Paid</Text>
           </TouchableOpacity>
         )}
+
+        <TouchableOpacity
+          style={styles.pdfButton}
+          onPress={handleDownloadPDF}
+          disabled={isProcessing}
+        >
+          <Ionicons name="document-outline" size={20} color="#374151" />
+          <Text style={styles.pdfButtonText}>Download PDF</Text>
+        </TouchableOpacity>
+
+        {invoice.status !== 'paid' && (
+          <TouchableOpacity
+            style={styles.emailButton}
+            onPress={handleEmailInvoice}
+            disabled={isProcessing}
+          >
+            <Ionicons name="mail-outline" size={20} color="#2563EB" />
+            <Text style={styles.emailButtonText}>Email Invoice</Text>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity
+          style={styles.shareButton}
+          onPress={handleShareLink}
+          disabled={isProcessing}
+        >
+          <Ionicons name="link-outline" size={20} color="#7C3AED" />
+          <Text style={styles.shareButtonText}>Share Link</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.deleteButton}
@@ -462,7 +635,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-  shareButton: {
+  headerShareButton: {
     padding: 8,
   },
   card: {
@@ -569,6 +742,25 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#374151',
   },
+  companyDetail: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 8,
+  },
+  intlDivider: {
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    marginTop: 8,
+    paddingTop: 8,
+    marginBottom: 4,
+  },
+  intlDividerText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6B7280',
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
   notes: {
     fontSize: 15,
     color: '#374151',
@@ -605,6 +797,54 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     color: '#2563EB',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  pdfButton: {
+    backgroundColor: '#fff',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    gap: 8,
+  },
+  pdfButtonText: {
+    color: '#374151',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  emailButton: {
+    backgroundColor: '#EFF6FF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    gap: 8,
+  },
+  emailButtonText: {
+    color: '#2563EB',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  shareButton: {
+    backgroundColor: '#F5F3FF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#DDD6FE',
+    gap: 8,
+  },
+  shareButtonText: {
+    color: '#7C3AED',
     fontSize: 16,
     fontWeight: '600',
   },

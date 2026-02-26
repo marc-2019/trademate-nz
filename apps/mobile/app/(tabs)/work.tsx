@@ -93,7 +93,7 @@ export default function WorkScreen() {
     return (
       <TouchableOpacity
         style={styles.docCard}
-        onPress={() => router.push(`/swms/${item.id}`)}
+        onPress={() => router.push(`/swms/${item.id}` as any)}
       >
         <View style={styles.docHeader}>
           <Text style={styles.docTitle} numberOfLines={1}>
@@ -195,7 +195,7 @@ export default function WorkScreen() {
             {!searchQuery && (
               <TouchableOpacity
                 style={styles.emptyButton}
-                onPress={() => router.push('/swms/generate')}
+                onPress={() => router.push('/swms/generate' as any)}
               >
                 <Text style={styles.emptyButtonText}>Create Your First SWMS</Text>
               </TouchableOpacity>
@@ -206,7 +206,7 @@ export default function WorkScreen() {
 
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => router.push('/swms/generate')}
+        onPress={() => router.push('/swms/generate' as any)}
       >
         <Ionicons name="add" size={28} color="#fff" />
       </TouchableOpacity>

@@ -6,7 +6,12 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import invoicesService from '../services/invoices.js';
+import pdfService from '../services/pdf.js';
+import emailService from '../services/email.js';
+import { getBusinessProfile } from '../services/business-profile.js';
 import { authenticate } from '../middleware/auth.js';
+import { attachSubscription, checkLimit, requireFeature } from '../middleware/subscription.js';
+import { config } from '../config/index.js';
 
 // App error type for error handling
 interface AppError extends Error {
@@ -61,7 +66,7 @@ const updateSchema = z.object({
  * POST /api/v1/invoices
  * Create a new invoice
  */
-router.post('/', authenticate, async (req: Request, res: Response) => {
+router.post('/', authenticate, attachSubscription, checkLimit('invoice'), async (req: Request, res: Response) => {
   try {
     const validation = createSchema.safeParse(req.body);
     if (!validation.success) {
@@ -121,7 +126,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
  */
 router.get('/:id', authenticate, async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const invoice = await invoicesService.getInvoiceById(id, req.user!.userId);
 
     if (!invoice) {
@@ -143,6 +148,35 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/v1/invoices/:id/pdf
+ * Download invoice as PDF
+ */
+router.get('/:id/pdf', authenticate, attachSubscription, requireFeature('pdfExport'), async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const invoice = await invoicesService.getInvoiceByIdRaw(id, req.user!.userId);
+
+    if (!invoice) {
+      res.status(404).json({
+        success: false,
+        error: 'NOT_FOUND',
+        message: 'Invoice not found',
+      });
+      return;
+    }
+
+    const pdfBuffer = await pdfService.generateInvoicePDF(invoice);
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="Invoice-${invoice.invoiceNumber}.pdf"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.send(pdfBuffer);
+  } catch (error) {
+    throw error;
+  }
+});
+
+/**
  * PUT /api/v1/invoices/:id
  * Update invoice (only draft invoices)
  */
@@ -158,7 +192,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
       return;
     }
 
-    const { id } = req.params;
+    const id = req.params.id as string;
     const invoice = await invoicesService.updateInvoice(
       id,
       req.user!.userId,
@@ -199,7 +233,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
  */
 router.delete('/:id', authenticate, async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const deleted = await invoicesService.deleteInvoice(id, req.user!.userId);
 
     if (!deleted) {
@@ -226,7 +260,7 @@ router.delete('/:id', authenticate, async (req: Request, res: Response) => {
  */
 router.post('/:id/send', authenticate, async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const invoice = await invoicesService.markAsSent(id, req.user!.userId);
 
     if (!invoice) {
@@ -249,12 +283,97 @@ router.post('/:id/send', authenticate, async (req: Request, res: Response) => {
 });
 
 /**
+ * POST /api/v1/invoices/:id/email
+ * Email invoice to client with PDF attachment
+ */
+router.post('/:id/email', authenticate, attachSubscription, requireFeature('emailInvoice'), async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const { recipientEmail, customMessage } = req.body;
+
+    // Validate recipient email
+    if (!recipientEmail || !z.string().email().safeParse(recipientEmail).success) {
+      res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: 'A valid recipient email address is required',
+      });
+      return;
+    }
+
+    // Check SMTP is configured
+    if (!emailService.isSmtpConfigured()) {
+      res.status(503).json({
+        success: false,
+        error: 'EMAIL_NOT_CONFIGURED',
+        message: 'Email sending is not configured. Contact support or set SMTP settings.',
+      });
+      return;
+    }
+
+    // Fetch invoice (raw for PDF generation)
+    const invoice = await invoicesService.getInvoiceByIdRaw(id, req.user!.userId);
+    if (!invoice) {
+      res.status(404).json({
+        success: false,
+        error: 'NOT_FOUND',
+        message: 'Invoice not found',
+      });
+      return;
+    }
+
+    // Get business profile for sender name
+    const profile = await getBusinessProfile(req.user!.userId);
+    const senderName = (profile?.company_name as string) || '';
+
+    // Generate PDF
+    const pdfBuffer = await pdfService.generateInvoicePDF(invoice);
+
+    // Send email
+    const result = await emailService.sendInvoiceEmail(
+      invoice,
+      pdfBuffer,
+      recipientEmail,
+      senderName,
+      customMessage
+    );
+
+    // Auto-mark as sent if currently draft
+    if (invoice.status === 'draft') {
+      await invoicesService.markAsSent(id, req.user!.userId);
+    }
+
+    // Fetch updated invoice to return
+    const updatedInvoice = await invoicesService.getInvoiceById(id, req.user!.userId);
+
+    res.json({
+      success: true,
+      data: {
+        invoice: updatedInvoice,
+        messageId: result.messageId,
+      },
+      message: `Invoice emailed to ${recipientEmail}`,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('SMTP')) {
+      res.status(503).json({
+        success: false,
+        error: 'EMAIL_SEND_FAILED',
+        message: 'Failed to send email. Please check SMTP configuration.',
+      });
+      return;
+    }
+    throw error;
+  }
+});
+
+/**
  * POST /api/v1/invoices/:id/paid
  * Mark invoice as paid
  */
 router.post('/:id/paid', authenticate, async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const invoice = await invoicesService.markAsPaid(id, req.user!.userId);
 
     if (!invoice) {
@@ -270,6 +389,38 @@ router.post('/:id/paid', authenticate, async (req: Request, res: Response) => {
       success: true,
       data: { invoice },
       message: 'Invoice marked as paid',
+    });
+  } catch (error) {
+    throw error;
+  }
+});
+
+/**
+ * POST /api/v1/invoices/:id/share
+ * Generate a shareable link for an invoice
+ */
+router.post('/:id/share', authenticate, async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const token = await invoicesService.generateShareToken(id, req.user!.userId);
+
+    if (!token) {
+      res.status(404).json({
+        success: false,
+        error: 'NOT_FOUND',
+        message: 'Invoice not found',
+      });
+      return;
+    }
+
+    // Build shareable URL
+    const baseUrl = process.env.API_BASE_URL || `http://localhost:${config.port}`;
+    const shareUrl = `${baseUrl}/api/v1/public/invoices/${token}`;
+
+    res.json({
+      success: true,
+      data: { shareUrl, token },
+      message: 'Share link generated',
     });
   } catch (error) {
     throw error;

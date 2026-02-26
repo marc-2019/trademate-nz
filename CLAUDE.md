@@ -2,7 +2,7 @@
 
 ## Project Brain
 
-**Version**: 0.2.0 | **Status**: Value Features | **Updated**: February 4, 2026
+**Version**: 0.5.0 | **Status**: Beta-Ready | **Updated**: February 12, 2026
 
 ---
 
@@ -12,14 +12,19 @@ TradeMate NZ is a **mobile-first micro-SaaS platform** for New Zealand tradies a
 
 ### Core Identity
 - **Target Market**: 100-150k NZ SMEs (tradies, service businesses)
-- **Price Point**: Ultra-lean SaaS ($15-25 NZD/month)
-- **Margins**: 80%+ gross margin target
-- **Key Differentiator**: AI-powered NZ-specific compliance documentation (SWMS, WorkSafe checklists)
+- **Price Point**: Less than a coffee a week ($4.99-$9.99 NZD/week)
+- **Margins**: 85%+ gross margin target
+- **Key Differentiator**: AI-powered NZ-specific compliance + full business management in one affordable app
 
 ### Business Model
-Three modules that can be sold standalone or bundled:
-1. **Compliance Module** (Q1-Q2 2026) - Priority build
-2. **Cashflow Forecasting Module** (Q2-Q3 2026)
+- **Free tier**: 3 invoices/mo, 2 SWMS/mo, basic dashboard ($0)
+- **Tradie tier**: Unlimited everything, single user ($4.99 NZD/week ≈ $19.99/mo)
+- **Team tier**: Everything + up to 5 team members ($9.99 NZD/week ≈ $39.99/mo)
+- Currently in **beta mode** - all features free for all users
+
+### Product Modules
+1. **Compliance + Business Module** (v0.5.0 - COMPLETE) - SWMS, invoicing, quotes, expenses, jobs, teams
+2. **Cashflow Forecasting Module** (Q2-Q3 2026) - Xero integration
 3. **Hiring/Visa Compliance Module** (Q3-Q4 2026)
 
 ### Competitor Analysis & Our Gaps We Fill
@@ -63,45 +68,68 @@ TradeMate-NZ/
 │   ├── api/                    # Node.js/Express backend
 │   │   ├── src/
 │   │   │   ├── routes/         # API routes
-│   │   │   │   ├── compliance.ts
-│   │   │   │   ├── documents.ts
-│   │   │   │   └── auth.ts
+│   │   │   │   ├── auth.ts           # Register, login, refresh, logout
+│   │   │   │   ├── compliance.ts     # SWMS generation
+│   │   │   │   ├── certifications.ts # Certification CRUD
+│   │   │   │   ├── invoices.ts       # Invoice CRUD + send/paid/pdf/email
+│   │   │   │   ├── quotes.ts         # Quote CRUD + convert to invoice
+│   │   │   │   ├── expenses.ts       # Expense CRUD
+│   │   │   │   ├── job-logs.ts       # Job log CRUD + clock in/out
+│   │   │   │   ├── photos.ts         # Universal photo attachments
+│   │   │   │   ├── teams.ts          # Team CRUD + invites + members
+│   │   │   │   ├── subscriptions.ts  # Tier info, usage, limits
+│   │   │   │   ├── stats.ts          # Dashboard stats + insights
+│   │   │   │   └── public.ts         # Public invoice sharing (no auth)
 │   │   │   ├── services/       # Business logic
-│   │   │   │   ├── claude.ts   # AI document generation
-│   │   │   │   ├── pdf.ts      # PDF generation
-│   │   │   │   └── storage.ts  # File storage
+│   │   │   │   ├── claude.ts         # AI document generation
+│   │   │   │   ├── pdf.ts            # PDF generation (invoices + quotes)
+│   │   │   │   ├── email.ts          # Email service (Nodemailer)
+│   │   │   │   ├── invoices.ts       # Invoice business logic
+│   │   │   │   ├── quotes.ts         # Quote business logic
+│   │   │   │   ├── expenses.ts       # Expense business logic
+│   │   │   │   ├── job-logs.ts       # Job log business logic
+│   │   │   │   ├── photos.ts         # Photo upload/management
+│   │   │   │   ├── teams.ts          # Team management + invites
+│   │   │   │   ├── subscriptions.ts  # Tier definitions + limits
+│   │   │   │   ├── notifications.ts  # Push notifications (Expo)
+│   │   │   │   ├── stats.ts          # Dashboard aggregation
+│   │   │   │   └── cron.ts           # Cert expiry checking
+│   │   │   ├── middleware/
+│   │   │   │   ├── auth.ts           # JWT authentication
+│   │   │   │   └── subscription.ts   # Tier/feature/limit gating
 │   │   │   ├── templates/      # SWMS templates
-│   │   │   │   ├── swms-electrician.json
-│   │   │   │   ├── swms-plumber.json
-│   │   │   │   ├── swms-builder.json
-│   │   │   │   └── risk-assessment.json
-│   │   │   ├── middleware/     # Auth, validation
 │   │   │   └── index.ts        # Entry point
 │   │   └── package.json
 │   │
 │   └── mobile/                 # React Native (Expo)
+│       ├── app/                # expo-router pages
+│       │   ├── (auth)/         # Auth screens (login, register, verify, onboarding)
+│       │   ├── (tabs)/         # Tab navigation (Home, Work, People, Money)
+│       │   ├── invoices/       # Invoice create/detail screens
+│       │   ├── quotes/         # Quote create/detail screens
+│       │   ├── expenses/       # Expense list/create screens
+│       │   ├── jobs/           # Job log screens
+│       │   ├── settings.tsx    # Settings screen
+│       │   ├── subscription.tsx # Subscription management
+│       │   └── team.tsx        # Team management
 │       ├── src/
-│       │   ├── screens/        # Screen components
-│       │   ├── components/     # Reusable components
-│       │   ├── services/       # API clients, offline sync
+│       │   ├── contexts/       # AuthContext (user state, subscription tier)
+│       │   ├── components/     # Reusable components (PhotoPicker, etc.)
+│       │   ├── services/       # API client (all endpoint groups)
 │       │   └── hooks/          # Custom React hooks
-│       ├── App.tsx
 │       └── package.json
 │
 ├── packages/
 │   └── shared/                 # Shared types & utilities
-│       └── src/
 │
 ├── docs/                       # Documentation
-│   ├── testing/
-│   ├── product/
-│   └── technical/
+│   ├── product/                # Product positioning, roadmap, gaps
+│   ├── testing/                # Test plans
+│   └── technical/              # CortexForge integration, architecture
 │
-├── data/                       # Templates, prompts
-├── database/                   # Schema files
-├── scripts/                    # Management scripts
+├── database/                   # Migration SQL files (001-010)
 ├── docker-compose.yml
-├── CLAUDE.md                   # This file
+├── CLAUDE.md                   # This file - project brain
 ├── README.md
 └── PORTS.md
 ```
@@ -199,30 +227,61 @@ Copy `.env.example` to `.env` and fill in your credentials.
 
 ## Key Files
 
+### Project Root
 | File | Purpose |
 |------|---------|
-| `CLAUDE.md` | This file - project brain |
-| `apps/api/src/index.ts` | API entry point |
-| `apps/api/src/services/claude.ts` | AI integration |
-| `apps/api/src/services/invoices.ts` | Invoice business logic |
-| `apps/api/src/services/certifications.ts` | Certification business logic |
-| `apps/api/src/routes/invoices.ts` | Invoice API endpoints |
-| `apps/api/src/routes/certifications.ts` | Certification API endpoints |
-| `apps/api/src/routes/stats.ts` | Dashboard stats endpoint |
-| `apps/api/src/templates/*.json` | SWMS templates |
-| `apps/mobile/App.tsx` | Mobile app entry |
-| `apps/mobile/app/(tabs)/_layout.tsx` | Tab navigation (Home, Work, People, Money) |
-| `apps/mobile/app/(tabs)/index.tsx` | Home screen with stats |
-| `apps/mobile/app/(tabs)/work.tsx` | SWMS document list |
-| `apps/mobile/app/(tabs)/people.tsx` | Certifications list |
-| `apps/mobile/app/(tabs)/money.tsx` | Invoices list |
-| `apps/mobile/app/invoices/create.tsx` | Create invoice form |
-| `apps/mobile/app/invoices/[id].tsx` | Invoice detail view |
-| `apps/mobile/app/certifications/add.tsx` | Add certification form |
-| `apps/mobile/app/settings.tsx` | Settings screen |
-| `apps/mobile/src/services/api.ts` | API client with all endpoints |
-| `docker-compose.yml` | Infrastructure |
+| `CLAUDE.md` | This file - project brain for all AI interactions |
+| `docs/product/PRODUCT_AND_MARKET_POSITIONING.md` | Full product & market positioning document |
+| `docs/CHANGELOG.md` | Version history (v0.1.0 through v0.5.0) |
+| `docker-compose.yml` | Infrastructure (PostgreSQL, Redis) |
 | `PORTS.md` | Port assignments |
+
+### API (apps/api/src/)
+| File | Purpose |
+|------|---------|
+| `index.ts` | API entry point |
+| `middleware/auth.ts` | JWT authentication middleware |
+| `middleware/subscription.ts` | Tier/feature/limit gating middleware |
+| `routes/auth.ts` | Register, login, refresh, logout, verify, onboarding |
+| `routes/invoices.ts` | Invoice CRUD + send/paid/pdf/email |
+| `routes/quotes.ts` | Quote CRUD + convert to invoice |
+| `routes/expenses.ts` | Expense CRUD with categories |
+| `routes/job-logs.ts` | Job log CRUD + clock in/out |
+| `routes/photos.ts` | Universal photo attachments |
+| `routes/teams.ts` | Team CRUD + invites + members |
+| `routes/subscriptions.ts` | Tier info, usage, limits |
+| `routes/stats.ts` | Dashboard stats + insights |
+| `routes/public.ts` | Public invoice sharing (no auth) |
+| `services/claude.ts` | AI integration (SWMS generation) |
+| `services/pdf.ts` | PDF generation (invoices + quotes) |
+| `services/email.ts` | Email service (Nodemailer) |
+| `services/subscriptions.ts` | Tier definitions, limits, beta mode |
+| `services/teams.ts` | Team management + invites |
+| `services/notifications.ts` | Push notifications (Expo Push API) |
+| `services/cron.ts` | Cert expiry daily check |
+
+### Mobile (apps/mobile/)
+| File | Purpose |
+|------|---------|
+| `app/(auth)/login.tsx` | Login screen |
+| `app/(auth)/register.tsx` | Registration screen |
+| `app/(auth)/verify-email.tsx` | Email verification (6-digit code) |
+| `app/(auth)/onboarding.tsx` | 3-step onboarding wizard |
+| `app/(tabs)/_layout.tsx` | Tab navigation (Home, Work, People, Money) |
+| `app/(tabs)/index.tsx` | Home screen with stats + insights |
+| `app/(tabs)/work.tsx` | SWMS document list |
+| `app/(tabs)/people.tsx` | Certifications list |
+| `app/(tabs)/money.tsx` | Invoices + quotes list |
+| `app/invoices/create.tsx` | Create invoice form |
+| `app/invoices/[id].tsx` | Invoice detail (send, paid, PDF, email, share) |
+| `app/quotes/create.tsx` | Create quote form |
+| `app/expenses/index.tsx` | Expense list with filters |
+| `app/jobs/index.tsx` | Job log list + clock in/out |
+| `app/settings.tsx` | Settings screen |
+| `app/subscription.tsx` | Subscription management + tier comparison |
+| `app/team.tsx` | Team management + invites |
+| `src/contexts/AuthContext.tsx` | User state + subscription tier |
+| `src/services/api.ts` | API client (all endpoint groups) |
 
 ---
 
@@ -235,23 +294,21 @@ Copy `.env.example` to `.env` and fill in your credentials.
 
 ### Authentication
 - `POST /auth/register` - Create account
-- `POST /auth/login` - Login (email/password or magic link)
+- `POST /auth/login` - Login (email/password)
 - `POST /auth/refresh` - Refresh JWT token
+- `POST /auth/logout` - Logout
+- `POST /auth/verify-email` - Verify email with 6-digit code
+- `POST /auth/resend-verification` - Resend verification code
+- `POST /auth/onboarding` - Complete onboarding (trade type, company, bank details)
 
 ### Compliance Module
 - `GET /compliance/templates` - List available SWMS templates
 - `GET /compliance/templates/:tradeType` - Get template for trade
-- `POST /compliance/swms` - Generate SWMS document
+- `POST /compliance/swms` - Generate SWMS document (AI-powered)
 - `GET /compliance/swms/:id` - Get saved SWMS
 - `POST /compliance/swms/:id/pdf` - Export to PDF
 - `POST /compliance/ai/hazards` - AI hazard suggestions
 - `POST /compliance/ai/controls` - AI control measures
-
-### Documents
-- `GET /documents` - List user documents
-- `POST /documents` - Upload document
-- `GET /documents/:id` - Download document
-- `DELETE /documents/:id` - Delete document
 
 ### Certifications
 - `GET /api/v1/certifications` - List certifications
@@ -262,54 +319,162 @@ Copy `.env.example` to `.env` and fill in your credentials.
 - `DELETE /api/v1/certifications/:id` - Delete certification
 
 ### Invoices
-- `POST /api/v1/invoices` - Create invoice
+- `POST /api/v1/invoices` - Create invoice *(checkLimit: invoice)*
 - `GET /api/v1/invoices` - List invoices (with ?status filter)
 - `GET /api/v1/invoices/:id` - Get invoice
 - `PUT /api/v1/invoices/:id` - Update invoice (draft only)
 - `DELETE /api/v1/invoices/:id` - Delete invoice
 - `POST /api/v1/invoices/:id/send` - Mark as sent
 - `POST /api/v1/invoices/:id/paid` - Mark as paid
+- `GET /api/v1/invoices/:id/pdf` - Download invoice PDF *(requireFeature: pdfExport)*
+- `POST /api/v1/invoices/:id/email` - Email invoice to customer *(requireFeature: emailInvoice)*
 
-### Stats
-- `GET /api/v1/stats/dashboard` - Get dashboard stats (SWMS, invoices, certifications)
+### Quotes
+- `POST /api/v1/quotes` - Create quote *(requireFeature: quotes)*
+- `GET /api/v1/quotes` - List quotes (with ?status filter)
+- `GET /api/v1/quotes/:id` - Get quote
+- `PUT /api/v1/quotes/:id` - Update quote
+- `DELETE /api/v1/quotes/:id` - Delete quote
+- `GET /api/v1/quotes/:id/pdf` - Download quote PDF
+- `POST /api/v1/quotes/:id/convert` - Convert quote to invoice
+
+### Expenses
+- `POST /api/v1/expenses` - Create expense *(requireFeature: expenses)*
+- `GET /api/v1/expenses` - List expenses (with ?category filter)
+- `GET /api/v1/expenses/:id` - Get expense
+- `PUT /api/v1/expenses/:id` - Update expense
+- `DELETE /api/v1/expenses/:id` - Delete expense
+
+### Job Logs
+- `POST /api/v1/job-logs` - Create/start job log *(requireFeature: jobLogs)*
+- `GET /api/v1/job-logs` - List job logs
+- `GET /api/v1/job-logs/active` - Get active (clocked-in) job
+- `GET /api/v1/job-logs/:id` - Get job log
+- `PUT /api/v1/job-logs/:id` - Update job log (clock out, add notes)
+- `DELETE /api/v1/job-logs/:id` - Delete job log
+- `GET /api/v1/job-logs/stats` - Job log statistics
+
+### Photos
+- `POST /api/v1/photos` - Upload photo *(requireFeature: photos)*
+- `GET /api/v1/photos/:entityType/:entityId` - List photos for entity
+- `GET /api/v1/photos/:id` - Get photo
+- `DELETE /api/v1/photos/:id` - Delete photo
+
+### Teams
+- `POST /api/v1/teams` - Create team (user becomes owner)
+- `GET /api/v1/teams/my-team` - Get current user's team
+- `GET /api/v1/teams/:teamId` - Get team details
+- `PUT /api/v1/teams/:teamId` - Update team name
+- `GET /api/v1/teams/:teamId/members` - List members
+- `DELETE /api/v1/teams/:teamId/members/:memberId` - Remove member
+- `PUT /api/v1/teams/:teamId/members/:memberId/role` - Update member role
+- `POST /api/v1/teams/:teamId/leave` - Leave team
+- `POST /api/v1/teams/:teamId/invites` - Invite member *(checkLimit: teamMember)*
+- `GET /api/v1/teams/:teamId/invites` - List pending invites
+- `DELETE /api/v1/teams/:teamId/invites/:inviteId` - Cancel invite
+- `GET /api/v1/teams/invites/pending` - My pending invites
+- `POST /api/v1/teams/invites/:inviteCode/accept` - Accept invite
+- `POST /api/v1/teams/invites/:inviteCode/decline` - Decline invite
+
+### Subscriptions
+- `GET /api/v1/subscriptions/tiers` - List all tier definitions
+- `GET /api/v1/subscriptions/me` - Get current user's subscription
+- `GET /api/v1/subscriptions/usage` - Get current usage stats
+- `GET /api/v1/subscriptions/limits` - Get tier limits for current user
+
+### Stats & Insights
+- `GET /api/v1/stats/dashboard` - Dashboard stats (SWMS, invoices, certifications, insights)
+  - Revenue comparison (this month vs last, % change)
+  - Outstanding invoice aging (0-30, 31-60, 61-90, 90+ days)
+  - Top 5 customers by revenue
+  - Monthly revenue chart data (last 6 months)
+
+### Public (No Auth)
+- `GET /api/v1/public/invoices/:token` - View shared invoice (HTML page)
 
 ---
 
 ## Current Status
 
-**Version**: 0.2.0 | **Phase**: Value Features
+**Version**: 0.5.0 | **Phase**: Beta-Ready | **All Core Features Complete**
 
-### What's Done
-- [x] Project structure defined
-- [x] Architecture documented
-- [x] **Docker infrastructure** - Multi-container setup with PostgreSQL and Redis
-- [x] **Express API server** - Full scaffolding with TypeScript
-- [x] **Authentication system** - JWT auth with register/login/refresh/logout
-- [x] **SWMS generation endpoint** - AI-powered document generation
-- [x] **SWMS templates** - Electrician, plumber, builder templates
-- [x] **Claude AI integration** - Hazard suggestions and control measures
-- [x] **Database schema** - Users, SWMS documents, certifications, invoices
-- [x] **Test suite** - 33 passing tests for all routes
-- [x] **Health checks** - Liveness, readiness probes
-- [x] **Mobile app scaffolding** - React Native/Expo with expo-router
-- [x] **Mobile auth screens** - Login, Register with SecureStore
-- [x] **Mobile SWMS screens** - List, Generate, Detail, Sign
-- [x] **Offline SQLite setup** - expo-sqlite with sync queue
-- [x] **New 4-tab navigation** - Home, Work, People, Money
-- [x] **Simple invoicing** - Create, view, mark sent/paid
-- [x] **Working certifications** - Full CRUD with API integration
-- [x] **Dashboard stats** - Overview card with SWMS, invoices, certifications
-- [x] **Settings screen** - Profile moved from tab to header icon
+### What's Built (v0.1.0 - v0.5.0)
 
-### What's In Progress
-- [ ] PDF export functionality
-- [ ] Mobile-server sync implementation
+#### Foundation (v0.1.0)
+- [x] Docker infrastructure (PostgreSQL 16, Redis 7)
+- [x] Express API server with TypeScript
+- [x] JWT authentication (register, login, refresh, logout)
+- [x] AI-powered SWMS generation (Claude API)
+- [x] SWMS templates (electrician, plumber, builder)
+- [x] Database schema with 10 migrations
+- [x] Test suite (33+ passing tests)
+- [x] React Native/Expo mobile app with expo-router
+- [x] Offline SQLite setup with sync queue
 
-### What's Next
-- [ ] Digital signature capture (react-native-signature-canvas)
-- [ ] Risk assessment builder
-- [ ] Push notifications for cert expiry
-- [ ] Xero integration (cashflow module)
+#### Business Features (v0.2.0)
+- [x] Full invoicing system (CRUD + send/paid workflow)
+- [x] Certifications API (CRUD + expiry tracking)
+- [x] Dashboard stats (SWMS, invoices, certifications)
+- [x] 4-tab navigation (Home, Work, People, Money)
+
+#### Core Value Features (v0.3.0)
+- [x] PDF generation (invoices + quotes via PDFKit)
+- [x] Universal photo attachments (camera + gallery, all entities)
+- [x] Quote/estimate builder (CRUD + convert to invoice)
+- [x] Expense tracking (7 categories, receipt photos)
+- [x] Job/site logger (clock in/out, timer, site address)
+- [x] Push notifications (cert expiry at 30/14/7/1 days)
+- [x] Team management (invite, accept/decline, roles: owner/admin/worker)
+- [x] Recurring invoices (weekly/fortnightly/monthly/quarterly/annually)
+- [x] Bank reconciliation (auto-matching with confidence scoring)
+
+#### Growth Features (v0.4.0)
+- [x] Client portal (shareable invoice links, no auth required)
+- [x] Email invoice (one-tap send with PDF attachment)
+- [x] Dashboard insights (revenue comparison, aging, top customers, chart data)
+
+#### Monetisation Ready (v0.5.0)
+- [x] Subscription tiers (free/tradie/team with limits + feature gating)
+- [x] Subscription middleware (attachSubscription, requireTier, requireFeature, checkLimit)
+- [x] Mobile subscription management screen
+- [x] Email verification (6-digit code)
+- [x] 3-step onboarding wizard (trade type, company details, bank details)
+- [x] Beta mode (all users get tradie-level access)
+
+### Database Migrations (10 total)
+```
+001_initial.sql            - users, swms_documents, certifications
+002_quotes.sql             - quotes table
+003_photos.sql             - universal photos table
+004_job_logs.sql           - job_logs table
+005_expenses.sql           - expenses table
+006_teams.sql              - teams + team_members + invites
+007_invoice_sharing.sql    - share_token on invoices
+008_push_tokens.sql        - expo_push_token on users
+009_subscription.sql       - subscription_tier, stripe fields on users
+010_email_verification.sql - is_verified, verification_code on users
+```
+
+### Subscription Middleware Pattern
+All feature routes use this middleware chain:
+```typescript
+// Basic auth only
+router.get('/', authenticate, handler);
+
+// Auth + subscription check for creation
+router.post('/', authenticate, attachSubscription, checkLimit('invoice'), handler);
+
+// Auth + feature gate
+router.post('/', authenticate, attachSubscription, requireFeature('photos'), handler);
+```
+
+### What's Next (Unreleased)
+- [ ] Stripe NZ integration (paid subscriptions - target: ~50 beta users)
+- [ ] App Store submission (iOS + Android)
+- [ ] Landing page and marketing site
+- [ ] Xero integration (Module 2 - Cashflow Forecasting)
+- [ ] Digital signature capture for SWMS
+- [ ] In-app messaging (team chat)
 
 ---
 
@@ -348,10 +513,11 @@ Copy `.env.example` to `.env` and fill in your credentials.
 - Scopes: `accounting.transactions.read`, `accounting.contacts.read`
 - Webhook for real-time updates
 
-### Stripe NZ
-- Subscription billing
-- NZ pricing ($15-25/month)
+### Stripe NZ (Planned - Phase B)
+- Subscription billing via Stripe Checkout (no custom payment UI)
+- NZ pricing: Tradie $4.99/wk, Team $9.99/wk
 - Webhook for payment events
+- `subscription_tier`, `stripe_customer_id`, `stripe_subscription_id` fields ready on users table
 
 ### Twilio
 - SMS notifications
@@ -398,17 +564,22 @@ npm install
 
 ## Success Metrics
 
-### Validation Phase
-- 500 waitlist signups from $500 FB ad spend
-
-### Beta Phase
-- 50 active users
+### Beta Phase (Current)
+- 50 active users target
 - 80% weekly retention
+- All features free (beta mode)
+- Trigger Stripe integration at ~50 users
 
-### Launch Phase
+### Paid Launch Phase
 - 200 paying users in first 3 months
 - <$2/user infrastructure cost
-- 80%+ gross margin
+- 85%+ gross margin
+- Target ARPU: $24 NZD/month (blended)
+
+### Growth Phase
+- 1,000 paying users by end of Year 1
+- $288k ARR target
+- Net Revenue Retention >100%
 
 ---
 

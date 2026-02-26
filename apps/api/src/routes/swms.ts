@@ -7,6 +7,7 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import swmsService from '../services/swms.js';
 import { authenticate } from '../middleware/auth.js';
+import { attachSubscription, checkLimit } from '../middleware/subscription.js';
 
 // App error type for error handling
 interface AppError extends Error {
@@ -21,7 +22,7 @@ const router = Router();
 // =============================================================================
 
 const generateSchema = z.object({
-  tradeType: z.enum(['electrician', 'plumber', 'builder', 'landscaper', 'other']),
+  tradeType: z.enum(['electrician', 'plumber', 'builder', 'landscaper', 'painter', 'other']),
   jobDescription: z.string().min(10, 'Job description must be at least 10 characters'),
   siteAddress: z.string().optional(),
   clientName: z.string().optional(),
@@ -94,7 +95,7 @@ router.get('/templates/:tradeType', (req: Request, res: Response) => {
  * POST /api/v1/swms/generate
  * Generate a new SWMS document
  */
-router.post('/generate', authenticate, async (req: Request, res: Response) => {
+router.post('/generate', authenticate, attachSubscription, checkLimit('swms'), async (req: Request, res: Response) => {
   try {
     const validation = generateSchema.safeParse(req.body);
     if (!validation.success) {

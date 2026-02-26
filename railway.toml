@@ -1,0 +1,35 @@
+# =============================================================================
+# Railway Deployment Configuration
+# =============================================================================
+# Deploy the TradeMate API to Railway
+#
+# Railway services needed:
+#   1. API (this service) - Dockerfile-based Node.js app
+#   2. PostgreSQL (Railway plugin) - Managed database
+#   3. Redis (Railway plugin) - Managed cache
+#
+# Railway auto-injects DATABASE_URL and REDIS_URL from plugins.
+# Set remaining env vars in Railway dashboard.
+# =============================================================================
+
+[build]
+# Use the Dockerfile at project root
+dockerfilePath = "Dockerfile.api"
+
+# Build context is the project root (Dockerfile copies from apps/api/)
+watchPatterns = ["apps/api/src/**", "apps/api/package*.json", "apps/api/tsconfig.json", "Dockerfile.api"]
+
+[deploy]
+# Use the production stage of the multi-stage Dockerfile
+startCommand = "node dist/index.js"
+
+# Health check
+healthcheckPath = "/health"
+healthcheckTimeout = 10
+
+# Restart policy
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+# Railway sets PORT automatically - our app reads process.env.PORT
+# No need to specify numReplicas for hobby/pro plan

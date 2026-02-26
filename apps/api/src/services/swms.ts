@@ -18,17 +18,72 @@ import {
 import { createError } from '../middleware/error.js';
 
 // Import templates
-import electricianTemplate from '../templates/swms-electrician.json' assert { type: 'json' };
-import plumberTemplate from '../templates/swms-plumber.json' assert { type: 'json' };
-import builderTemplate from '../templates/swms-builder.json' assert { type: 'json' };
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const electricianTemplate = require('../templates/swms-electrician.json');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const plumberTemplate = require('../templates/swms-plumber.json');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const builderTemplate = require('../templates/swms-builder.json');
 
 const templates: Record<TradeType, SWMSTemplate> = {
   electrician: electricianTemplate as unknown as SWMSTemplate,
   plumber: plumberTemplate as unknown as SWMSTemplate,
   builder: builderTemplate as unknown as SWMSTemplate,
   landscaper: builderTemplate as unknown as SWMSTemplate, // Use builder as fallback
+  painter: builderTemplate as unknown as SWMSTemplate, // Use builder as fallback
   other: builderTemplate as unknown as SWMSTemplate,
 };
+
+/**
+ * Get default hazards for a trade type (hardcoded fallback)
+ */
+function getTradeHazards(tradeType: TradeType): string[] {
+  const tradeHazards: Record<string, string[]> = {
+    electrician: [
+      'Electric shock from live conductors',
+      'Arc flash/blast from electrical fault',
+      'Working at height on ladders or platforms',
+      'Manual handling of heavy equipment',
+      'Working in confined spaces',
+    ],
+    plumber: [
+      'Contact with hot water/steam',
+      'Manual handling of pipes and materials',
+      'Working at height',
+      'Exposure to sewage/biological hazards',
+      'Slips, trips and falls on wet surfaces',
+    ],
+    builder: [
+      'Falls from height',
+      'Struck by falling objects',
+      'Manual handling injuries',
+      'Noise exposure from power tools',
+      'Dust inhalation',
+    ],
+    landscaper: [
+      'Manual handling of materials',
+      'Cuts from tools and equipment',
+      'UV exposure',
+      'Noise from machinery',
+      'Slips, trips on uneven ground',
+    ],
+    painter: [
+      'Working at height on ladders or scaffolding',
+      'Exposure to paint fumes and solvents',
+      'Skin contact with hazardous chemicals',
+      'Manual handling of paint containers',
+      'Slips, trips and falls on drop sheets',
+    ],
+    other: [
+      'Manual handling injuries',
+      'Slips, trips and falls',
+      'Working at height',
+      'Noise exposure',
+      'Hazardous substances',
+    ],
+  };
+  return tradeHazards[tradeType] || tradeHazards.other;
+}
 
 /**
  * Get available templates
@@ -68,6 +123,8 @@ export async function generateSWMS(
 
   if (input.useAI !== false) {
     try {
+      console.log(`[SWMS] Generating AI suggestions for ${input.tradeType} job...`);
+
       // Get AI hazard suggestions
       const hazardStrings = await claudeService.generateHazardSuggestions(
         input.tradeType,
@@ -75,32 +132,97 @@ export async function generateSWMS(
         input.siteAddress || ''
       );
 
+      console.log(`[SWMS] Received ${hazardStrings.length} hazard suggestions`);
+
+      // Assign risk levels based on hazard keywords
+      const getRiskLevel = (desc: string): 'low' | 'medium' | 'high' | 'extreme' => {
+        const lower = desc.toLowerCase();
+        if (lower.includes('death') || lower.includes('fatal') || lower.includes('electrocution') || lower.includes('asbestos')) {
+          return 'extreme';
+        }
+        if (lower.includes('electric') || lower.includes('fall') || lower.includes('height') || lower.includes('confined space') || lower.includes('arc flash')) {
+          return 'high';
+        }
+        if (lower.includes('manual handling') || lower.includes('noise') || lower.includes('hot') || lower.includes('chemical')) {
+          return 'medium';
+        }
+        return 'medium'; // Default to medium for unclassified
+      };
+
       suggestedHazards = hazardStrings.map((description, index) => ({
         id: `hazard-${index}`,
         category: 'ai-suggested',
         description,
+        riskLevel: getRiskLevel(description),
         aiGenerated: true,
       }));
 
       // Get AI control suggestions for hazards
       if (suggestedHazards.length > 0) {
-        const controlMap = await claudeService.generateControlMeasures(
-          hazardStrings,
-          input.tradeType
-        );
+        try {
+          const controlMap = await claudeService.generateControlMeasures(
+            hazardStrings,
+            input.tradeType
+          );
 
-        suggestedControls = Object.entries(controlMap).map(([hazardDesc, control], index) => ({
-          hazardId: suggestedHazards.find(h => h.description === hazardDesc)?.id || `hazard-${index}`,
-          controlType: control.controlType,
-          description: control.primaryControl,
-          ppeRequired: control.ppeRequired,
-          aiGenerated: true,
-        }));
+          suggestedControls = Object.entries(controlMap).map(([hazardDesc, control], index) => ({
+            hazardId: suggestedHazards.find(h => h.description === hazardDesc)?.id || `hazard-${index}`,
+            controlType: control.controlType,
+            description: control.primaryControl,
+            ppeRequired: control.ppeRequired,
+            aiGenerated: true,
+          }));
+
+          console.log(`[SWMS] Generated ${suggestedControls.length} control measures`);
+        } catch (controlError) {
+          console.error('[SWMS] Control generation failed (non-fatal):', controlError instanceof Error ? controlError.message : controlError);
+          // Generate default controls for the hazards we have
+          suggestedControls = suggestedHazards.map((h) => ({
+            hazardId: h.id,
+            controlType: 'administrative' as const,
+            description: 'Implement safe work procedures and ensure workers are trained',
+            ppeRequired: ['Safety boots', 'Hi-vis vest', 'Safety glasses'],
+            aiGenerated: false,
+          }));
+          console.log(`[SWMS] Using ${suggestedControls.length} default control measures`);
+        }
       }
     } catch (error) {
-      console.error('AI suggestion error (non-fatal):', error);
-      // Continue without AI suggestions
+      console.error('[SWMS] AI suggestion error (non-fatal):', error instanceof Error ? error.message : error);
+      // Continue without AI suggestions - defaults will be applied below
     }
+  }
+
+  // Ensure we always have hazards and controls (use defaults if AI failed or was disabled)
+  if (suggestedHazards.length === 0) {
+    console.log(`[SWMS] No hazards generated, using defaults for ${input.tradeType}`);
+    const defaultHazardStrings = await claudeService.generateHazardSuggestions(
+      input.tradeType,
+      input.jobDescription,
+      input.siteAddress || ''
+    ).catch(() => []);
+
+    // If even defaults failed, use hardcoded fallbacks
+    const hazardStrings = defaultHazardStrings.length > 0 ? defaultHazardStrings : getTradeHazards(input.tradeType);
+
+    suggestedHazards = hazardStrings.map((description, index) => ({
+      id: `hazard-${index}`,
+      category: 'default',
+      description,
+      riskLevel: 'medium' as const,
+      aiGenerated: false,
+    }));
+  }
+
+  if (suggestedControls.length === 0 && suggestedHazards.length > 0) {
+    console.log(`[SWMS] No controls generated, using defaults`);
+    suggestedControls = suggestedHazards.map((h) => ({
+      hazardId: h.id,
+      controlType: 'administrative' as const,
+      description: 'Implement safe work procedures and ensure workers are trained',
+      ppeRequired: ['Safety boots', 'Hi-vis vest', 'Safety glasses'],
+      aiGenerated: false,
+    }));
   }
 
   // Create document in database
@@ -150,6 +272,40 @@ export async function generateSWMS(
 }
 
 /**
+ * Transform hazards and controls to mobile-friendly format
+ * Mobile expects: { id, hazard, risk_level, control_measures[] }
+ */
+function transformHazardsForMobile(hazards: Hazard[], controls: Control[]): MobileHazard[] {
+  return hazards.map((h) => {
+    // Find controls for this hazard
+    const hazardControls = controls.filter((c) => c.hazardId === h.id);
+    const controlMeasures = hazardControls.map((c) => c.description);
+
+    // Also collect PPE from controls
+    const ppeFromControls = hazardControls
+      .flatMap((c) => c.ppeRequired || [])
+      .filter((v, i, a) => a.indexOf(v) === i); // unique
+
+    return {
+      id: h.id,
+      hazard: h.description, // Mobile expects 'hazard' not 'description'
+      risk_level: h.riskLevel || 'medium', // Default to medium if not set
+      control_measures: controlMeasures.length > 0 ? controlMeasures : ['Implement safe work procedures'],
+      ppe_required: ppeFromControls,
+    };
+  });
+}
+
+// Mobile-friendly hazard format
+interface MobileHazard {
+  id: string;
+  hazard: string;
+  risk_level: string;
+  control_measures: string[];
+  ppe_required?: string[];
+}
+
+/**
  * Get SWMS by ID
  */
 export async function getSWMSById(
@@ -176,21 +332,59 @@ export async function getSWMSById(
   }
 
   const doc = result.rows[0];
+  const hazards: Hazard[] = typeof doc.hazards === 'string' ? JSON.parse(doc.hazards) : (doc.hazards || []);
+  const controls: Control[] = typeof doc.controls === 'string' ? JSON.parse(doc.controls) : (doc.controls || []);
+  const ppeRequired: string[] = typeof doc.ppeRequired === 'string' ? JSON.parse(doc.ppeRequired) : (doc.ppeRequired || []);
+
+  // Collect all PPE from controls and merge with document-level PPE
+  const allPpe = [
+    ...ppeRequired,
+    ...controls.flatMap((c) => c.ppeRequired || []),
+  ].filter((v, i, a) => a.indexOf(v) === i); // unique
+
+  // Build signatures array for mobile
+  const signatures: Array<{ role: string; signed_at: string; signed_by: string }> = [];
+  if (doc.workerSignature && doc.workerSignedAt) {
+    signatures.push({
+      role: 'worker',
+      signed_at: doc.workerSignedAt.toISOString ? doc.workerSignedAt.toISOString() : String(doc.workerSignedAt),
+      signed_by: 'Worker',
+    });
+  }
+  if (doc.supervisorSignature && doc.supervisorSignedAt) {
+    signatures.push({
+      role: 'supervisor',
+      signed_at: doc.supervisorSignedAt.toISOString ? doc.supervisorSignedAt.toISOString() : String(doc.supervisorSignedAt),
+      signed_by: 'Supervisor',
+    });
+  }
+
+  // Return in mobile-friendly format (snake_case field names)
   return {
-    ...doc,
-    hazards: typeof doc.hazards === 'string' ? JSON.parse(doc.hazards) : doc.hazards,
-    controls: typeof doc.controls === 'string' ? JSON.parse(doc.controls) : doc.controls,
-    ppeRequired: typeof doc.ppeRequired === 'string' ? JSON.parse(doc.ppeRequired) : doc.ppeRequired,
-  };
+    id: doc.id,
+    title: doc.title,
+    trade_type: doc.templateType,
+    status: doc.status,
+    job_description: doc.jobDescription,
+    site_address: doc.siteAddress,
+    client_name: doc.clientName,
+    expected_duration: doc.expectedDuration,
+    hazards: transformHazardsForMobile(hazards, controls),
+    ppe_required: allPpe,
+    emergency_procedures: doc.emergencyPlan ? [doc.emergencyPlan] : ['Call 111 for emergencies', 'First aid kit on site', 'Evacuate if necessary'],
+    signatures,
+    created_at: doc.createdAt,
+    updated_at: doc.updatedAt,
+  } as unknown as SWMSDocument;
 }
 
 /**
- * List SWMS documents for user
+ * List SWMS documents for user (returns mobile-friendly snake_case format)
  */
 export async function listSWMS(
   userId: string,
   options: { status?: string; limit?: number; offset?: number } = {}
-): Promise<{ items: SWMSDocument[]; total: number }> {
+): Promise<{ documents: Record<string, unknown>[]; total: number }> {
   const { status, limit = 20, offset = 0 } = options;
 
   let whereClause = 'user_id = $1';
@@ -208,11 +402,11 @@ export async function listSWMS(
   );
   const total = parseInt(countResult.rows[0].count, 10);
 
-  // Get items
-  const result = await db.query<SWMSDocument>(
-    `SELECT id, user_id as "userId", template_type as "templateType", title, status,
-            job_description as "jobDescription", site_address as "siteAddress",
-            client_name as "clientName", created_at as "createdAt", updated_at as "updatedAt"
+  // Get items with snake_case field names for mobile
+  const result = await db.query<Record<string, unknown>>(
+    `SELECT id, user_id, template_type as trade_type, title, status,
+            job_description, site_address, client_name,
+            created_at, updated_at
      FROM swms_documents
      WHERE ${whereClause}
      ORDER BY created_at DESC
@@ -221,7 +415,7 @@ export async function listSWMS(
   );
 
   return {
-    items: result.rows,
+    documents: result.rows,
     total,
   };
 }

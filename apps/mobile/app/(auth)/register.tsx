@@ -16,7 +16,7 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
 
 const TRADE_TYPES = [
@@ -30,6 +30,7 @@ const TRADE_TYPES = [
 
 export default function RegisterScreen() {
   const { register } = useAuth();
+  const router = useRouter();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -49,13 +50,25 @@ export default function RegisterScreen() {
 
     setIsLoading(true);
     try {
-      await register({
+      const verificationCode = await register({
         email,
         password,
         name: name || undefined,
         businessName: businessName || undefined,
         tradeType: tradeType || undefined,
       });
+
+      // In dev mode, show the verification code for testing
+      if (__DEV__ && verificationCode) {
+        Alert.alert(
+          'Dev Mode',
+          `Your verification code is: ${verificationCode}`,
+          [{ text: 'OK', onPress: () => router.replace('/(auth)/verify-email' as any) }]
+        );
+      } else {
+        // Root layout will auto-redirect to verify-email
+        router.replace('/(auth)/verify-email' as any);
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Registration failed';
       Alert.alert('Registration Failed', message);
@@ -173,8 +186,8 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    paddingVertical: 48,
-    justifyContent: 'center',
+    paddingTop: 60,
+    paddingBottom: 100,
   },
   header: {
     alignItems: 'center',

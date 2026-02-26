@@ -77,25 +77,6 @@ export default function TabsLayout() {
           ),
         }}
       />
-      {/* Hide old tabs that are being replaced */}
-      <Tabs.Screen
-        name="swms"
-        options={{
-          href: null, // Hide from tab bar
-        }}
-      />
-      <Tabs.Screen
-        name="certifications"
-        options={{
-          href: null, // Hide from tab bar
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          href: null, // Hide from tab bar
-        }}
-      />
     </Tabs>
   );
 }

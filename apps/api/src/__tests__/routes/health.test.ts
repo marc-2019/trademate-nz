@@ -6,12 +6,24 @@ import request from 'supertest';
 import express, { Express } from 'express';
 
 // Mock database service before importing routes
-const mockCheckConnection = jest.fn();
+const mockDbCheckConnection = jest.fn();
 jest.mock('../../services/database.js', () => ({
   __esModule: true,
   default: {
-    checkConnection: mockCheckConnection,
+    checkConnection: mockDbCheckConnection,
     query: jest.fn(),
+  },
+}));
+
+// Mock redis service before importing routes
+const mockRedisCheckConnection = jest.fn();
+jest.mock('../../services/redis.js', () => ({
+  __esModule: true,
+  default: {
+    checkConnection: mockRedisCheckConnection,
+    connect: jest.fn(),
+    close: jest.fn(),
+    getClient: jest.fn(),
   },
 }));
 
@@ -32,8 +44,9 @@ beforeEach(() => {
 
 describe('Health Routes', () => {
   describe('GET /health', () => {
-    it('should return healthy status when database is connected', async () => {
-      mockCheckConnection.mockResolvedValue(true);
+    it('should return healthy status when both database and redis are connected', async () => {
+      mockDbCheckConnection.mockResolvedValue(true);
+      mockRedisCheckConnection.mockResolvedValue(true);
 
       const response = await request(app).get('/health');
 
@@ -41,17 +54,18 @@ describe('Health Routes', () => {
       expect(response.body).toMatchObject({
         status: 'healthy',
         service: 'trademate-api',
-        version: '0.1.0',
+        version: '0.5.0',
         dependencies: {
           database: 'connected',
-          redis: 'pending',
+          redis: 'connected',
         },
       });
       expect(response.body.timestamp).toBeDefined();
     });
 
     it('should return degraded status when database is disconnected', async () => {
-      mockCheckConnection.mockResolvedValue(false);
+      mockDbCheckConnection.mockResolvedValue(false);
+      mockRedisCheckConnection.mockResolvedValue(true);
 
       const response = await request(app).get('/health');
 
@@ -60,14 +74,48 @@ describe('Health Routes', () => {
         status: 'degraded',
         dependencies: {
           database: 'disconnected',
+          redis: 'connected',
+        },
+      });
+    });
+
+    it('should return degraded status when redis is disconnected', async () => {
+      mockDbCheckConnection.mockResolvedValue(true);
+      mockRedisCheckConnection.mockResolvedValue(false);
+
+      const response = await request(app).get('/health');
+
+      expect(response.status).toBe(503);
+      expect(response.body).toMatchObject({
+        status: 'degraded',
+        dependencies: {
+          database: 'connected',
+          redis: 'disconnected',
+        },
+      });
+    });
+
+    it('should return degraded status when both database and redis are disconnected', async () => {
+      mockDbCheckConnection.mockResolvedValue(false);
+      mockRedisCheckConnection.mockResolvedValue(false);
+
+      const response = await request(app).get('/health');
+
+      expect(response.status).toBe(503);
+      expect(response.body).toMatchObject({
+        status: 'degraded',
+        dependencies: {
+          database: 'disconnected',
+          redis: 'disconnected',
         },
       });
     });
   });
 
   describe('GET /health/ready', () => {
-    it('should return ready when database is connected', async () => {
-      mockCheckConnection.mockResolvedValue(true);
+    it('should return ready when both database and redis are connected', async () => {
+      mockDbCheckConnection.mockResolvedValue(true);
+      mockRedisCheckConnection.mockResolvedValue(true);
 
       const response = await request(app).get('/health/ready');
 
@@ -79,7 +127,8 @@ describe('Health Routes', () => {
     });
 
     it('should return not ready when database is disconnected', async () => {
-      mockCheckConnection.mockResolvedValue(false);
+      mockDbCheckConnection.mockResolvedValue(false);
+      mockRedisCheckConnection.mockResolvedValue(true);
 
       const response = await request(app).get('/health/ready');
 
@@ -87,6 +136,32 @@ describe('Health Routes', () => {
       expect(response.body).toMatchObject({
         ready: false,
         message: 'Database not connected',
+      });
+    });
+
+    it('should return not ready when redis is disconnected', async () => {
+      mockDbCheckConnection.mockResolvedValue(true);
+      mockRedisCheckConnection.mockResolvedValue(false);
+
+      const response = await request(app).get('/health/ready');
+
+      expect(response.status).toBe(503);
+      expect(response.body).toMatchObject({
+        ready: false,
+        message: 'Redis not connected',
+      });
+    });
+
+    it('should return not ready with both reasons when both are disconnected', async () => {
+      mockDbCheckConnection.mockResolvedValue(false);
+      mockRedisCheckConnection.mockResolvedValue(false);
+
+      const response = await request(app).get('/health/ready');
+
+      expect(response.status).toBe(503);
+      expect(response.body).toMatchObject({
+        ready: false,
+        message: 'Database not connected; Redis not connected',
       });
     });
   });

@@ -14,12 +14,14 @@ export interface User {
   tradeType: TradeType | null;
   businessName: string | null;
   isVerified: boolean;
+  onboardingCompleted: boolean;
+  subscriptionTier: SubscriptionTier;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export type TradeType = 'electrician' | 'plumber' | 'builder' | 'landscaper' | 'other';
+export type TradeType = 'electrician' | 'plumber' | 'builder' | 'landscaper' | 'painter' | 'other';
 
 export interface UserCreateInput {
   email: string;
@@ -48,6 +50,8 @@ export interface AuthTokens {
 export interface JwtPayload {
   userId: string;
   email: string;
+  teamId?: string;
+  teamRole?: TeamRole;
   iat?: number;
   exp?: number;
 }
@@ -218,10 +222,10 @@ export interface CertificationCreateInput {
 export interface CertificationUpdateInput {
   type?: CertificationType;
   name?: string;
-  certNumber?: string;
-  issuingBody?: string;
-  issueDate?: string;
-  expiryDate?: string;
+  certNumber?: string | null;
+  issuingBody?: string | null;
+  issueDate?: string | null;
+  expiryDate?: string | null;
 }
 
 // =============================================================================
@@ -247,6 +251,20 @@ export interface Invoice {
   bankAccountName: string | null;
   bankAccountNumber: string | null;
   notes: string | null;
+  // Enhanced fields
+  customerId: string | null;
+  recurringInvoiceId: string | null;
+  includeGst: boolean;
+  intlBankAccountName: string | null;
+  intlIban: string | null;
+  intlSwiftBic: string | null;
+  intlBankName: string | null;
+  intlBankAddress: string | null;
+  companyName: string | null;
+  companyAddress: string | null;
+  irdNumber: string | null;
+  gstNumber: string | null;
+  shareToken: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -271,20 +289,270 @@ export interface InvoiceCreateInput {
   bankAccountName?: string;
   bankAccountNumber?: string;
   notes?: string;
+  // Enhanced fields
+  customerId?: string;
+  recurringInvoiceId?: string;
+  intlBankAccountName?: string;
+  intlIban?: string;
+  intlSwiftBic?: string;
+  intlBankName?: string;
+  intlBankAddress?: string;
+  companyName?: string;
+  companyAddress?: string;
+  irdNumber?: string;
+  gstNumber?: string;
 }
 
 export interface InvoiceUpdateInput {
   clientName?: string;
   clientEmail?: string;
   clientPhone?: string;
-  swmsId?: string;
+  swmsId?: string | null;
   jobDescription?: string;
   lineItems?: { description: string; amount: number }[];
   includeGst?: boolean;
-  dueDate?: string;
+  dueDate?: string | null;
   bankAccountName?: string;
   bankAccountNumber?: string;
   notes?: string;
+  customerId?: string | null;
+  intlBankAccountName?: string;
+  intlIban?: string;
+  intlSwiftBic?: string;
+  intlBankName?: string;
+  intlBankAddress?: string;
+  companyName?: string;
+  companyAddress?: string;
+  irdNumber?: string;
+  gstNumber?: string;
+}
+
+// =============================================================================
+// BUSINESS PROFILE TYPES
+// =============================================================================
+
+export interface BusinessProfile {
+  id: string;
+  userId: string;
+  companyName: string | null;
+  tradingAs: string | null;
+  irdNumber: string | null;
+  gstNumber: string | null;
+  isGstRegistered: boolean;
+  companyAddress: string | null;
+  companyPhone: string | null;
+  companyEmail: string | null;
+  bankAccountName: string | null;
+  bankAccountNumber: string | null;
+  bankName: string | null;
+  intlBankAccountName: string | null;
+  intlIban: string | null;
+  intlSwiftBic: string | null;
+  intlBankName: string | null;
+  intlBankAddress: string | null;
+  intlRoutingNumber: string | null;
+  defaultPaymentTerms: number;
+  defaultNotes: string | null;
+  invoicePrefix: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface BusinessProfileUpsertInput {
+  companyName?: string;
+  tradingAs?: string;
+  irdNumber?: string;
+  gstNumber?: string;
+  isGstRegistered?: boolean;
+  companyAddress?: string;
+  companyPhone?: string;
+  companyEmail?: string;
+  bankAccountName?: string;
+  bankAccountNumber?: string;
+  bankName?: string;
+  intlBankAccountName?: string;
+  intlIban?: string;
+  intlSwiftBic?: string;
+  intlBankName?: string;
+  intlBankAddress?: string;
+  intlRoutingNumber?: string;
+  defaultPaymentTerms?: number;
+  defaultNotes?: string;
+  invoicePrefix?: string;
+}
+
+// =============================================================================
+// CUSTOMER TYPES
+// =============================================================================
+
+export interface Customer {
+  id: string;
+  userId: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  notes: string | null;
+  defaultPaymentTerms: number | null;
+  defaultIncludeGst: boolean;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CustomerCreateInput {
+  name: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  notes?: string;
+  defaultPaymentTerms?: number;
+  defaultIncludeGst?: boolean;
+}
+
+export interface CustomerUpdateInput {
+  name?: string;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  notes?: string | null;
+  defaultPaymentTerms?: number | null;
+  defaultIncludeGst?: boolean;
+  isActive?: boolean;
+}
+
+// =============================================================================
+// PRODUCT / SERVICE TYPES
+// =============================================================================
+
+export type ProductType = 'fixed' | 'variable';
+
+export interface ProductService {
+  id: string;
+  userId: string;
+  name: string;
+  description: string | null;
+  unitPrice: number; // in cents
+  type: ProductType;
+  isGstApplicable: boolean;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ProductServiceCreateInput {
+  name: string;
+  description?: string;
+  unitPrice: number; // in cents
+  type?: ProductType;
+  isGstApplicable?: boolean;
+}
+
+export interface ProductServiceUpdateInput {
+  name?: string;
+  description?: string | null;
+  unitPrice?: number;
+  type?: ProductType;
+  isGstApplicable?: boolean;
+  isActive?: boolean;
+}
+
+// =============================================================================
+// RECURRING INVOICE TYPES
+// =============================================================================
+
+export interface RecurringInvoice {
+  id: string;
+  userId: string;
+  customerId: string;
+  name: string;
+  recurrence: 'monthly';
+  dayOfMonth: number;
+  isAutoGenerate: boolean;
+  includeGst: boolean;
+  paymentTerms: number;
+  notes: string | null;
+  isActive: boolean;
+  lastGeneratedAt: Date | null;
+  nextGenerationDate: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  // Populated on detail fetch
+  customer?: Customer;
+  lineItems?: RecurringLineItem[];
+}
+
+export interface RecurringLineItem {
+  id: string;
+  recurringInvoiceId: string;
+  productServiceId: string;
+  description: string | null;
+  unitPrice: number; // in cents
+  quantity: number;
+  type: ProductType;
+  sortOrder: number;
+  createdAt: Date;
+  updatedAt: Date;
+  // Populated
+  productName?: string;
+}
+
+export interface RecurringInvoiceCreateInput {
+  customerId: string;
+  name: string;
+  dayOfMonth?: number;
+  includeGst?: boolean;
+  paymentTerms?: number;
+  notes?: string;
+  lineItems: {
+    productServiceId: string;
+    description?: string;
+    unitPrice: number;
+    quantity?: number;
+    type: ProductType;
+  }[];
+}
+
+export interface RecurringInvoiceUpdateInput {
+  name?: string;
+  dayOfMonth?: number;
+  includeGst?: boolean;
+  paymentTerms?: number;
+  notes?: string | null;
+  isActive?: boolean;
+  lineItems?: {
+    productServiceId: string;
+    description?: string;
+    unitPrice: number;
+    quantity?: number;
+    type: ProductType;
+  }[];
+}
+
+// =============================================================================
+// BANK TRANSACTION TYPES
+// =============================================================================
+
+export type MatchConfidence = 'none' | 'low' | 'medium' | 'high' | 'confirmed';
+
+export interface BankTransaction {
+  id: string;
+  userId: string;
+  transactionId: string | null;
+  date: string;
+  amount: number; // in cents (+credit, -debit)
+  currency: string;
+  description: string | null;
+  paymentReference: string | null;
+  runningBalance: number | null;
+  matchedInvoiceId: string | null;
+  matchConfidence: MatchConfidence;
+  isReconciled: boolean;
+  reconciledAt: Date | null;
+  uploadBatchId: string | null;
+  sourceFilename: string | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // =============================================================================
@@ -304,11 +572,60 @@ export interface DashboardStats {
     unpaidAmount: number; // in cents
     thisMonth: number;
   };
+  quotes: {
+    total: number;
+    pending: number;
+    pendingAmount: number; // in cents
+    accepted: number;
+    thisMonth: number;
+  };
   certifications: {
     total: number;
     expiringSoon: number;
     expired: number;
   };
+}
+
+// =============================================================================
+// INSIGHTS TYPES
+// =============================================================================
+
+export interface RevenueComparison {
+  thisMonth: number;
+  lastMonth: number;
+  percentChange: number;
+}
+
+export interface InvoiceAging {
+  current: number;
+  thirtyDay: number;
+  sixtyDay: number;
+  ninetyPlus: number;
+  currentAmount: number;
+  thirtyDayAmount: number;
+  sixtyDayAmount: number;
+  ninetyPlusAmount: number;
+}
+
+export interface TopCustomer {
+  customerId: string;
+  customerName: string;
+  revenue: number;
+  invoiceCount: number;
+}
+
+export interface MonthlyRevenue {
+  month: string;
+  label: string;
+  revenue: number;
+  count: number;
+}
+
+export interface InsightsData {
+  revenue: RevenueComparison;
+  aging: InvoiceAging;
+  topCustomers: TopCustomer[];
+  monthlyRevenue: MonthlyRevenue[];
 }
 
 // =============================================================================
@@ -328,6 +645,300 @@ export interface PaginatedResponse<T> {
   page: number;
   pageSize: number;
   totalPages: number;
+}
+
+// =============================================================================
+// PHOTOS
+// =============================================================================
+
+export type PhotoEntityType = 'swms' | 'invoice' | 'expense' | 'job_log';
+
+export interface Photo {
+  id: string;
+  userId: string;
+  entityType: PhotoEntityType;
+  entityId: string;
+  filename: string;
+  originalFilename: string | null;
+  mimeType: string;
+  fileSize: number | null;
+  path: string;
+  caption: string | null;
+  createdAt: Date;
+}
+
+export interface CreatePhotoInput {
+  entityType: PhotoEntityType;
+  entityId: string;
+  filename: string;
+  originalFilename?: string;
+  mimeType?: string;
+  fileSize?: number;
+  path: string;
+  caption?: string;
+}
+
+// =============================================================================
+// QUOTE TYPES
+// =============================================================================
+
+export type QuoteStatus = 'draft' | 'sent' | 'accepted' | 'declined' | 'expired' | 'converted';
+
+export interface Quote {
+  id: string;
+  userId: string;
+  quoteNumber: string;
+  clientName: string;
+  clientEmail: string | null;
+  clientPhone: string | null;
+  customerId: string | null;
+  jobDescription: string | null;
+  lineItems: InvoiceLineItem[]; // reuse same line item structure
+  subtotal: number; // in cents
+  gstAmount: number; // in cents
+  total: number; // in cents
+  includeGst: boolean;
+  status: QuoteStatus;
+  validUntil: string | null; // ISO date string
+  convertedInvoiceId: string | null;
+  bankAccountName: string | null;
+  bankAccountNumber: string | null;
+  intlBankAccountName: string | null;
+  intlIban: string | null;
+  intlSwiftBic: string | null;
+  intlBankName: string | null;
+  intlBankAddress: string | null;
+  companyName: string | null;
+  companyAddress: string | null;
+  irdNumber: string | null;
+  gstNumber: string | null;
+  notes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface QuoteCreateInput {
+  clientName: string;
+  clientEmail?: string;
+  clientPhone?: string;
+  customerId?: string;
+  jobDescription?: string;
+  lineItems: { description: string; amount: number }[]; // amount in cents
+  includeGst?: boolean; // default true
+  validUntil?: string; // ISO date string
+  bankAccountName?: string;
+  bankAccountNumber?: string;
+  intlBankAccountName?: string;
+  intlIban?: string;
+  intlSwiftBic?: string;
+  intlBankName?: string;
+  intlBankAddress?: string;
+  companyName?: string;
+  companyAddress?: string;
+  irdNumber?: string;
+  gstNumber?: string;
+  notes?: string;
+}
+
+export interface QuoteUpdateInput {
+  clientName?: string;
+  clientEmail?: string;
+  clientPhone?: string;
+  customerId?: string | null;
+  jobDescription?: string;
+  lineItems?: { description: string; amount: number }[];
+  includeGst?: boolean;
+  validUntil?: string | null;
+  bankAccountName?: string;
+  bankAccountNumber?: string;
+  intlBankAccountName?: string;
+  intlIban?: string;
+  intlSwiftBic?: string;
+  intlBankName?: string;
+  intlBankAddress?: string;
+  companyName?: string;
+  companyAddress?: string;
+  irdNumber?: string;
+  gstNumber?: string;
+  notes?: string;
+}
+
+// =============================================================================
+// EXPENSES
+// =============================================================================
+
+export type ExpenseCategory = 'materials' | 'fuel' | 'tools' | 'subcontractor' | 'vehicle' | 'office' | 'other';
+
+export interface Expense {
+  id: string;
+  userId: string;
+  date: string; // ISO date string
+  amount: number; // in cents
+  category: ExpenseCategory;
+  description: string | null;
+  vendor: string | null;
+  isGstClaimable: boolean;
+  gstAmount: number; // in cents
+  receiptPhotoId: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ExpenseCreateInput {
+  date?: string;
+  amount: number; // in cents
+  category: ExpenseCategory;
+  description?: string;
+  vendor?: string;
+  isGstClaimable?: boolean;
+  notes?: string;
+}
+
+export interface ExpenseUpdateInput {
+  date?: string;
+  amount?: number;
+  category?: ExpenseCategory;
+  description?: string;
+  vendor?: string;
+  isGstClaimable?: boolean;
+  notes?: string;
+}
+
+export interface ExpenseStats {
+  total: number;
+  thisMonth: number;
+  thisMonthAmount: number; // in cents
+  gstClaimable: number; // in cents
+  byCategory: Record<ExpenseCategory, number>; // amounts in cents
+}
+
+// =============================================================================
+// JOB LOGS
+// =============================================================================
+
+export type JobLogStatus = 'active' | 'completed';
+
+export interface JobLog {
+  id: string;
+  userId: string;
+  description: string;
+  siteAddress: string | null;
+  customerId: string | null;
+  startTime: string; // ISO datetime string
+  endTime: string | null; // ISO datetime string
+  status: JobLogStatus;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface JobLogCreateInput {
+  description: string;
+  siteAddress?: string;
+  customerId?: string;
+  startTime?: string;
+  notes?: string;
+}
+
+export interface JobLogUpdateInput {
+  description?: string;
+  siteAddress?: string;
+  customerId?: string | null;
+  notes?: string;
+}
+
+// =============================================================================
+// TEAM TYPES
+// =============================================================================
+
+export type TeamRole = 'owner' | 'admin' | 'worker';
+export type InviteStatus = 'pending' | 'accepted' | 'declined';
+
+export interface Team {
+  id: string;
+  name: string;
+  ownerId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface TeamMember {
+  id: string;
+  teamId: string;
+  userId: string;
+  role: TeamRole;
+  inviteStatus: InviteStatus;
+  invitedBy: string | null;
+  invitedEmail: string | null;
+  invitedAt: Date;
+  acceptedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  // Populated
+  userName?: string;
+  userEmail?: string;
+}
+
+export interface TeamInvite {
+  id: string;
+  teamId: string;
+  email: string;
+  role: TeamRole;
+  invitedBy: string;
+  inviteCode: string;
+  expiresAt: Date;
+  acceptedAt: Date | null;
+  createdAt: Date;
+  // Populated
+  teamName?: string;
+  invitedByName?: string;
+}
+
+export interface TeamCreateInput {
+  name: string;
+}
+
+export interface TeamInviteMemberInput {
+  email: string;
+  role?: TeamRole; // defaults to 'worker'
+}
+
+export interface TeamUpdateMemberRoleInput {
+  role: TeamRole;
+}
+
+// =============================================================================
+// SUBSCRIPTION TYPES
+// =============================================================================
+
+export type SubscriptionTier = 'free' | 'tradie' | 'team';
+
+export interface SubscriptionInfo {
+  tier: SubscriptionTier;
+  stripeCustomerId: string | null;
+  stripeSubscriptionId: string | null;
+  startedAt: Date | null;
+  expiresAt: Date | null;
+}
+
+export interface TierLimits {
+  tier: SubscriptionTier;
+  invoicesPerMonth: number | null; // null = unlimited
+  swmsPerMonth: number | null; // null = unlimited
+  teamMembers: number | null; // null = unlimited
+  pdfExport: boolean;
+  emailInvoice: boolean;
+  quotes: boolean;
+  expenses: boolean;
+  jobLogs: boolean;
+  photos: boolean;
+}
+
+export interface TierUsage {
+  invoicesThisMonth: number;
+  swmsThisMonth: number;
+  teamMemberCount: number;
 }
 
 // =============================================================================

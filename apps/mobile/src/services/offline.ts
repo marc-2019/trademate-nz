@@ -74,7 +74,7 @@ async function initializeTables(): Promise<void> {
 export async function isOnline(): Promise<boolean> {
   try {
     const networkState = await Network.getNetworkStateAsync();
-    return networkState.isConnected && networkState.isInternetReachable === true;
+    return (networkState.isConnected ?? false) && networkState.isInternetReachable === true;
   } catch {
     return false;
   }
@@ -248,18 +248,24 @@ export async function deleteSWMSLocally(id: string): Promise<void> {
   await addToSyncQueue('swms', id, 'delete', null);
 }
 
-// Sync queue operations
+// Import enhanced sync queue
+import { addToSyncQueue as addToSyncQueueV2, SyncPriority } from './syncQueue';
+
+// Legacy sync queue operations (for backward compatibility)
 async function addToSyncQueue(
   entityType: string,
   entityId: string,
   action: string,
   payload: unknown
 ): Promise<void> {
-  const database = await getDatabase();
-  await database.runAsync(
-    `INSERT INTO sync_queue (entity_type, entity_id, action, payload)
-     VALUES (?, ?, ?, ?)`,
-    [entityType, entityId, action, payload ? JSON.stringify(payload) : null]
+  // Use new enhanced sync queue with appropriate priority
+  const priority = entityType === 'swms' ? SyncPriority.CRITICAL : SyncPriority.MEDIUM;
+  await addToSyncQueueV2(
+    entityType,
+    entityId,
+    action as 'create' | 'update' | 'delete',
+    payload,
+    priority
   );
 }
 

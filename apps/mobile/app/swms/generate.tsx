@@ -14,6 +14,8 @@ import {
   Alert,
   ActivityIndicator,
   Switch,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -72,7 +74,7 @@ export default function GenerateSWMSScreen() {
         Alert.alert('Success', 'SWMS document generated!', [
           {
             text: 'View Document',
-            onPress: () => router.replace(`/swms/${docId}`),
+            onPress: () => router.replace(`/swms/${docId}` as any),
           },
         ]);
       }
@@ -85,6 +87,10 @@ export default function GenerateSWMSScreen() {
   }
 
   return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.keyboardAvoid}
+    >
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
@@ -194,17 +200,21 @@ export default function GenerateSWMSScreen() {
         </Text>
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  keyboardAvoid: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
   },
   content: {
     padding: 16,
-    paddingBottom: 40,
+    paddingBottom: 120,
   },
   sectionTitle: {
     fontSize: 14,

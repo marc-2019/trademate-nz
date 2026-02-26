@@ -16,6 +16,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { swmsApi } from '../../src/services/api';
+import PhotoAttachments from '../../src/components/PhotoAttachments';
 
 interface Hazard {
   id: string;
@@ -289,6 +290,8 @@ export default function SWMSDetailScreen() {
           </View>
         </View>
       )}
+
+      <PhotoAttachments entityType="swms" entityId={id as string} editable={document.status !== 'signed'} />
 
       <View style={styles.actions}>
         {document.status !== 'signed' && (

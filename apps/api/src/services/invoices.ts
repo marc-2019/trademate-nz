@@ -4,6 +4,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 import db from './database.js';
 import {
   Invoice,
@@ -13,19 +14,44 @@ import {
   InvoiceUpdateInput,
 } from '../types/index.js';
 import { createError } from '../middleware/error.js';
+import { getBankDetailsForInvoice } from './business-profile.js';
 
 const GST_RATE = 0.15; // NZ GST rate
 
 /**
- * Generate next invoice number for user (INV-0001, INV-0002, etc.)
+ * Generate next invoice number for user using business profile prefix
+ * (e.g., INV-0001, INV-0002, or custom prefix like INST-0001)
  */
 export async function getNextInvoiceNumber(userId: string): Promise<string> {
-  const result = await db.query<{ count: string }>(
-    'SELECT COUNT(*) as count FROM invoices WHERE user_id = $1',
-    [userId]
-  );
-  const count = parseInt(result.rows[0].count, 10) + 1;
-  return `INV-${count.toString().padStart(4, '0')}`;
+  return db.transaction(async (client) => {
+    // Get prefix from business profile (defaults to 'INV' if not set)
+    const profileResult = await client.query<{ invoice_prefix: string }>(
+      'SELECT invoice_prefix FROM business_profiles WHERE user_id = $1',
+      [userId]
+    );
+    const prefix = profileResult.rows.length > 0
+      ? profileResult.rows[0].invoice_prefix
+      : 'INV';
+
+    // Get the highest existing invoice number with FOR UPDATE to prevent race conditions
+    // Note: FOR UPDATE cannot be used with aggregate functions (MAX), so we select the actual row
+    const result = await client.query<{ invoice_number: string }>(
+      `SELECT invoice_number FROM invoices WHERE user_id = $1 ORDER BY invoice_number DESC LIMIT 1 FOR UPDATE`,
+      [userId]
+    );
+
+    let nextNum = 1;
+    const maxNum = result.rows.length > 0 ? result.rows[0].invoice_number : null;
+    if (maxNum) {
+      // Extract the numeric portion after the prefix (e.g., "INV-0042" -> 42)
+      const match = maxNum.match(/-(\d+)$/);
+      if (match) {
+        nextNum = parseInt(match[1], 10) + 1;
+      }
+    }
+
+    return `${prefix}-${nextNum.toString().padStart(4, '0')}`;
+  });
 }
 
 /**
@@ -43,6 +69,7 @@ function calculateTotals(
 
 /**
  * Create a new invoice
+ * Auto-populates bank details and company info from business profile if not provided
  */
 export async function createInvoice(
   userId: string,
@@ -50,6 +77,51 @@ export async function createInvoice(
 ): Promise<Invoice> {
   const invoiceNumber = await getNextInvoiceNumber(userId);
   const invoiceId = uuidv4();
+
+  // Auto-populate from business profile if bank/company details not provided
+  let bankAccountName = input.bankAccountName || null;
+  let bankAccountNumber = input.bankAccountNumber || null;
+  let intlBankAccountName = input.intlBankAccountName || null;
+  let intlIban = input.intlIban || null;
+  let intlSwiftBic = input.intlSwiftBic || null;
+  let intlBankName = input.intlBankName || null;
+  let intlBankAddress = input.intlBankAddress || null;
+  let companyName = input.companyName || null;
+  let companyAddress = input.companyAddress || null;
+  let irdNumber = input.irdNumber || null;
+  let gstNumber = input.gstNumber || null;
+  let includeGst = input.includeGst;
+
+  // If no bank details provided, try to fetch from business profile
+  if (!bankAccountName && !bankAccountNumber) {
+    try {
+      const profileDetails = await getBankDetailsForInvoice(userId);
+      if (profileDetails) {
+        bankAccountName = bankAccountName || profileDetails.bankAccountName;
+        bankAccountNumber = bankAccountNumber || profileDetails.bankAccountNumber;
+        intlBankAccountName = intlBankAccountName || profileDetails.intlBankAccountName;
+        intlIban = intlIban || profileDetails.intlIban;
+        intlSwiftBic = intlSwiftBic || profileDetails.intlSwiftBic;
+        intlBankName = intlBankName || profileDetails.intlBankName;
+        intlBankAddress = intlBankAddress || profileDetails.intlBankAddress;
+        companyName = companyName || profileDetails.companyName;
+        companyAddress = companyAddress || profileDetails.companyAddress;
+        irdNumber = irdNumber || profileDetails.irdNumber;
+        gstNumber = gstNumber || profileDetails.gstNumber;
+        // Use profile's GST registration as default if not specified
+        if (includeGst === undefined) {
+          includeGst = profileDetails.isGstRegistered;
+        }
+      }
+    } catch {
+      // Business profile not set up yet — continue without auto-populate
+    }
+  }
+
+  // Default includeGst to true if still not set
+  if (includeGst === undefined) {
+    includeGst = true;
+  }
 
   // Add IDs to line items
   const lineItems: InvoiceLineItem[] = input.lineItems.map((item) => ({
@@ -61,19 +133,25 @@ export async function createInvoice(
   // Calculate totals
   const { subtotal, gstAmount, total } = calculateTotals(
     input.lineItems,
-    input.includeGst !== false
+    includeGst
   );
 
-  const result = await db.query<Invoice>(
+  const result = await db.query(
     `INSERT INTO invoices (
       id, user_id, invoice_number,
       client_name, client_email, client_phone,
       swms_id, job_description,
       line_items, subtotal, gst_amount, total,
       status, due_date,
-      bank_account_name, bank_account_number, notes
+      bank_account_name, bank_account_number, notes,
+      customer_id, recurring_invoice_id, include_gst,
+      intl_bank_account_name, intl_iban, intl_swift_bic,
+      intl_bank_name, intl_bank_address,
+      company_name, company_address, ird_number, gst_number
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'draft', $13, $14, $15, $16)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'draft',
+            $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24,
+            $25, $26, $27, $28)
     RETURNING *`,
     [
       invoiceId,
@@ -89,9 +167,21 @@ export async function createInvoice(
       gstAmount,
       total,
       input.dueDate || null,
-      input.bankAccountName || null,
-      input.bankAccountNumber || null,
+      bankAccountName,
+      bankAccountNumber,
       input.notes || null,
+      input.customerId || null,
+      input.recurringInvoiceId || null,
+      includeGst,
+      intlBankAccountName,
+      intlIban,
+      intlSwiftBic,
+      intlBankName,
+      intlBankAddress,
+      companyName,
+      companyAddress,
+      irdNumber,
+      gstNumber,
     ]
   );
 
@@ -123,6 +213,20 @@ function transformInvoice(row: Record<string, unknown>): Invoice {
     bankAccountName: row.bank_account_name as string | null,
     bankAccountNumber: row.bank_account_number as string | null,
     notes: row.notes as string | null,
+    // Enhanced fields
+    customerId: row.customer_id as string | null,
+    recurringInvoiceId: row.recurring_invoice_id as string | null,
+    includeGst: (row.include_gst as boolean) ?? true,
+    intlBankAccountName: row.intl_bank_account_name as string | null,
+    intlIban: row.intl_iban as string | null,
+    intlSwiftBic: row.intl_swift_bic as string | null,
+    intlBankName: row.intl_bank_name as string | null,
+    intlBankAddress: row.intl_bank_address as string | null,
+    companyName: row.company_name as string | null,
+    companyAddress: row.company_address as string | null,
+    irdNumber: row.ird_number as string | null,
+    gstNumber: row.gst_number as string | null,
+    shareToken: row.share_token as string | null,
     createdAt: row.created_at as Date,
     updatedAt: row.updated_at as Date,
   };
@@ -151,18 +255,32 @@ function transformForMobile(invoice: Invoice): Record<string, unknown> {
     bank_account_name: invoice.bankAccountName,
     bank_account_number: invoice.bankAccountNumber,
     notes: invoice.notes,
+    // Enhanced fields
+    customer_id: invoice.customerId,
+    recurring_invoice_id: invoice.recurringInvoiceId,
+    include_gst: invoice.includeGst,
+    intl_bank_account_name: invoice.intlBankAccountName,
+    intl_iban: invoice.intlIban,
+    intl_swift_bic: invoice.intlSwiftBic,
+    intl_bank_name: invoice.intlBankName,
+    intl_bank_address: invoice.intlBankAddress,
+    company_name: invoice.companyName,
+    company_address: invoice.companyAddress,
+    ird_number: invoice.irdNumber,
+    gst_number: invoice.gstNumber,
+    share_token: invoice.shareToken,
     created_at: invoice.createdAt,
     updated_at: invoice.updatedAt,
   };
 }
 
 /**
- * Get invoice by ID
+ * Get invoice by ID (returns typed Invoice for internal use, e.g. PDF generation)
  */
-export async function getInvoiceById(
+export async function getInvoiceByIdRaw(
   invoiceId: string,
   userId: string
-): Promise<Record<string, unknown> | null> {
+): Promise<Invoice | null> {
   const result = await db.query<Record<string, unknown>>(
     `SELECT * FROM invoices WHERE id = $1 AND user_id = $2`,
     [invoiceId, userId]
@@ -172,7 +290,19 @@ export async function getInvoiceById(
     return null;
   }
 
-  return transformForMobile(transformInvoice(result.rows[0]));
+  return transformInvoice(result.rows[0]);
+}
+
+/**
+ * Get invoice by ID (returns mobile-formatted response)
+ */
+export async function getInvoiceById(
+  invoiceId: string,
+  userId: string
+): Promise<Record<string, unknown> | null> {
+  const invoice = await getInvoiceByIdRaw(invoiceId, userId);
+  if (!invoice) return null;
+  return transformForMobile(invoice);
 }
 
 /**
@@ -249,6 +379,16 @@ export async function updateInvoice(
     bankAccountName: 'bank_account_name',
     bankAccountNumber: 'bank_account_number',
     notes: 'notes',
+    customerId: 'customer_id',
+    intlBankAccountName: 'intl_bank_account_name',
+    intlIban: 'intl_iban',
+    intlSwiftBic: 'intl_swift_bic',
+    intlBankName: 'intl_bank_name',
+    intlBankAddress: 'intl_bank_address',
+    companyName: 'company_name',
+    companyAddress: 'company_address',
+    irdNumber: 'ird_number',
+    gstNumber: 'gst_number',
   };
 
   for (const [key, value] of Object.entries(updates)) {
@@ -272,6 +412,9 @@ export async function updateInvoice(
       values.push(gstAmount);
       fields.push(`total = $${paramIndex++}`);
       values.push(total);
+    } else if (key === 'includeGst' && value !== undefined) {
+      fields.push(`include_gst = $${paramIndex++}`);
+      values.push(value);
     } else if (fieldMap[key] && value !== undefined) {
       fields.push(`${fieldMap[key]} = $${paramIndex++}`);
       values.push(value);
@@ -380,9 +523,57 @@ export async function getInvoiceStats(userId: string): Promise<{
   };
 }
 
+/**
+ * Generate a share token for an invoice (for public shareable link)
+ */
+export async function generateShareToken(invoiceId: string, userId: string): Promise<string | null> {
+  // First check invoice exists and belongs to user
+  const existing = await db.query<{ id: string; share_token: string | null }>(
+    'SELECT id, share_token FROM invoices WHERE id = $1 AND user_id = $2',
+    [invoiceId, userId]
+  );
+
+  if (existing.rows.length === 0) return null;
+
+  // Return existing token if already generated
+  if (existing.rows[0].share_token) {
+    return existing.rows[0].share_token;
+  }
+
+  // Generate a new unique token
+  const token = crypto.randomBytes(32).toString('hex');
+
+  await db.query(
+    'UPDATE invoices SET share_token = $1 WHERE id = $2 AND user_id = $3',
+    [token, invoiceId, userId]
+  );
+
+  return token;
+}
+
+/**
+ * Get invoice by share token (public access, no user auth required)
+ */
+export async function getInvoiceByShareToken(token: string): Promise<Record<string, unknown> | null> {
+  const result = await db.query<Record<string, unknown>>(
+    `SELECT i.*,
+            bp.company_name, bp.company_address, bp.company_phone, bp.company_email,
+            bp.ird_number, bp.gst_number, bp.logo_url,
+            bp.intl_bank_account_name, bp.intl_iban, bp.intl_swift_bic, bp.intl_bank_name
+     FROM invoices i
+     LEFT JOIN business_profiles bp ON bp.user_id = i.user_id
+     WHERE i.share_token = $1`,
+    [token]
+  );
+
+  if (result.rows.length === 0) return null;
+  return result.rows[0];
+}
+
 export default {
   getNextInvoiceNumber,
   createInvoice,
+  getInvoiceByIdRaw,
   getInvoiceById,
   listInvoices,
   updateInvoice,
@@ -390,4 +581,6 @@ export default {
   markAsSent,
   markAsPaid,
   getInvoiceStats,
+  generateShareToken,
+  getInvoiceByShareToken,
 };

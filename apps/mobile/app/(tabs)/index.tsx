@@ -15,7 +15,46 @@ import {
 import { useRouter, useFocusEffect, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { swmsApi, statsApi } from '../../src/services/api';
+import { swmsApi, statsApi, recurringInvoicesApi, jobLogsApi } from '../../src/services/api';
+
+// Insights types
+interface RevenueComparison {
+  thisMonth: number;
+  lastMonth: number;
+  percentChange: number;
+}
+
+interface InvoiceAging {
+  current: number;
+  thirtyDay: number;
+  sixtyDay: number;
+  ninetyPlus: number;
+  currentAmount: number;
+  thirtyDayAmount: number;
+  sixtyDayAmount: number;
+  ninetyPlusAmount: number;
+}
+
+interface TopCustomer {
+  customerId: string;
+  customerName: string;
+  revenue: number;
+  invoiceCount: number;
+}
+
+interface MonthlyRevenue {
+  month: string;
+  label: string;
+  revenue: number;
+  count: number;
+}
+
+interface InsightsData {
+  revenue: RevenueComparison;
+  aging: InvoiceAging;
+  topCustomers: TopCustomer[];
+  monthlyRevenue: MonthlyRevenue[];
+}
 
 interface SWMSDocument {
   id: string;
@@ -23,6 +62,13 @@ interface SWMSDocument {
   trade_type: string;
   status: string;
   created_at: string;
+}
+
+interface ActiveJobLog {
+  id: string;
+  description: string;
+  siteAddress: string | null;
+  startTime: string;
 }
 
 interface DashboardStats {
@@ -50,14 +96,21 @@ export default function HomeScreen() {
   const router = useRouter();
   const [recentDocs, setRecentDocs] = useState<SWMSDocument[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [activeJobLog, setActiveJobLog] = useState<ActiveJobLog | null>(null);
+  const [jobElapsed, setJobElapsed] = useState('');
+  const [pendingCount, setPendingCount] = useState({ auto: 0, review: 0 });
+  const [insights, setInsights] = useState<InsightsData | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
-      // Load recent docs and stats in parallel
-      const [docsResponse, statsResponse] = await Promise.all([
+      // Load recent docs, stats, and insights in parallel
+      const [docsResponse, statsResponse, pendingResponse, activeJobResponse, insightsResponse] = await Promise.all([
         swmsApi.list({ limit: 3 }),
-        statsApi.getDashboard().catch(() => null), // Don't fail if stats endpoint has issues
+        statsApi.getDashboard().catch(() => null),
+        recurringInvoicesApi.getPending().catch(() => null),
+        jobLogsApi.getActive().catch(() => null),
+        statsApi.getInsights().catch(() => null),
       ]);
 
       if (docsResponse.data.success) {
@@ -66,6 +119,24 @@ export default function HomeScreen() {
 
       if (statsResponse?.data?.success) {
         setStats(statsResponse.data.data.stats);
+      }
+
+      if (pendingResponse?.data?.success) {
+        const data = pendingResponse.data.data;
+        setPendingCount({
+          auto: (data.autoGenerate || []).length,
+          review: (data.needsInput || []).length,
+        });
+      }
+
+      if (activeJobResponse?.data?.success) {
+        setActiveJobLog((activeJobResponse.data as any).data.jobLog || null);
+      } else {
+        setActiveJobLog(null);
+      }
+
+      if (insightsResponse?.data?.success) {
+        setInsights((insightsResponse.data as any).data.insights || null);
       }
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
@@ -77,6 +148,35 @@ export default function HomeScreen() {
       loadData();
     }, [loadData])
   );
+
+  // Live timer for active job log
+  useEffect(() => {
+    if (activeJobLog) {
+      updateJobElapsed();
+      const timer = setInterval(updateJobElapsed, 1000);
+      return () => clearInterval(timer);
+    } else {
+      setJobElapsed('');
+    }
+  }, [activeJobLog?.id, activeJobLog?.startTime]);
+
+  function updateJobElapsed() {
+    if (!activeJobLog?.startTime) return;
+    const start = new Date(activeJobLog.startTime).getTime();
+    const now = Date.now();
+    const diffMs = now - start;
+    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+    if (hours > 0) {
+      setJobElapsed(`${hours}h ${minutes}m ${seconds}s`);
+    } else if (minutes > 0) {
+      setJobElapsed(`${minutes}m ${seconds}s`);
+    } else {
+      setJobElapsed(`${seconds}s`);
+    }
+  }
 
   async function handleRefresh() {
     setIsRefreshing(true);
@@ -116,7 +216,7 @@ export default function HomeScreen() {
           headerRight: () => (
             <TouchableOpacity
               style={styles.settingsButton}
-              onPress={() => router.push('/settings')}
+              onPress={() => router.push('/settings' as any)}
             >
               <Ionicons name="settings-outline" size={24} color="#374151" />
             </TouchableOpacity>
@@ -147,7 +247,7 @@ export default function HomeScreen() {
             <View style={styles.statsGrid}>
               <TouchableOpacity
                 style={styles.statItem}
-                onPress={() => router.push('/(tabs)/work')}
+                onPress={() => router.push('/(tabs)/work' as any)}
               >
                 <Text style={styles.statValue}>{stats.swms.thisMonth}</Text>
                 <Text style={styles.statLabel}>SWMS this month</Text>
@@ -155,7 +255,7 @@ export default function HomeScreen() {
 
               <TouchableOpacity
                 style={styles.statItem}
-                onPress={() => router.push('/(tabs)/money')}
+                onPress={() => router.push('/(tabs)/money' as any)}
               >
                 <Text style={[styles.statValue, stats.invoices.unpaid > 0 && styles.statValueWarning]}>
                   {stats.invoices.unpaid > 0
@@ -169,7 +269,7 @@ export default function HomeScreen() {
 
               <TouchableOpacity
                 style={styles.statItem}
-                onPress={() => router.push('/(tabs)/people')}
+                onPress={() => router.push('/(tabs)/people' as any)}
               >
                 <Text
                   style={[
@@ -192,12 +292,259 @@ export default function HomeScreen() {
           </View>
         )}
 
+        {/* Business Insights */}
+        {insights && (
+          <>
+            {/* Revenue Comparison */}
+            <View style={styles.insightCard}>
+              <View style={styles.insightHeader}>
+                <Ionicons name="trending-up" size={20} color="#2563EB" />
+                <Text style={styles.insightTitle}>Revenue</Text>
+              </View>
+              <View style={styles.revenueRow}>
+                <View style={styles.revenueItem}>
+                  <Text style={styles.revenueAmount}>
+                    {formatCurrency(insights.revenue.thisMonth)}
+                  </Text>
+                  <Text style={styles.revenueLabel}>This month</Text>
+                </View>
+                <View style={styles.revenueDivider} />
+                <View style={styles.revenueItem}>
+                  <Text style={styles.revenueAmountMuted}>
+                    {formatCurrency(insights.revenue.lastMonth)}
+                  </Text>
+                  <Text style={styles.revenueLabel}>Last month</Text>
+                </View>
+                <View style={styles.revenueDivider} />
+                <View style={styles.revenueItem}>
+                  <Text
+                    style={[
+                      styles.revenueChange,
+                      {
+                        color:
+                          insights.revenue.percentChange > 0
+                            ? '#10B981'
+                            : insights.revenue.percentChange < 0
+                            ? '#EF4444'
+                            : '#6B7280',
+                      },
+                    ]}
+                  >
+                    {insights.revenue.percentChange > 0 ? '↑' : insights.revenue.percentChange < 0 ? '↓' : '—'}
+                    {' '}{Math.abs(insights.revenue.percentChange)}%
+                  </Text>
+                  <Text style={styles.revenueLabel}>Change</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Monthly Revenue Mini Chart */}
+            {insights.monthlyRevenue.length > 0 && (
+              <View style={styles.insightCard}>
+                <View style={styles.insightHeader}>
+                  <Ionicons name="bar-chart" size={20} color="#8B5CF6" />
+                  <Text style={styles.insightTitle}>6-Month Revenue</Text>
+                </View>
+                <View style={styles.chartRow}>
+                  {insights.monthlyRevenue.map((m) => {
+                    const maxRevenue = Math.max(
+                      ...insights.monthlyRevenue.map((r) => r.revenue),
+                      1
+                    );
+                    const barHeight = Math.max((m.revenue / maxRevenue) * 80, 4);
+                    return (
+                      <View key={m.month} style={styles.chartBar}>
+                        <Text style={styles.chartAmount}>
+                          {m.revenue > 0 ? formatCurrency(m.revenue) : ''}
+                        </Text>
+                        <View
+                          style={[
+                            styles.chartBarFill,
+                            {
+                              height: barHeight,
+                              backgroundColor:
+                                m.month ===
+                                insights.monthlyRevenue[
+                                  insights.monthlyRevenue.length - 1
+                                ].month
+                                  ? '#2563EB'
+                                  : '#BFDBFE',
+                            },
+                          ]}
+                        />
+                        <Text style={styles.chartLabel}>{m.label}</Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
+
+            {/* Invoice Aging */}
+            {(insights.aging.current > 0 ||
+              insights.aging.thirtyDay > 0 ||
+              insights.aging.sixtyDay > 0 ||
+              insights.aging.ninetyPlus > 0) && (
+              <View style={styles.insightCard}>
+                <View style={styles.insightHeader}>
+                  <Ionicons name="time" size={20} color="#F59E0B" />
+                  <Text style={styles.insightTitle}>Outstanding Invoices</Text>
+                </View>
+                <View style={styles.agingRow}>
+                  <View style={styles.agingBucket}>
+                    <Text style={styles.agingCount}>{insights.aging.current}</Text>
+                    <Text style={styles.agingAmount}>
+                      {formatCurrency(insights.aging.currentAmount)}
+                    </Text>
+                    <Text style={styles.agingLabel}>0-30d</Text>
+                  </View>
+                  <View style={styles.agingBucket}>
+                    <Text
+                      style={[
+                        styles.agingCount,
+                        insights.aging.thirtyDay > 0 && { color: '#F59E0B' },
+                      ]}
+                    >
+                      {insights.aging.thirtyDay}
+                    </Text>
+                    <Text style={styles.agingAmount}>
+                      {formatCurrency(insights.aging.thirtyDayAmount)}
+                    </Text>
+                    <Text style={styles.agingLabel}>31-60d</Text>
+                  </View>
+                  <View style={styles.agingBucket}>
+                    <Text
+                      style={[
+                        styles.agingCount,
+                        insights.aging.sixtyDay > 0 && { color: '#F97316' },
+                      ]}
+                    >
+                      {insights.aging.sixtyDay}
+                    </Text>
+                    <Text style={styles.agingAmount}>
+                      {formatCurrency(insights.aging.sixtyDayAmount)}
+                    </Text>
+                    <Text style={styles.agingLabel}>61-90d</Text>
+                  </View>
+                  <View style={styles.agingBucket}>
+                    <Text
+                      style={[
+                        styles.agingCount,
+                        insights.aging.ninetyPlus > 0 && { color: '#EF4444' },
+                      ]}
+                    >
+                      {insights.aging.ninetyPlus}
+                    </Text>
+                    <Text style={styles.agingAmount}>
+                      {formatCurrency(insights.aging.ninetyPlusAmount)}
+                    </Text>
+                    <Text style={styles.agingLabel}>90+d</Text>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {/* Top Customers */}
+            {insights.topCustomers.length > 0 && (
+              <View style={styles.insightCard}>
+                <View style={styles.insightHeader}>
+                  <Ionicons name="people" size={20} color="#10B981" />
+                  <Text style={styles.insightTitle}>Top Customers</Text>
+                </View>
+                {insights.topCustomers.map((c, i) => (
+                  <View
+                    key={c.customerId || i}
+                    style={[
+                      styles.customerRow,
+                      i < insights.topCustomers.length - 1 && styles.customerRowBorder,
+                    ]}
+                  >
+                    <View style={styles.customerRank}>
+                      <Text style={styles.customerRankText}>{i + 1}</Text>
+                    </View>
+                    <View style={styles.customerInfo}>
+                      <Text style={styles.customerName} numberOfLines={1}>
+                        {c.customerName}
+                      </Text>
+                      <Text style={styles.customerMeta}>
+                        {c.invoiceCount} invoice{c.invoiceCount !== 1 ? 's' : ''}
+                      </Text>
+                    </View>
+                    <Text style={styles.customerRevenue}>
+                      {formatCurrency(c.revenue)}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </>
+        )}
+
+        {/* Pending Recurring Invoices */}
+        {(pendingCount.auto > 0 || pendingCount.review > 0) && (
+          <TouchableOpacity
+            style={styles.pendingCard}
+            onPress={() => router.push('/recurring/' as any)}
+          >
+            <View style={styles.pendingLeft}>
+              <Ionicons name="repeat" size={24} color="#F59E0B" />
+              <View>
+                <Text style={styles.pendingTitle}>Recurring Invoices Due</Text>
+                <Text style={styles.pendingSubtext}>
+                  {pendingCount.auto > 0 && `${pendingCount.auto} auto-generate`}
+                  {pendingCount.auto > 0 && pendingCount.review > 0 && ' • '}
+                  {pendingCount.review > 0 && `${pendingCount.review} need review`}
+                </Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+          </TouchableOpacity>
+        )}
+
+        {/* Clock In/Out Card */}
+        {activeJobLog ? (
+          <TouchableOpacity
+            style={styles.jobActiveCard}
+            onPress={() => router.push(`/jobs/${activeJobLog.id}` as any)}
+          >
+            <View style={styles.jobActiveLeft}>
+              <View style={styles.jobActivePulse}>
+                <Ionicons name="radio-button-on" size={20} color="#0D9488" />
+              </View>
+              <View style={styles.jobActiveInfo}>
+                <Text style={styles.jobActiveTitle} numberOfLines={1}>
+                  {activeJobLog.description}
+                </Text>
+                <Text style={styles.jobActiveTime}>{jobElapsed}</Text>
+              </View>
+            </View>
+            <View style={styles.jobActiveAction}>
+              <Ionicons name="stop-circle" size={22} color="#DC2626" />
+              <Text style={styles.jobActiveActionText}>Clock Out</Text>
+            </View>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={styles.jobClockInCard}
+            onPress={() => router.push('/jobs/create' as any)}
+          >
+            <View style={styles.jobClockInLeft}>
+              <Ionicons name="timer" size={24} color="#0D9488" />
+              <View>
+                <Text style={styles.jobClockInTitle}>Clock In</Text>
+                <Text style={styles.jobClockInSubtext}>Start tracking a job</Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+          </TouchableOpacity>
+        )}
+
         {/* Quick Actions */}
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionsGrid}>
           <TouchableOpacity
             style={styles.actionCard}
-            onPress={() => router.push('/swms/generate')}
+            onPress={() => router.push('/swms/generate' as any)}
           >
             <View style={[styles.actionIcon, { backgroundColor: '#EFF6FF' }]}>
               <Ionicons name="add-circle" size={28} color="#2563EB" />
@@ -207,7 +554,7 @@ export default function HomeScreen() {
 
           <TouchableOpacity
             style={styles.actionCard}
-            onPress={() => router.push('/invoices/create')}
+            onPress={() => router.push('/invoices/create' as any)}
           >
             <View style={[styles.actionIcon, { backgroundColor: '#F0FDF4' }]}>
               <Ionicons name="receipt" size={28} color="#10B981" />
@@ -217,7 +564,7 @@ export default function HomeScreen() {
 
           <TouchableOpacity
             style={styles.actionCard}
-            onPress={() => router.push('/certifications/add')}
+            onPress={() => router.push('/certifications/add' as any)}
           >
             <View style={[styles.actionIcon, { backgroundColor: '#FEF3C7' }]}>
               <Ionicons name="ribbon" size={28} color="#F59E0B" />
@@ -227,7 +574,7 @@ export default function HomeScreen() {
 
           <TouchableOpacity
             style={styles.actionCard}
-            onPress={() => router.push('/(tabs)/work')}
+            onPress={() => router.push('/(tabs)/work' as any)}
           >
             <View style={[styles.actionIcon, { backgroundColor: '#F3E8FF' }]}>
               <Ionicons name="folder-open" size={28} color="#8B5CF6" />
@@ -243,7 +590,7 @@ export default function HomeScreen() {
             <TouchableOpacity
               key={doc.id}
               style={styles.docCard}
-              onPress={() => router.push(`/swms/${doc.id}`)}
+              onPress={() => router.push(`/swms/${doc.id}` as any)}
             >
               <View style={styles.docInfo}>
                 <Text style={styles.docTitle} numberOfLines={1}>
@@ -273,7 +620,7 @@ export default function HomeScreen() {
             <Text style={styles.emptyText}>No documents yet</Text>
             <TouchableOpacity
               style={styles.emptyButton}
-              onPress={() => router.push('/swms/generate')}
+              onPress={() => router.push('/swms/generate' as any)}
             >
               <Text style={styles.emptyButtonText}>Create Your First SWMS</Text>
             </TouchableOpacity>
@@ -352,6 +699,33 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginTop: 4,
     textAlign: 'center',
+  },
+  pendingCard: {
+    backgroundColor: '#FFFBEB',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  pendingLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  pendingTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#92400E',
+  },
+  pendingSubtext: {
+    fontSize: 13,
+    color: '#B45309',
+    marginTop: 2,
   },
   sectionTitle: {
     fontSize: 18,
@@ -448,5 +822,240 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
+  },
+  jobActiveCard: {
+    backgroundColor: '#F0FDFA',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#99F6E4',
+  },
+  jobActiveLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  jobActivePulse: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#CCFBF1',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  jobActiveInfo: {
+    flex: 1,
+  },
+  jobActiveTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#134E4A',
+  },
+  jobActiveTime: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#0D9488',
+    marginTop: 2,
+  },
+  jobActiveAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#FEF2F2',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  jobActiveActionText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#DC2626',
+  },
+  jobClockInCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  jobClockInLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  jobClockInTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  jobClockInSubtext: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginTop: 1,
+  },
+  // Insights styles
+  insightCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  insightHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  insightTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  // Revenue
+  revenueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  revenueItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  revenueDivider: {
+    width: 1,
+    height: 36,
+    backgroundColor: '#E5E7EB',
+  },
+  revenueAmount: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  revenueAmountMuted: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#9CA3AF',
+  },
+  revenueChange: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  revenueLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  // Monthly chart
+  chartRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    height: 120,
+    paddingTop: 16,
+  },
+  chartBar: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  chartAmount: {
+    fontSize: 9,
+    color: '#6B7280',
+    marginBottom: 4,
+  },
+  chartBarFill: {
+    width: 28,
+    borderRadius: 4,
+    minHeight: 4,
+  },
+  chartLabel: {
+    fontSize: 11,
+    color: '#6B7280',
+    marginTop: 6,
+    fontWeight: '500',
+  },
+  // Aging
+  agingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  agingBucket: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  agingCount: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  agingAmount: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  agingLabel: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    marginTop: 4,
+    fontWeight: '500',
+  },
+  // Top customers
+  customerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  customerRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  customerRank: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  customerRankText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  customerInfo: {
+    flex: 1,
+  },
+  customerName: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#111827',
+  },
+  customerMeta: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    marginTop: 1,
+  },
+  customerRevenue: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111827',
   },
 });

@@ -123,7 +123,7 @@ export default function PeopleScreen() {
     return (
       <TouchableOpacity
         style={styles.certCard}
-        onPress={() => router.push(`/certifications/${item.id}`)}
+        onPress={() => router.push(`/certifications/${item.id}` as any)}
       >
         <View style={styles.certHeader}>
           <View style={styles.certIcon}>
@@ -189,7 +189,7 @@ export default function PeopleScreen() {
             </Text>
             <TouchableOpacity
               style={styles.emptyButton}
-              onPress={() => router.push('/certifications/add')}
+              onPress={() => router.push('/certifications/add' as any)}
             >
               <Text style={styles.emptyButtonText}>Add Certification</Text>
             </TouchableOpacity>
@@ -199,7 +199,7 @@ export default function PeopleScreen() {
 
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => router.push('/certifications/add')}
+        onPress={() => router.push('/certifications/add' as any)}
       >
         <Ionicons name="add" size={28} color="#fff" />
       </TouchableOpacity>

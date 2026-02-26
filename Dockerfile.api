@@ -39,10 +39,13 @@ COPY --chown=node:node --from=builder /app/dist ./dist
 COPY --chown=node:node --from=builder /app/dist/templates ./dist/templates
 COPY --chown=node:node apps/api/package*.json ./
 
-EXPOSE 29000
+# Railway injects PORT dynamically; default to 29000 for local Docker use
+ENV PORT=29000
+EXPOSE ${PORT}
 
+# Railway handles health checks via railway.toml; this is for local Docker use
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:29000/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/health || exit 1
 
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "dist/index.js"]

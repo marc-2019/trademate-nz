@@ -1,9 +1,17 @@
 {
   "cli": {
-    "version": ">= 7.0.0"
+    "version": ">= 7.0.0",
+    "appVersionSource": "remote"
   },
   "build": {
+    "base": {
+      "node": "20.11.0",
+      "env": {
+        "APP_ENV": "production"
+      }
+    },
     "development": {
+      "extends": "base",
       "developmentClient": true,
       "distribution": "internal",
       "ios": {
@@ -13,10 +21,13 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "http://192.168.50.128:29000"
-      }
+        "APP_ENV": "development",
+        "EXPO_PUBLIC_API_URL": "http://localhost:29000"
+      },
+      "channel": "development"
     },
     "preview": {
+      "extends": "base",
       "distribution": "internal",
       "ios": {
         "simulator": false
@@ -25,32 +36,60 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "http://192.168.50.128:29000"
-      }
+        "APP_ENV": "preview",
+        "EXPO_PUBLIC_API_URL": "REPLACE_ME_RAILWAY_URL"
+      },
+      "channel": "preview"
     },
     "production": {
+      "extends": "base",
       "distribution": "store",
+      "autoIncrement": true,
       "ios": {
-        "resourceClass": "m1-medium"
+        "resourceClass": "m1-medium",
+        "autoIncrement": "buildNumber"
       },
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "app-bundle",
+        "autoIncrement": "versionCode"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.trademate.co.nz"
-      }
+        "APP_ENV": "production",
+        "EXPO_PUBLIC_API_URL": "REPLACE_ME_RAILWAY_URL"
+      },
+      "channel": "production"
     }
   },
   "submit": {
     "production": {
       "ios": {
-        "appleId": "your-apple-id@example.com",
-        "ascAppId": "your-app-store-connect-app-id",
-        "appleTeamId": "YOUR_TEAM_ID"
+        "appleId": "dev@instilligent.nz",
+        "ascAppId": "REPLACE_ME_APP_STORE_CONNECT_APP_ID",
+        "appleTeamId": "REPLACE_ME_APPLE_TEAM_ID",
+        "sku": "nz.instilligent.trademate",
+        "language": "en-NZ",
+        "companyName": "Instilligent Limited"
       },
       "android": {
         "serviceAccountKeyPath": "./google-service-account.json",
-        "track": "internal"
+        "track": "internal",
+        "releaseStatus": "draft",
+        "changesNotSentForReview": true
+      }
+    },
+    "preview": {
+      "ios": {
+        "appleId": "dev@instilligent.nz",
+        "ascAppId": "REPLACE_ME_APP_STORE_CONNECT_APP_ID",
+        "appleTeamId": "REPLACE_ME_APPLE_TEAM_ID",
+        "sku": "nz.instilligent.trademate",
+        "language": "en-NZ",
+        "companyName": "Instilligent Limited"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./google-service-account.json",
+        "track": "internal",
+        "releaseStatus": "draft"
       }
     }
   }

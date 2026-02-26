@@ -124,7 +124,7 @@ export default function MoneyScreen() {
     return (
       <TouchableOpacity
         style={styles.invoiceCard}
-        onPress={() => router.push(`/invoices/${item.id}`)}
+        onPress={() => router.push(`/invoices/${item.id}` as any)}
       >
         <View style={styles.invoiceHeader}>
           <View style={styles.invoiceInfo}>
@@ -171,6 +171,46 @@ export default function MoneyScreen() {
           <Ionicons name="trending-up" size={32} color="#2563EB" />
         </View>
       )}
+
+      {/* Quick Actions */}
+      <View style={styles.quickActions}>
+        <TouchableOpacity style={styles.quickAction} onPress={() => router.push('/customers/' as any)}>
+          <View style={[styles.quickActionIcon, { backgroundColor: '#EFF6FF' }]}>
+            <Ionicons name="people" size={20} color="#2563EB" />
+          </View>
+          <Text style={styles.quickActionLabel}>Customers</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.quickAction} onPress={() => router.push('/products/' as any)}>
+          <View style={[styles.quickActionIcon, { backgroundColor: '#F0FDF4' }]}>
+            <Ionicons name="cube" size={20} color="#10B981" />
+          </View>
+          <Text style={styles.quickActionLabel}>Products</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.quickAction} onPress={() => router.push('/recurring/' as any)}>
+          <View style={[styles.quickActionIcon, { backgroundColor: '#FFF7ED' }]}>
+            <Ionicons name="repeat" size={20} color="#F59E0B" />
+          </View>
+          <Text style={styles.quickActionLabel}>Recurring</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.quickAction} onPress={() => router.push('/bank/' as any)}>
+          <View style={[styles.quickActionIcon, { backgroundColor: '#FDF2F8' }]}>
+            <Ionicons name="card" size={20} color="#EC4899" />
+          </View>
+          <Text style={styles.quickActionLabel}>Bank</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.quickAction} onPress={() => router.push('/quotes/' as any)}>
+          <View style={[styles.quickActionIcon, { backgroundColor: '#F5F3FF' }]}>
+            <Ionicons name="document-text" size={20} color="#8B5CF6" />
+          </View>
+          <Text style={styles.quickActionLabel}>Quotes</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.quickAction} onPress={() => router.push('/expenses/' as any)}>
+          <View style={[styles.quickActionIcon, { backgroundColor: '#FEF3C7' }]}>
+            <Ionicons name="receipt" size={20} color="#F59E0B" />
+          </View>
+          <Text style={styles.quickActionLabel}>Expenses</Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.searchContainer}>
         <View style={styles.searchBox}>
@@ -231,7 +271,7 @@ export default function MoneyScreen() {
             {!searchQuery && (
               <TouchableOpacity
                 style={styles.emptyButton}
-                onPress={() => router.push('/invoices/create')}
+                onPress={() => router.push('/invoices/create' as any)}
               >
                 <Text style={styles.emptyButtonText}>Create Your First Invoice</Text>
               </TouchableOpacity>
@@ -242,7 +282,7 @@ export default function MoneyScreen() {
 
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => router.push('/invoices/create')}
+        onPress={() => router.push('/invoices/create' as any)}
       >
         <Ionicons name="add" size={28} color="#fff" />
       </TouchableOpacity>
@@ -279,11 +319,36 @@ const styles = StyleSheet.create({
     color: '#1E40AF',
     marginTop: 4,
   },
+  quickActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    backgroundColor: '#fff',
+    marginTop: 8,
+    marginHorizontal: 0,
+  },
+  quickAction: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  quickActionIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickActionLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#374151',
+  },
   searchContainer: {
     padding: 16,
     paddingBottom: 8,
     backgroundColor: '#fff',
-    marginTop: 8,
+    marginTop: 0,
   },
   searchBox: {
     flexDirection: 'row',

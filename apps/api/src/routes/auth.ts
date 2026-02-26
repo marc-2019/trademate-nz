@@ -25,7 +25,7 @@ const registerSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters'),
   name: z.string().optional(),
   phone: z.string().optional(),
-  tradeType: z.enum(['electrician', 'plumber', 'builder', 'landscaper', 'other']).optional(),
+  tradeType: z.enum(['electrician', 'plumber', 'builder', 'landscaper', 'painter', 'other']).optional(),
   businessName: z.string().optional(),
 });
 
@@ -41,7 +41,7 @@ const refreshSchema = z.object({
 const updateProfileSchema = z.object({
   name: z.string().optional(),
   phone: z.string().optional(),
-  tradeType: z.enum(['electrician', 'plumber', 'builder', 'landscaper', 'other']).optional(),
+  tradeType: z.enum(['electrician', 'plumber', 'builder', 'landscaper', 'painter', 'other']).optional(),
   businessName: z.string().optional(),
 });
 
@@ -66,15 +66,16 @@ router.post('/register', async (req: Request, res: Response) => {
       return;
     }
 
-    const { user, tokens } = await authService.register(validation.data);
+    const { user, tokens, verificationCode } = await authService.register(validation.data);
 
     res.status(201).json({
       success: true,
       data: {
         user,
         tokens,
+        verificationCode, // Included for dev/testing; in production, sent via email only
       },
-      message: 'Registration successful',
+      message: 'Registration successful. Please verify your email.',
     });
   } catch (error) {
     if (error instanceof Error && 'statusCode' in error) {
@@ -244,6 +245,191 @@ router.put('/me', authenticate, async (req: Request, res: Response) => {
       message: 'Profile updated successfully',
     });
   } catch (error) {
+    throw error;
+  }
+});
+
+// =============================================================================
+// PASSWORD RESET ROUTES (unauthenticated)
+// =============================================================================
+
+const forgotPasswordSchema = z.object({
+  email: z.string().email('Invalid email address'),
+});
+
+const resetPasswordSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  code: z.string().length(6, 'Reset code must be 6 digits'),
+  newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
+/**
+ * POST /api/v1/auth/forgot-password
+ * Request a password reset code (unauthenticated)
+ */
+router.post('/forgot-password', async (req: Request, res: Response) => {
+  try {
+    const validation = forgotPasswordSchema.safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: validation.error.errors[0].message,
+      });
+      return;
+    }
+
+    await authService.forgotPassword(validation.data.email);
+
+    // Always return success to prevent email enumeration
+    res.json({
+      success: true,
+      message: 'If an account exists with that email, a reset code has been sent.',
+    });
+  } catch (error) {
+    // Swallow errors to prevent email enumeration
+    res.json({
+      success: true,
+      message: 'If an account exists with that email, a reset code has been sent.',
+    });
+  }
+});
+
+/**
+ * POST /api/v1/auth/reset-password
+ * Reset password with code (unauthenticated)
+ */
+router.post('/reset-password', async (req: Request, res: Response) => {
+  try {
+    const validation = resetPasswordSchema.safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: validation.error.errors[0].message,
+      });
+      return;
+    }
+
+    await authService.resetPassword(
+      validation.data.email,
+      validation.data.code,
+      validation.data.newPassword
+    );
+
+    res.json({
+      success: true,
+      message: 'Password reset successfully. Please log in with your new password.',
+    });
+  } catch (error) {
+    if (error instanceof Error && 'statusCode' in error) {
+      const appError = error as AppError;
+      res.status(appError.statusCode).json({
+        success: false,
+        error: appError.code,
+        message: appError.message,
+      });
+      return;
+    }
+    throw error;
+  }
+});
+
+// =============================================================================
+// VERIFICATION & ONBOARDING ROUTES
+// =============================================================================
+
+const verifyEmailSchema = z.object({
+  code: z.string().length(6, 'Verification code must be 6 digits'),
+});
+
+/**
+ * POST /api/v1/auth/verify-email
+ * Verify email with 6-digit code
+ */
+router.post('/verify-email', authenticate, async (req: Request, res: Response) => {
+  try {
+    const validation = verifyEmailSchema.safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: validation.error.errors[0].message,
+      });
+      return;
+    }
+
+    const user = await authService.verifyEmail(req.user!.userId, validation.data.code);
+
+    res.json({
+      success: true,
+      data: { user },
+      message: 'Email verified successfully',
+    });
+  } catch (error) {
+    if (error instanceof Error && 'statusCode' in error) {
+      const appError = error as AppError;
+      res.status(appError.statusCode).json({
+        success: false,
+        error: appError.code,
+        message: appError.message,
+      });
+      return;
+    }
+    throw error;
+  }
+});
+
+/**
+ * POST /api/v1/auth/resend-verification
+ * Resend verification code
+ */
+router.post('/resend-verification', authenticate, async (req: Request, res: Response) => {
+  try {
+    const { verificationCode } = await authService.resendVerification(req.user!.userId);
+
+    res.json({
+      success: true,
+      data: { verificationCode }, // Included for dev/testing; in production, sent via email only
+      message: 'Verification code sent',
+    });
+  } catch (error) {
+    if (error instanceof Error && 'statusCode' in error) {
+      const appError = error as AppError;
+      res.status(appError.statusCode).json({
+        success: false,
+        error: appError.code,
+        message: appError.message,
+      });
+      return;
+    }
+    throw error;
+  }
+});
+
+/**
+ * POST /api/v1/auth/complete-onboarding
+ * Mark onboarding as completed
+ */
+router.post('/complete-onboarding', authenticate, async (req: Request, res: Response) => {
+  try {
+    const user = await authService.completeOnboarding(req.user!.userId);
+
+    res.json({
+      success: true,
+      data: { user },
+      message: 'Onboarding completed',
+    });
+  } catch (error) {
+    if (error instanceof Error && 'statusCode' in error) {
+      const appError = error as AppError;
+      res.status(appError.statusCode).json({
+        success: false,
+        error: appError.code,
+        message: appError.message,
+      });
+      return;
+    }
     throw error;
   }
 });

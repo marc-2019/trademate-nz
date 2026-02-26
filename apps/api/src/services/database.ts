@@ -3,7 +3,7 @@
  * PostgreSQL connection and query helpers
  */
 
-import { Pool, PoolClient, QueryResult } from 'pg';
+import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
 import { config } from '../config/index.js';
 
 // Create connection pool
@@ -22,7 +22,7 @@ pool.on('error', (err) => {
 /**
  * Execute a query
  */
-export async function query<T = unknown>(
+export async function query<T extends QueryResultRow = QueryResultRow>(
   text: string,
   params?: unknown[]
 ): Promise<QueryResult<T>> {

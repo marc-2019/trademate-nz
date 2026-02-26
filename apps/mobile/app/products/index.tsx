@@ -1,6 +1,6 @@
 /**
- * SWMS List Screen
- * Lists all SWMS documents with filtering
+ * Products & Services List Screen
+ * Displays all products/services with search and type filtering
  */
 
 import { useCallback, useState } from 'react';
@@ -15,120 +15,115 @@ import {
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { swmsApi } from '../../src/services/api';
+import { productsApi } from '../../src/services/api';
 
-interface SWMSDocument {
+interface Product {
   id: string;
-  title: string;
-  trade_type: string;
-  status: string;
-  site_address: string | null;
+  name: string;
+  description: string | null;
+  unit_price: number;
+  type: 'fixed' | 'variable';
+  is_gst_applicable: boolean;
   created_at: string;
 }
 
-export default function SWMSListScreen() {
+export default function ProductsScreen() {
   const router = useRouter();
-  const [documents, setDocuments] = useState<SWMSDocument[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [typeFilter, setTypeFilter] = useState<string | null>(null);
 
-  const loadDocuments = useCallback(async () => {
+  const loadProducts = useCallback(async () => {
     try {
-      const response = await swmsApi.list({ status: statusFilter || undefined });
+      const response = await productsApi.list({
+        type: typeFilter || undefined,
+        search: searchQuery || undefined,
+      });
       if (response.data.success) {
-        setDocuments(response.data.data.documents || []);
+        setProducts(response.data.data.products || []);
       }
     } catch (error) {
-      console.error('Failed to load documents:', error);
+      console.error('Failed to load products:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [statusFilter]);
+  }, [typeFilter, searchQuery]);
 
   useFocusEffect(
     useCallback(() => {
-      loadDocuments();
-    }, [loadDocuments])
+      loadProducts();
+    }, [loadProducts])
   );
 
   async function handleRefresh() {
     setIsRefreshing(true);
-    await loadDocuments();
+    await loadProducts();
     setIsRefreshing(false);
   }
 
-  function formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString('en-NZ', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
+  function formatCurrency(cents: number): string {
+    return '$' + (cents / 100).toLocaleString('en-NZ', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     });
   }
 
-  function getStatusColor(status: string): string {
-    switch (status) {
-      case 'signed':
+  function getTypeBadgeColor(type: string): string {
+    switch (type) {
+      case 'fixed':
         return '#10B981';
-      case 'pending':
+      case 'variable':
         return '#F59E0B';
       default:
         return '#6B7280';
     }
   }
 
-  const filteredDocs = documents.filter((doc) => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      doc.title.toLowerCase().includes(query) ||
-      doc.trade_type.toLowerCase().includes(query) ||
-      (doc.site_address && doc.site_address.toLowerCase().includes(query))
-    );
-  });
+  function renderProduct({ item }: { item: Product }) {
+    const badgeColor = getTypeBadgeColor(item.type);
 
-  function renderDocument({ item }: { item: SWMSDocument }) {
     return (
       <TouchableOpacity
-        style={styles.docCard}
-        onPress={() => router.push(`/swms/${item.id}`)}
+        style={styles.productCard}
+        onPress={() =>
+          router.push({ pathname: '/products/create' as any, params: { id: item.id } })
+        }
       >
-        <View style={styles.docHeader}>
-          <Text style={styles.docTitle} numberOfLines={1}>
-            {item.title}
+        <View style={styles.cardHeader}>
+          <Text style={styles.productName} numberOfLines={1}>
+            {item.name}
           </Text>
-          <View
-            style={[
-              styles.statusBadge,
-              { backgroundColor: getStatusColor(item.status) + '20' },
-            ]}
-          >
-            <Text
-              style={[styles.statusText, { color: getStatusColor(item.status) }]}
+          <Text style={styles.productPrice}>{formatCurrency(item.unit_price)}</Text>
+        </View>
+
+        {item.description ? (
+          <Text style={styles.productDescription} numberOfLines={2}>
+            {item.description}
+          </Text>
+        ) : null}
+
+        <View style={styles.cardFooter}>
+          <View style={styles.badgeRow}>
+            <View
+              style={[
+                styles.typeBadge,
+                { backgroundColor: badgeColor + '20' },
+              ]}
             >
-              {item.status}
-            </Text>
+              <Text style={[styles.typeBadgeText, { color: badgeColor }]}>
+                {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+              </Text>
+            </View>
+
+            {item.is_gst_applicable && (
+              <View style={styles.gstBadge}>
+                <Text style={styles.gstBadgeText}>GST</Text>
+              </View>
+            )}
           </View>
         </View>
-        <View style={styles.docMeta}>
-          <View style={styles.metaItem}>
-            <Ionicons name="construct" size={14} color="#6B7280" />
-            <Text style={styles.metaText}>{item.trade_type}</Text>
-          </View>
-          <View style={styles.metaItem}>
-            <Ionicons name="calendar" size={14} color="#6B7280" />
-            <Text style={styles.metaText}>{formatDate(item.created_at)}</Text>
-          </View>
-        </View>
-        {item.site_address && (
-          <View style={styles.addressRow}>
-            <Ionicons name="location" size={14} color="#6B7280" />
-            <Text style={styles.addressText} numberOfLines={1}>
-              {item.site_address}
-            </Text>
-          </View>
-        )}
       </TouchableOpacity>
     );
   }
@@ -140,7 +135,7 @@ export default function SWMSListScreen() {
           <Ionicons name="search" size={20} color="#9CA3AF" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search documents..."
+            placeholder="Search products & services..."
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholderTextColor="#9CA3AF"
@@ -154,20 +149,20 @@ export default function SWMSListScreen() {
       </View>
 
       <View style={styles.filterRow}>
-        {['all', 'draft', 'pending', 'signed'].map((filter) => (
+        {['all', 'fixed', 'variable'].map((filter) => (
           <TouchableOpacity
             key={filter}
             style={[
               styles.filterChip,
-              (statusFilter === filter || (filter === 'all' && !statusFilter)) &&
+              (typeFilter === filter || (filter === 'all' && !typeFilter)) &&
                 styles.filterChipActive,
             ]}
-            onPress={() => setStatusFilter(filter === 'all' ? null : filter)}
+            onPress={() => setTypeFilter(filter === 'all' ? null : filter)}
           >
             <Text
               style={[
                 styles.filterText,
-                (statusFilter === filter || (filter === 'all' && !statusFilter)) &&
+                (typeFilter === filter || (filter === 'all' && !typeFilter)) &&
                   styles.filterTextActive,
               ]}
             >
@@ -178,26 +173,36 @@ export default function SWMSListScreen() {
       </View>
 
       <FlatList
-        data={filteredDocs}
+        data={products}
         keyExtractor={(item) => item.id}
-        renderItem={renderDocument}
+        renderItem={renderProduct}
         contentContainerStyle={styles.listContent}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
         }
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Ionicons name="document-outline" size={48} color="#D1D5DB" />
+            <Ionicons name="pricetag-outline" size={48} color="#D1D5DB" />
             <Text style={styles.emptyText}>
-              {searchQuery ? 'No matching documents' : 'No documents yet'}
+              {searchQuery || typeFilter
+                ? 'No matching products'
+                : 'No products yet'}
             </Text>
+            {!searchQuery && !typeFilter && (
+              <TouchableOpacity
+                style={styles.emptyButton}
+                onPress={() => router.push('/products/create' as any)}
+              >
+                <Text style={styles.emptyButtonText}>Add Your First Product</Text>
+              </TouchableOpacity>
+            )}
           </View>
         }
       />
 
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => router.push('/swms/generate')}
+        onPress={() => router.push('/products/create' as any)}
       >
         <Ionicons name="add" size={28} color="#fff" />
       </TouchableOpacity>
@@ -259,7 +264,7 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 100,
   },
-  docCard: {
+  productCard: {
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
@@ -270,53 +275,59 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 1,
   },
-  docHeader: {
+  cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
-  docTitle: {
+  productName: {
     fontSize: 16,
     fontWeight: '600',
     color: '#111827',
     flex: 1,
-    marginRight: 8,
+    marginRight: 12,
   },
-  statusBadge: {
+  productPrice: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  productDescription: {
+    fontSize: 14,
+    color: '#6B7280',
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  typeBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
   },
-  statusText: {
+  typeBadgeText: {
     fontSize: 12,
     fontWeight: '500',
-    textTransform: 'capitalize',
   },
-  docMeta: {
-    flexDirection: 'row',
-    gap: 16,
+  gstBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    backgroundColor: '#EFF6FF',
   },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  metaText: {
-    fontSize: 13,
-    color: '#6B7280',
-    textTransform: 'capitalize',
-  },
-  addressRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-    gap: 4,
-  },
-  addressText: {
-    fontSize: 13,
-    color: '#6B7280',
-    flex: 1,
+  gstBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#2563EB',
   },
   emptyState: {
     alignItems: 'center',
@@ -326,6 +337,18 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     fontSize: 16,
     marginTop: 12,
+  },
+  emptyButton: {
+    marginTop: 16,
+    backgroundColor: '#2563EB',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  emptyButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
   fab: {
     position: 'absolute',

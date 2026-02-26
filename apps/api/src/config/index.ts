@@ -8,6 +8,10 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export const config = {
+  // App Branding (configurable - no hardcoded product name)
+  appName: process.env.APP_NAME || 'TradeMate NZ',
+  appDomain: process.env.APP_DOMAIN || '',
+
   // Server
   port: parseInt(process.env.PORT || '29000', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
@@ -36,6 +40,27 @@ export const config = {
     'http://localhost:8081',
     'http://localhost:3000',
   ],
+
+  // Email (SMTP)
+  smtp: {
+    host: process.env.SMTP_HOST || '',
+    port: parseInt(process.env.SMTP_PORT || '587', 10),
+    secure: process.env.SMTP_SECURE === 'true', // true for 465, false for 587
+    user: process.env.SMTP_USER || '',
+    pass: process.env.SMTP_PASS || '',
+    fromName: process.env.SMTP_FROM_NAME || 'TradeMate NZ',
+    fromEmail: process.env.SMTP_FROM_EMAIL || '',
+  },
 } as const;
+
+// Fail fast: require JWT secrets in production
+if (!config.isDevelopment) {
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is required in production');
+  }
+  if (!process.env.JWT_REFRESH_SECRET) {
+    throw new Error('JWT_REFRESH_SECRET environment variable is required in production');
+  }
+}
 
 export default config;

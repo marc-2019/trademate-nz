@@ -1,0 +1,376 @@
+/**
+ * Quote Routes
+ * /api/v1/quotes/*
+ */
+
+import { Router, Request, Response } from 'express';
+import { z } from 'zod';
+import quotesService from '../services/quotes.js';
+import pdfService from '../services/pdf.js';
+import { authenticate } from '../middleware/auth.js';
+import { attachSubscription, requireFeature } from '../middleware/subscription.js';
+
+// App error type for error handling
+interface AppError extends Error {
+  statusCode: number;
+  code: string;
+}
+
+const router = Router();
+
+// =============================================================================
+// VALIDATION SCHEMAS
+// =============================================================================
+
+const lineItemSchema = z.object({
+  description: z.string().min(1, 'Description is required'),
+  amount: z.number().int().min(0, 'Amount must be positive (in cents)'),
+});
+
+const createSchema = z.object({
+  clientName: z.string().min(1, 'Client name is required'),
+  clientEmail: z.string().email().optional().or(z.literal('')),
+  clientPhone: z.string().optional(),
+  customerId: z.string().uuid().optional(),
+  jobDescription: z.string().optional(),
+  lineItems: z.array(lineItemSchema).min(1, 'At least one line item is required'),
+  includeGst: z.boolean().optional().default(true),
+  validUntil: z.string().optional(), // ISO date string
+  bankAccountName: z.string().optional(),
+  bankAccountNumber: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+const updateSchema = z.object({
+  clientName: z.string().min(1).optional(),
+  clientEmail: z.string().email().optional().or(z.literal('')),
+  clientPhone: z.string().optional(),
+  customerId: z.string().uuid().optional().nullable(),
+  jobDescription: z.string().optional(),
+  lineItems: z.array(lineItemSchema).optional(),
+  includeGst: z.boolean().optional(),
+  validUntil: z.string().optional().nullable(),
+  bankAccountName: z.string().optional(),
+  bankAccountNumber: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+// =============================================================================
+// ROUTES
+// =============================================================================
+
+/**
+ * POST /api/v1/quotes
+ * Create a new quote
+ */
+router.post('/', authenticate, attachSubscription, requireFeature('quotes'), async (req: Request, res: Response) => {
+  try {
+    const validation = createSchema.safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: validation.error.errors[0].message,
+        details: validation.error.errors,
+      });
+      return;
+    }
+
+    // Clean up empty clientEmail
+    const input = {
+      ...validation.data,
+      clientEmail: validation.data.clientEmail || undefined,
+    };
+
+    const quote = await quotesService.createQuote(req.user!.userId, input);
+
+    res.status(201).json({
+      success: true,
+      data: { quote },
+      message: 'Quote created successfully',
+    });
+  } catch (error) {
+    throw error;
+  }
+});
+
+/**
+ * GET /api/v1/quotes
+ * List user's quotes
+ */
+router.get('/', authenticate, async (req: Request, res: Response) => {
+  try {
+    const { status, limit, offset } = req.query;
+
+    const result = await quotesService.listQuotes(req.user!.userId, {
+      status: status as 'draft' | 'sent' | 'accepted' | 'declined' | 'expired' | 'converted' | undefined,
+      limit: limit ? parseInt(limit as string, 10) : undefined,
+      offset: offset ? parseInt(offset as string, 10) : undefined,
+    });
+
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    throw error;
+  }
+});
+
+/**
+ * GET /api/v1/quotes/:id
+ * Get specific quote
+ */
+router.get('/:id', authenticate, async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const quote = await quotesService.getQuoteById(id, req.user!.userId);
+
+    if (!quote) {
+      res.status(404).json({
+        success: false,
+        error: 'NOT_FOUND',
+        message: 'Quote not found',
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: { quote },
+    });
+  } catch (error) {
+    throw error;
+  }
+});
+
+/**
+ * GET /api/v1/quotes/:id/pdf
+ * Download quote as PDF
+ */
+router.get('/:id/pdf', authenticate, attachSubscription, requireFeature('quotes'), async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const quote = await quotesService.getQuoteByIdRaw(id, req.user!.userId);
+
+    if (!quote) {
+      res.status(404).json({
+        success: false,
+        error: 'NOT_FOUND',
+        message: 'Quote not found',
+      });
+      return;
+    }
+
+    // Use the invoice PDF generator with quote data (same format)
+    const pdfBuffer = await pdfService.generateQuotePDF(quote);
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="Quote-${quote.quoteNumber}.pdf"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.send(pdfBuffer);
+  } catch (error) {
+    throw error;
+  }
+});
+
+/**
+ * PUT /api/v1/quotes/:id
+ * Update quote (only draft quotes)
+ */
+router.put('/:id', authenticate, async (req: Request, res: Response) => {
+  try {
+    const validation = updateSchema.safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: validation.error.errors[0].message,
+      });
+      return;
+    }
+
+    const id = req.params.id as string;
+    const quote = await quotesService.updateQuote(
+      id,
+      req.user!.userId,
+      validation.data
+    );
+
+    if (!quote) {
+      res.status(404).json({
+        success: false,
+        error: 'NOT_FOUND',
+        message: 'Quote not found',
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: { quote },
+      message: 'Quote updated successfully',
+    });
+  } catch (error) {
+    if (error instanceof Error && 'statusCode' in error) {
+      const appError = error as AppError;
+      res.status(appError.statusCode).json({
+        success: false,
+        error: appError.code,
+        message: appError.message,
+      });
+      return;
+    }
+    throw error;
+  }
+});
+
+/**
+ * DELETE /api/v1/quotes/:id
+ * Delete quote
+ */
+router.delete('/:id', authenticate, async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const deleted = await quotesService.deleteQuote(id, req.user!.userId);
+
+    if (!deleted) {
+      res.status(404).json({
+        success: false,
+        error: 'NOT_FOUND',
+        message: 'Quote not found',
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      message: 'Quote deleted successfully',
+    });
+  } catch (error) {
+    throw error;
+  }
+});
+
+/**
+ * POST /api/v1/quotes/:id/send
+ * Mark quote as sent
+ */
+router.post('/:id/send', authenticate, async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const quote = await quotesService.markAsSent(id, req.user!.userId);
+
+    if (!quote) {
+      res.status(404).json({
+        success: false,
+        error: 'NOT_FOUND',
+        message: 'Quote not found or not in draft status',
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: { quote },
+      message: 'Quote marked as sent',
+    });
+  } catch (error) {
+    throw error;
+  }
+});
+
+/**
+ * POST /api/v1/quotes/:id/accept
+ * Mark quote as accepted
+ */
+router.post('/:id/accept', authenticate, async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const quote = await quotesService.markAsAccepted(id, req.user!.userId);
+
+    if (!quote) {
+      res.status(404).json({
+        success: false,
+        error: 'NOT_FOUND',
+        message: 'Quote not found or not in sent status',
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: { quote },
+      message: 'Quote marked as accepted',
+    });
+  } catch (error) {
+    throw error;
+  }
+});
+
+/**
+ * POST /api/v1/quotes/:id/decline
+ * Mark quote as declined
+ */
+router.post('/:id/decline', authenticate, async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const quote = await quotesService.markAsDeclined(id, req.user!.userId);
+
+    if (!quote) {
+      res.status(404).json({
+        success: false,
+        error: 'NOT_FOUND',
+        message: 'Quote not found or not in sent status',
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: { quote },
+      message: 'Quote marked as declined',
+    });
+  } catch (error) {
+    throw error;
+  }
+});
+
+/**
+ * POST /api/v1/quotes/:id/convert
+ * Convert quote to invoice
+ */
+router.post('/:id/convert', authenticate, async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const result = await quotesService.convertToInvoice(id, req.user!.userId);
+
+    if (!result) {
+      res.status(404).json({
+        success: false,
+        error: 'NOT_FOUND',
+        message: 'Quote not found',
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: result,
+      message: 'Quote converted to invoice successfully',
+    });
+  } catch (error) {
+    if (error instanceof Error && 'statusCode' in error) {
+      const appError = error as AppError;
+      res.status(appError.statusCode).json({
+        success: false,
+        error: appError.code,
+        message: appError.message,
+      });
+      return;
+    }
+    throw error;
+  }
+});
+
+export default router;

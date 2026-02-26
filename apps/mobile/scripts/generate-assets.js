@@ -1,180 +1,263 @@
 /**
- * TradeMate NZ - Asset Generator Script
+ * TradeMate NZ - Asset Generator Script (sharp-based)
  *
- * Generates placeholder images for the Expo mobile app using the 'canvas' package.
+ * Generates branded PNG image assets for the Expo mobile app using the 'sharp' package.
+ * sharp uses pre-built native binaries (no C++ build tools needed on Windows).
  *
  * Usage:
- *   npm run generate:assets
+ *   node scripts/generate-assets.js
+ *   (or) npm run generate:assets
  *
  * Prerequisites:
- *   npm install canvas --save-dev
+ *   npm install sharp --save-dev
  *
  * Generated assets:
- *   - icon.png (1024x1024) - App icon with "TM" letters
- *   - adaptive-icon.png (1024x1024) - Android adaptive icon
- *   - splash.png (1284x2778) - Splash screen
- *   - favicon.png (48x48) - Web favicon
+ *   - assets/icon.png             (1024x1024) - App icon
+ *   - assets/adaptive-icon.png    (1024x1024) - Android adaptive icon (safe area centered)
+ *   - assets/splash-icon.png      (512x512)   - Expo SDK 50+ splash icon
+ *   - assets/notification-icon.png (96x96)    - Android notification icon
+ *   - assets/favicon.png          (48x48)     - Web favicon
  */
 
-const { createCanvas } = require('canvas');
+// ---------------------------------------------------------------------------
+// Dependency check
+// ---------------------------------------------------------------------------
+let sharp;
+try {
+  sharp = require('sharp');
+} catch (_err) {
+  console.error('ERROR: The "sharp" package is not installed.\n');
+  console.error('Install it with:\n');
+  console.error('  npm install sharp --save-dev\n');
+  process.exit(1);
+}
+
 const fs = require('fs');
 const path = require('path');
 
-// TradeMate brand colors
-const BRAND_BLUE = '#2563EB';
+// ---------------------------------------------------------------------------
+// Brand constants
+// ---------------------------------------------------------------------------
+const NAVY = '#1e3a5f';
+const ACCENT = '#2563EB';
 const WHITE = '#FFFFFF';
 
-// Asset directory
+// Output directory (apps/mobile/assets)
 const ASSETS_DIR = path.join(__dirname, '..', 'assets');
 
-/**
- * Ensure the assets directory exists
- */
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Ensure the assets directory exists. */
 function ensureAssetsDir() {
   if (!fs.existsSync(ASSETS_DIR)) {
     fs.mkdirSync(ASSETS_DIR, { recursive: true });
-    console.log('Created assets directory:', ASSETS_DIR);
+    console.log('  Created assets directory:', ASSETS_DIR);
   }
 }
 
-/**
- * Generate the app icon (1024x1024) with "TM" letters
- */
-function generateIcon() {
-  const size = 1024;
-  const canvas = createCanvas(size, size);
-  const ctx = canvas.getContext('2d');
-
-  // Blue background
-  ctx.fillStyle = BRAND_BLUE;
-  ctx.fillRect(0, 0, size, size);
-
-  // Rounded corners (for visual appeal in the source, iOS will mask it)
-  // Note: We draw a full square; iOS/Android handle masking
-
-  // "TM" text
-  ctx.fillStyle = WHITE;
-  ctx.font = 'bold 420px Arial, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('TM', size / 2, size / 2 + 20);
-
-  // Save
-  const buffer = canvas.toBuffer('image/png');
-  const filePath = path.join(ASSETS_DIR, 'icon.png');
+/** Save a sharp buffer to a PNG file and log the result. */
+async function saveBuffer(buffer, filename, width, height) {
+  const filePath = path.join(ASSETS_DIR, filename);
   fs.writeFileSync(filePath, buffer);
-  console.log('Generated:', filePath);
+  const kb = (buffer.length / 1024).toFixed(1);
+  console.log(`  [OK] ${filename} (${width}x${height}, ${kb} KB)`);
 }
 
 /**
- * Generate the adaptive icon (1024x1024) - same as icon for Android
+ * Create a PNG from an SVG string using sharp.
  */
-function generateAdaptiveIcon() {
-  const size = 1024;
-  const canvas = createCanvas(size, size);
-  const ctx = canvas.getContext('2d');
-
-  // Blue background
-  ctx.fillStyle = BRAND_BLUE;
-  ctx.fillRect(0, 0, size, size);
-
-  // "TM" text - slightly smaller to account for Android's safe zone
-  ctx.fillStyle = WHITE;
-  ctx.font = 'bold 320px Arial, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('TM', size / 2, size / 2 + 15);
-
-  // Save
-  const buffer = canvas.toBuffer('image/png');
-  const filePath = path.join(ASSETS_DIR, 'adaptive-icon.png');
-  fs.writeFileSync(filePath, buffer);
-  console.log('Generated:', filePath);
+async function svgToPng(svgString, width, height, filename) {
+  const buffer = await sharp(Buffer.from(svgString))
+    .resize(width, height)
+    .png()
+    .toBuffer();
+  await saveBuffer(buffer, filename, width, height);
 }
 
-/**
- * Generate the splash screen (1284x2778) - iPhone 14 Pro Max size
- */
-function generateSplash() {
+// ---------------------------------------------------------------------------
+// 1. App Icon  (1024 x 1024)
+// ---------------------------------------------------------------------------
+async function generateIcon() {
+  const size = 1024;
+  const radius = 180;
+
+  const svg = `
+    <svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+      <rect width="${size}" height="${size}" rx="${radius}" ry="${radius}" fill="${NAVY}" />
+      <text x="${size / 2}" y="${size / 2 - 60}"
+            font-family="Arial, Helvetica, sans-serif"
+            font-weight="bold" font-size="420"
+            fill="${WHITE}" text-anchor="middle" dominant-baseline="central">TM</text>
+      <text x="${size / 2}" y="${size / 2 + 180}"
+            font-family="Arial, Helvetica, sans-serif"
+            font-weight="bold" font-size="180"
+            fill="${ACCENT}" text-anchor="middle" dominant-baseline="central">NZ</text>
+    </svg>`;
+
+  await svgToPng(svg, size, size, 'icon.png');
+}
+
+// ---------------------------------------------------------------------------
+// 2. Adaptive Icon  (1024 x 1024)
+//    Content must fit within the inner 66% (safe area).
+//    Background color is set separately in app.json.
+// ---------------------------------------------------------------------------
+async function generateAdaptiveIcon() {
+  const size = 1024;
+  const safeSize = Math.round(size * 0.66);
+  const cx = size / 2;
+  const cy = size / 2;
+  const tmFontSize = Math.round(safeSize * 0.52);
+  const nzFontSize = Math.round(safeSize * 0.22);
+
+  const svg = `
+    <svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+      <rect width="${size}" height="${size}" fill="${NAVY}" />
+      <text x="${cx}" y="${cy - safeSize * 0.09}"
+            font-family="Arial, Helvetica, sans-serif"
+            font-weight="bold" font-size="${tmFontSize}"
+            fill="${WHITE}" text-anchor="middle" dominant-baseline="central">TM</text>
+      <text x="${cx}" y="${cy + safeSize * 0.24}"
+            font-family="Arial, Helvetica, sans-serif"
+            font-weight="bold" font-size="${nzFontSize}"
+            fill="${ACCENT}" text-anchor="middle" dominant-baseline="central">NZ</text>
+    </svg>`;
+
+  await svgToPng(svg, size, size, 'adaptive-icon.png');
+}
+
+// ---------------------------------------------------------------------------
+// 3. Splash Icon  (512 x 512) — Expo SDK 50+ uses splash icon, not full image
+// ---------------------------------------------------------------------------
+async function generateSplashIcon() {
+  const size = 512;
+
+  const svg = `
+    <svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+      <rect width="${size}" height="${size}" fill="${NAVY}" rx="80" ry="80" />
+      <text x="${size / 2}" y="${size / 2 - 30}"
+            font-family="Arial, Helvetica, sans-serif"
+            font-weight="bold" font-size="210"
+            fill="${WHITE}" text-anchor="middle" dominant-baseline="central">TM</text>
+      <text x="${size / 2}" y="${size / 2 + 90}"
+            font-family="Arial, Helvetica, sans-serif"
+            font-weight="bold" font-size="90"
+            fill="${ACCENT}" text-anchor="middle" dominant-baseline="central">NZ</text>
+    </svg>`;
+
+  await svgToPng(svg, size, size, 'splash-icon.png');
+}
+
+// ---------------------------------------------------------------------------
+// 4. Legacy Splash Screen  (1284 x 2778) — For older Expo SDK / fallback
+// ---------------------------------------------------------------------------
+async function generateSplash() {
   const width = 1284;
   const height = 2778;
-  const canvas = createCanvas(width, height);
-  const ctx = canvas.getContext('2d');
+  const cx = width / 2;
+  const cy = height / 2;
 
-  // Blue background
-  ctx.fillStyle = BRAND_BLUE;
-  ctx.fillRect(0, 0, width, height);
+  const svg = `
+    <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+      <rect width="${width}" height="${height}" fill="${NAVY}" />
+      <text x="${cx}" y="${cy - 80}"
+            font-family="Arial, Helvetica, sans-serif"
+            font-weight="bold" font-size="140"
+            fill="${WHITE}" text-anchor="middle" dominant-baseline="central">TradeMate</text>
+      <text x="${cx}" y="${cy + 40}"
+            font-family="Arial, Helvetica, sans-serif"
+            font-weight="bold" font-size="90"
+            fill="${ACCENT}" text-anchor="middle" dominant-baseline="central">NZ</text>
+      <line x1="${cx - 100}" y1="${cy + 100}" x2="${cx + 100}" y2="${cy + 100}"
+            stroke="${ACCENT}" stroke-width="3" />
+      <text x="${cx}" y="${cy + 160}"
+            font-family="Arial, Helvetica, sans-serif"
+            font-size="36"
+            fill="rgba(255,255,255,0.75)" text-anchor="middle" dominant-baseline="central">Built for Kiwi Tradies</text>
+    </svg>`;
 
-  // "TradeMate" text
-  ctx.fillStyle = WHITE;
-  ctx.font = 'bold 120px Arial, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('TradeMate', width / 2, height / 2 - 40);
-
-  // "NZ" subtitle
-  ctx.font = '60px Arial, sans-serif';
-  ctx.fillText('NZ', width / 2, height / 2 + 50);
-
-  // Tagline
-  ctx.font = '36px Arial, sans-serif';
-  ctx.globalAlpha = 0.8;
-  ctx.fillText('Trade Documentation Made Simple', width / 2, height / 2 + 130);
-  ctx.globalAlpha = 1.0;
-
-  // Save
-  const buffer = canvas.toBuffer('image/png');
-  const filePath = path.join(ASSETS_DIR, 'splash.png');
-  fs.writeFileSync(filePath, buffer);
-  console.log('Generated:', filePath);
+  await svgToPng(svg, width, height, 'splash.png');
 }
 
-/**
- * Generate the favicon (48x48)
- */
-function generateFavicon() {
+// ---------------------------------------------------------------------------
+// 5. Notification Icon  (96 x 96)
+//    Android requires white silhouette on transparent background.
+// ---------------------------------------------------------------------------
+async function generateNotificationIcon() {
+  const size = 96;
+
+  const svg = `
+    <svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+      <text x="${size / 2}" y="${size / 2 + 2}"
+            font-family="Arial, Helvetica, sans-serif"
+            font-weight="bold" font-size="52"
+            fill="${WHITE}" text-anchor="middle" dominant-baseline="central">TM</text>
+    </svg>`;
+
+  // Create with transparent background
+  const svgBuffer = Buffer.from(svg);
+  const buffer = await sharp(svgBuffer)
+    .resize(size, size)
+    .png()
+    .toBuffer();
+  await saveBuffer(buffer, 'notification-icon.png', size, size);
+}
+
+// ---------------------------------------------------------------------------
+// 6. Favicon  (48 x 48)
+// ---------------------------------------------------------------------------
+async function generateFavicon() {
   const size = 48;
-  const canvas = createCanvas(size, size);
-  const ctx = canvas.getContext('2d');
+  const radius = 8;
 
-  // Blue background
-  ctx.fillStyle = BRAND_BLUE;
-  ctx.fillRect(0, 0, size, size);
+  const svg = `
+    <svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+      <rect width="${size}" height="${size}" rx="${radius}" ry="${radius}" fill="${NAVY}" />
+      <text x="${size / 2}" y="${size / 2 + 1}"
+            font-family="Arial, Helvetica, sans-serif"
+            font-weight="bold" font-size="22"
+            fill="${WHITE}" text-anchor="middle" dominant-baseline="central">TM</text>
+    </svg>`;
 
-  // "T" letter (just T for small favicon)
-  ctx.fillStyle = WHITE;
-  ctx.font = 'bold 32px Arial, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('T', size / 2, size / 2 + 2);
-
-  // Save
-  const buffer = canvas.toBuffer('image/png');
-  const filePath = path.join(ASSETS_DIR, 'favicon.png');
-  fs.writeFileSync(filePath, buffer);
-  console.log('Generated:', filePath);
+  await svgToPng(svg, size, size, 'favicon.png');
 }
 
-/**
- * Main execution
- */
-function main() {
-  console.log('TradeMate NZ - Asset Generator');
-  console.log('==============================\n');
-
-  ensureAssetsDir();
-
-  console.log('Generating assets with brand color:', BRAND_BLUE);
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
+async function main() {
+  console.log('');
+  console.log('  TradeMate NZ - Asset Generator (sharp)');
+  console.log('  =======================================');
+  console.log('');
+  console.log(`  Brand:  Navy ${NAVY}  |  Accent ${ACCENT}`);
+  console.log(`  Output: ${ASSETS_DIR}`);
   console.log('');
 
-  generateIcon();
-  generateAdaptiveIcon();
-  generateSplash();
-  generateFavicon();
+  try {
+    ensureAssetsDir();
 
-  console.log('\nAll assets generated successfully!');
-  console.log('Assets directory:', ASSETS_DIR);
+    await generateIcon();
+    await generateAdaptiveIcon();
+    await generateSplashIcon();
+    await generateSplash();
+    await generateNotificationIcon();
+    await generateFavicon();
+
+    console.log('');
+    console.log('  All 6 assets generated successfully!');
+    console.log('');
+  } catch (err) {
+    console.error('');
+    console.error('  ERROR generating assets:', err.message);
+    console.error('');
+    if (err.stack) {
+      console.error(err.stack);
+    }
+    process.exit(1);
+  }
 }
 
-// Run
 main();

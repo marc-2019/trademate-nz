@@ -18,6 +18,8 @@ import rateLimit from 'express-rate-limit';
 
 import { config } from './config/index.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
+import db from './services/database.js';
+import redis from './services/redis.js';
 
 // Route imports
 import healthRoutes from './routes/health.js';
@@ -26,6 +28,22 @@ import swmsRoutes from './routes/swms.js';
 import invoicesRoutes from './routes/invoices.js';
 import certificationsRoutes from './routes/certifications.js';
 import statsRoutes from './routes/stats.js';
+import businessProfileRoutes from './routes/business-profile.js';
+import customersRoutes from './routes/customers.js';
+import productsRoutes from './routes/products.js';
+import recurringInvoicesRoutes from './routes/recurring-invoices.js';
+import bankTransactionsRoutes from './routes/bank-transactions.js';
+import photosRoutes from './routes/photos.js';
+import quotesRoutes from './routes/quotes.js';
+import expensesRoutes from './routes/expenses.js';
+import jobLogsRoutes from './routes/job-logs.js';
+import notificationsRoutes from './routes/notifications.js';
+import teamsRoutes from './routes/teams.js';
+import publicRoutes from './routes/public.js';
+import subscriptionsRoutes from './routes/subscriptions.js';
+import syncRoutes from './routes/sync.js';
+import legalRoutes from './routes/legal.js';
+import cronService from './services/cron.js';
 
 const app = express();
 
@@ -88,12 +106,31 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 // Health check routes (no rate limit, no prefix)
 app.use('/health', healthRoutes);
 
+// Legal pages (no auth, no rate limit - required for App Store / Play Store)
+app.use('/legal', legalRoutes);
+
 // API v1 routes
 app.use('/api/v1/auth', authLimiter, authRoutes);
 app.use('/api/v1/swms', apiLimiter, swmsRoutes);
 app.use('/api/v1/invoices', apiLimiter, invoicesRoutes);
 app.use('/api/v1/certifications', apiLimiter, certificationsRoutes);
 app.use('/api/v1/stats', apiLimiter, statsRoutes);
+app.use('/api/v1/business-profile', apiLimiter, businessProfileRoutes);
+app.use('/api/v1/customers', apiLimiter, customersRoutes);
+app.use('/api/v1/products', apiLimiter, productsRoutes);
+app.use('/api/v1/recurring-invoices', apiLimiter, recurringInvoicesRoutes);
+app.use('/api/v1/bank-transactions', apiLimiter, bankTransactionsRoutes);
+app.use('/api/v1/photos', apiLimiter, photosRoutes);
+app.use('/api/v1/quotes', apiLimiter, quotesRoutes);
+app.use('/api/v1/expenses', apiLimiter, expensesRoutes);
+app.use('/api/v1/job-logs', apiLimiter, jobLogsRoutes);
+app.use('/api/v1/notifications', apiLimiter, notificationsRoutes);
+app.use('/api/v1/teams', apiLimiter, teamsRoutes);
+app.use('/api/v1/subscriptions', apiLimiter, subscriptionsRoutes);
+app.use('/api/v1/sync', apiLimiter, syncRoutes);
+
+// Public routes (no auth required)
+app.use('/api/v1/public', apiLimiter, publicRoutes);
 
 // Compliance alias (points to swms for backwards compatibility)
 app.use('/api/v1/compliance', apiLimiter, swmsRoutes);
@@ -114,12 +151,15 @@ app.use(errorHandler);
 
 process.on('SIGTERM', async () => {
   console.log('SIGTERM received, shutting down gracefully...');
-  // Close database connections, etc.
+  cronService.stop();
+  await Promise.all([db.close(), redis.close()]);
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
   console.log('SIGINT received, shutting down gracefully...');
+  cronService.stop();
+  await Promise.all([db.close(), redis.close()]);
   process.exit(0);
 });
 
@@ -129,10 +169,19 @@ process.on('SIGINT', async () => {
 
 const PORT = config.port;
 
+// Connect Redis before starting the server
+redis.connect().catch((err) => {
+  console.error('Failed to connect to Redis on startup:', err.message);
+  // Continue running - health check will report Redis as disconnected
+});
+
 app.listen(PORT, () => {
+  // Start cron jobs
+  cronService.start();
+
   console.log(`
 ╔═══════════════════════════════════════════════════════════════╗
-║                     TradeMate NZ API                           ║
+║                     ${config.appName.padEnd(16)} API                           ║
 ╠═══════════════════════════════════════════════════════════════╣
 ║  Status:      Running                                          ║
 ║  Port:        ${String(PORT).padEnd(47)}║
@@ -145,6 +194,17 @@ app.listen(PORT, () => {
 ║    Invoices:  http://localhost:${PORT}/api/v1/invoices             ║
 ║    Certs:     http://localhost:${PORT}/api/v1/certifications       ║
 ║    Stats:     http://localhost:${PORT}/api/v1/stats                ║
+║    Profile:   http://localhost:${PORT}/api/v1/business-profile     ║
+║    Customers: http://localhost:${PORT}/api/v1/customers            ║
+║    Products:  http://localhost:${PORT}/api/v1/products             ║
+║    Recurring: http://localhost:${PORT}/api/v1/recurring-invoices  ║
+║    Bank:      http://localhost:${PORT}/api/v1/bank-transactions   ║
+║    Photos:    http://localhost:${PORT}/api/v1/photos             ║
+║    Expenses:  http://localhost:${PORT}/api/v1/expenses           ║
+║    Job Logs:  http://localhost:${PORT}/api/v1/job-logs           ║
+║    Notifs:    http://localhost:${PORT}/api/v1/notifications       ║
+║    Teams:     http://localhost:${PORT}/api/v1/teams              ║
+║    Subs:      http://localhost:${PORT}/api/v1/subscriptions     ║
 ╚═══════════════════════════════════════════════════════════════╝
   `);
 });

@@ -1,5 +1,9 @@
 /**
- * Claude AI Service for TradeMate NZ
+ * AI Service for TradeMate NZ
+ *
+ * Supports both:
+ * - Anthropic Claude API (cloud)
+ * - LM Studio local LLM (OpenAI-compatible endpoint)
  *
  * Handles AI-powered features:
  * - Hazard identification and suggestions
@@ -9,14 +13,157 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 
-// Initialize Anthropic client
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
-
-// Model configuration
-const MODEL = 'claude-sonnet-4-20250514';
+// Configuration - supports local LM Studio or cloud Anthropic
+const USE_LOCAL_LLM = process.env.USE_LOCAL_LLM === 'true' || !process.env.ANTHROPIC_API_KEY;
+const LM_STUDIO_URL = process.env.LM_STUDIO_URL || 'http://localhost:1234';
+const LM_STUDIO_MODEL = process.env.LM_STUDIO_MODEL || 'qwen/qwen3-vl-4b';
+const ANTHROPIC_MODEL = 'claude-sonnet-4-20250514';
 const MAX_TOKENS = 2048;
+
+// Initialize Anthropic client once at module level
+const anthropicClient = !USE_LOCAL_LLM && process.env.ANTHROPIC_API_KEY
+  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  : null;
+
+console.log(`AI Service initialized: ${USE_LOCAL_LLM ? `LM Studio (local) - ${LM_STUDIO_MODEL}` : 'Anthropic (cloud)'}`);
+
+// Timeout for LM Studio calls (30 seconds)
+const LM_STUDIO_TIMEOUT = 30000;
+
+/**
+ * Unified chat completion that works with both LM Studio and Anthropic
+ */
+async function chatCompletion(prompt: string): Promise<string> {
+  if (USE_LOCAL_LLM) {
+    // Use OpenAI-compatible endpoint for LM Studio
+    const url = `${LM_STUDIO_URL}/v1/chat/completions`;
+    console.log(`[AI] Calling LM Studio at ${url}`);
+    console.log(`[AI] Model: ${LM_STUDIO_MODEL}`);
+    console.log(`[AI] Prompt length: ${prompt.length} chars`);
+
+    try {
+      const startTime = Date.now();
+
+      // Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), LM_STUDIO_TIMEOUT);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: LM_STUDIO_MODEL,
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: MAX_TOKENS,
+          temperature: 0.7,
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      const elapsed = Date.now() - startTime;
+      console.log(`[AI] LM Studio responded in ${elapsed}ms with status ${response.status}`);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`[AI] LM Studio error response: ${errorText}`);
+        throw new Error(`LM Studio error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        console.error('[AI] Unexpected LM Studio response structure:', JSON.stringify(data).slice(0, 500));
+        throw new Error('Unexpected LM Studio response format');
+      }
+
+      const content = data.choices[0].message.content;
+      console.log(`[AI] LM Studio returned ${content.length} chars`);
+      console.log(`[AI] Response preview: ${content.slice(0, 200)}...`);
+
+      return content;
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          console.error(`[AI] LM Studio request timed out after ${LM_STUDIO_TIMEOUT}ms`);
+          throw new Error('LM Studio request timed out');
+        }
+        if (error.message.includes('ECONNREFUSED') || error.message.includes('fetch failed')) {
+          console.error(`[AI] Cannot connect to LM Studio at ${LM_STUDIO_URL}. Is it running?`);
+        }
+        console.error(`[AI] LM Studio call failed: ${error.message}`);
+      }
+      throw error;
+    }
+  } else {
+    // Use Anthropic API
+    if (!anthropicClient) {
+      throw new Error('Anthropic client not initialized - missing ANTHROPIC_API_KEY');
+    }
+
+    const response = await anthropicClient.messages.create({
+      model: ANTHROPIC_MODEL,
+      max_tokens: MAX_TOKENS,
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    const content = response.content[0];
+    if (content.type !== 'text') {
+      throw new Error('Unexpected response type');
+    }
+    return content.text;
+  }
+}
+
+/**
+ * Parse JSON from LLM response, handling common issues including truncated responses
+ */
+function parseJsonResponse<T>(text: string): T {
+  // Remove markdown code blocks if present
+  let cleaned = text.trim();
+  if (cleaned.startsWith('```json')) {
+    cleaned = cleaned.slice(7);
+  } else if (cleaned.startsWith('```')) {
+    cleaned = cleaned.slice(3);
+  }
+  if (cleaned.endsWith('```')) {
+    cleaned = cleaned.slice(0, -3);
+  }
+  cleaned = cleaned.trim();
+
+  // Try to find JSON array or object
+  const jsonMatch = cleaned.match(/[\[\{][\s\S]*[\]\}]/);
+  if (jsonMatch) {
+    cleaned = jsonMatch[0];
+  }
+
+  try {
+    return JSON.parse(cleaned);
+  } catch (firstError) {
+    // Try to fix common truncation issues for arrays
+    if (cleaned.startsWith('[')) {
+      // Find the last complete array item
+      const lastValidComma = cleaned.lastIndexOf('",');
+      if (lastValidComma > 0) {
+        const fixedArray = cleaned.slice(0, lastValidComma + 1) + ']';
+        console.log(`[AI] Attempting to fix truncated array (cut at position ${lastValidComma})`);
+        try {
+          return JSON.parse(fixedArray);
+        } catch {
+          // Continue to throw original error
+        }
+      }
+    }
+
+    // Try to fix common truncation issues for objects
+    if (cleaned.startsWith('{')) {
+      // This is harder to fix, just throw the error
+    }
+
+    throw firstError;
+  }
+}
 
 /**
  * Generate hazard suggestions based on job details
@@ -27,12 +174,7 @@ export async function generateHazardSuggestions(
   siteDetails: string
 ): Promise<string[]> {
   try {
-    const response = await anthropic.messages.create({
-      model: MODEL,
-      max_tokens: MAX_TOKENS,
-      messages: [{
-        role: 'user',
-        content: `You are a NZ workplace health and safety expert. Given the following job details, suggest specific hazards that should be considered for the Safe Work Method Statement (SWMS).
+    const prompt = `You are a NZ workplace health and safety expert. Given the following job details, suggest specific hazards that should be considered for the Safe Work Method Statement (SWMS).
 
 Trade: ${tradeType}
 Job Description: ${jobDescription}
@@ -48,19 +190,15 @@ Return a JSON array of hazard strings. Each hazard should be specific and practi
 Example format:
 ["Working at height on ladder without fall protection", "Exposed live electrical circuits in switchboard", "Asbestos cement sheeting in ceiling cavity"]
 
-Return ONLY the JSON array, no other text.`
-      }]
-    });
+Return ONLY the JSON array, no other text or explanation.`;
 
-    const content = response.content[0];
-    if (content.type !== 'text') {
-      throw new Error('Unexpected response type');
-    }
-
-    return JSON.parse(content.text);
+    const response = await chatCompletion(prompt);
+    return parseJsonResponse<string[]>(response);
   } catch (error) {
-    console.error('Error generating hazard suggestions:', error);
-    throw new Error('Failed to generate hazard suggestions');
+    console.error('[AI] Error generating hazard suggestions:', error instanceof Error ? error.message : error);
+    console.log(`[AI] Falling back to default hazards for trade: ${tradeType}`);
+    // Return default hazards on error
+    return getDefaultHazards(tradeType);
   }
 }
 
@@ -72,12 +210,7 @@ export async function generateControlMeasures(
   tradeType: string
 ): Promise<Record<string, ControlMeasure>> {
   try {
-    const response = await anthropic.messages.create({
-      model: MODEL,
-      max_tokens: MAX_TOKENS,
-      messages: [{
-        role: 'user',
-        content: `You are a NZ workplace health and safety expert. For each hazard listed, provide specific control measures following the hierarchy of controls:
+    const prompt = `You are a NZ workplace health and safety expert. For each hazard listed, provide specific control measures following the hierarchy of controls:
 
 1. Elimination - Remove the hazard entirely
 2. Substitution - Replace with something safer
@@ -106,19 +239,15 @@ Return a JSON object where keys are the hazards and values follow this structure
   }
 }
 
-Return ONLY the JSON object, no other text.`
-      }]
-    });
+Return ONLY the JSON object, no other text.`;
 
-    const content = response.content[0];
-    if (content.type !== 'text') {
-      throw new Error('Unexpected response type');
-    }
-
-    return JSON.parse(content.text);
+    const response = await chatCompletion(prompt);
+    return parseJsonResponse<Record<string, ControlMeasure>>(response);
   } catch (error) {
-    console.error('Error generating control measures:', error);
-    throw new Error('Failed to generate control measures');
+    console.error('[AI] Error generating control measures:', error instanceof Error ? error.message : error);
+    console.log(`[AI] Falling back to default control measures for ${hazards.length} hazards`);
+    // Return default controls on error
+    return getDefaultControls(hazards);
   }
 }
 
@@ -131,12 +260,7 @@ export async function generateRiskAssessment(
   tradeType: string
 ): Promise<RiskAssessmentSuggestion[]> {
   try {
-    const response = await anthropic.messages.create({
-      model: MODEL,
-      max_tokens: MAX_TOKENS,
-      messages: [{
-        role: 'user',
-        content: `You are a NZ workplace health and safety expert. Generate a risk assessment for the following activity.
+    const prompt = `You are a NZ workplace health and safety expert. Generate a risk assessment for the following activity.
 
 Activity: ${activity}
 Location: ${location}
@@ -165,16 +289,10 @@ Return a JSON array of risk assessments:
   }
 ]
 
-Focus on NZ-specific risks and WorkSafe guidance. Return ONLY the JSON array.`
-      }]
-    });
+Focus on NZ-specific risks and WorkSafe guidance. Return ONLY the JSON array.`;
 
-    const content = response.content[0];
-    if (content.type !== 'text') {
-      throw new Error('Unexpected response type');
-    }
-
-    return JSON.parse(content.text);
+    const response = await chatCompletion(prompt);
+    return parseJsonResponse<RiskAssessmentSuggestion[]>(response);
   } catch (error) {
     console.error('Error generating risk assessment:', error);
     throw new Error('Failed to generate risk assessment');
@@ -191,12 +309,7 @@ export async function completeSWMSSection(
   context: string
 ): Promise<Record<string, unknown>> {
   try {
-    const response = await anthropic.messages.create({
-      model: MODEL,
-      max_tokens: MAX_TOKENS,
-      messages: [{
-        role: 'user',
-        content: `You are a NZ workplace health and safety expert helping complete a Safe Work Method Statement.
+    const prompt = `You are a NZ workplace health and safety expert helping complete a Safe Work Method Statement.
 
 Template Type: ${templateType}
 Section: ${sectionId}
@@ -208,19 +321,13 @@ Based on the context and existing data, suggest completions for any empty or inc
 Return a JSON object with field suggestions:
 {
   "fieldName1": "suggested value",
-  "fieldName2": ["item 1", "item 2"] // for array fields
+  "fieldName2": ["item 1", "item 2"]
 }
 
-Return ONLY the JSON object with suggestions for empty/incomplete fields.`
-      }]
-    });
+Return ONLY the JSON object with suggestions for empty/incomplete fields.`;
 
-    const content = response.content[0];
-    if (content.type !== 'text') {
-      throw new Error('Unexpected response type');
-    }
-
-    return JSON.parse(content.text);
+    const response = await chatCompletion(prompt);
+    return parseJsonResponse<Record<string, unknown>>(response);
   } catch (error) {
     console.error('Error completing SWMS section:', error);
     throw new Error('Failed to complete SWMS section');
@@ -235,12 +342,7 @@ export async function validateSWMS(
   swmsData: Record<string, unknown>
 ): Promise<ValidationResult> {
   try {
-    const response = await anthropic.messages.create({
-      model: MODEL,
-      max_tokens: MAX_TOKENS,
-      messages: [{
-        role: 'user',
-        content: `You are a NZ workplace health and safety compliance expert. Review this SWMS document for completeness and compliance.
+    const prompt = `You are a NZ workplace health and safety compliance expert. Review this SWMS document for completeness and compliance.
 
 Template Type: ${templateType}
 SWMS Data: ${JSON.stringify(swmsData)}
@@ -254,11 +356,11 @@ Check for:
 
 Return a JSON object:
 {
-  "isValid": true/false,
-  "completenessScore": 0-100,
+  "isValid": true,
+  "completenessScore": 85,
   "issues": [
     {
-      "severity": "critical/warning/info",
+      "severity": "warning",
       "field": "field name or section",
       "issue": "description of the issue",
       "suggestion": "how to fix it"
@@ -267,20 +369,75 @@ Return a JSON object:
   "regulatoryNotes": ["Any relevant NZ regulatory notes"]
 }
 
-Return ONLY the JSON object.`
-      }]
-    });
+Return ONLY the JSON object.`;
 
-    const content = response.content[0];
-    if (content.type !== 'text') {
-      throw new Error('Unexpected response type');
-    }
-
-    return JSON.parse(content.text);
+    const response = await chatCompletion(prompt);
+    return parseJsonResponse<ValidationResult>(response);
   } catch (error) {
     console.error('Error validating SWMS:', error);
     throw new Error('Failed to validate SWMS');
   }
+}
+
+/**
+ * Get default hazards when AI fails
+ */
+function getDefaultHazards(tradeType: string): string[] {
+  const defaults: Record<string, string[]> = {
+    electrician: [
+      'Electric shock from live conductors',
+      'Arc flash/blast from electrical fault',
+      'Working at height on ladders or platforms',
+      'Manual handling of heavy equipment',
+      'Working in confined spaces',
+    ],
+    plumber: [
+      'Contact with hot water/steam',
+      'Manual handling of pipes and materials',
+      'Working at height',
+      'Exposure to sewage/biological hazards',
+      'Slips, trips and falls on wet surfaces',
+    ],
+    builder: [
+      'Falls from height',
+      'Struck by falling objects',
+      'Manual handling injuries',
+      'Noise exposure from power tools',
+      'Dust inhalation',
+    ],
+    landscaper: [
+      'Manual handling of materials',
+      'Cuts from tools and equipment',
+      'UV exposure',
+      'Noise from machinery',
+      'Slips, trips on uneven ground',
+    ],
+    painter: [
+      'Falls from ladders/scaffolding',
+      'Chemical exposure from paints/solvents',
+      'Respiratory hazards from fumes',
+      'Manual handling',
+      'Eye injuries from splashes',
+    ],
+  };
+  return defaults[tradeType] || defaults.builder;
+}
+
+/**
+ * Get default controls when AI fails
+ */
+function getDefaultControls(hazards: string[]): Record<string, ControlMeasure> {
+  const controls: Record<string, ControlMeasure> = {};
+  for (const hazard of hazards) {
+    controls[hazard] = {
+      primaryControl: 'Implement safe work procedures and training',
+      controlType: 'administrative',
+      additionalControls: ['Pre-work briefing', 'Regular supervision', 'Safety signage'],
+      ppeRequired: ['Safety boots', 'Hi-vis vest', 'Safety glasses'],
+      regulationReference: 'Health and Safety at Work Act 2015',
+    };
+  }
+  return controls;
 }
 
 // Type definitions

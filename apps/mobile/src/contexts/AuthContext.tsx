@@ -5,7 +5,7 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import * as SecureStore from 'expo-secure-store';
-import { api, setAuthToken } from '../services/api';
+import { api, setAuthToken, notificationsApi } from '../services/api';
 
 interface User {
   id: string;
@@ -15,6 +15,8 @@ interface User {
   tradeType: string | null;
   businessName: string | null;
   isVerified: boolean;
+  onboardingCompleted: boolean;
+  subscriptionTier: 'free' | 'tradie' | 'team';
 }
 
 interface AuthContextType {
@@ -22,9 +24,13 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
+  register: (data: RegisterData) => Promise<string>; // Returns verification code (dev only)
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  verifyEmail: (code: string) => Promise<void>;
+  resendVerification: () => Promise<string>; // Returns new code (dev only)
+  completeOnboarding: () => Promise<void>;
+  updateProfile: (data: { name?: string; phone?: string; tradeType?: string; businessName?: string }) => Promise<void>;
 }
 
 interface RegisterData {
@@ -139,22 +145,74 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(userData);
   }
 
-  async function register(data: RegisterData) {
+  async function register(data: RegisterData): Promise<string> {
     const response = await api.post('/api/v1/auth/register', data);
 
     if (!response.data.success) {
       throw new Error(response.data.message || 'Registration failed');
     }
 
-    const { user: userData, tokens } = response.data.data;
+    const { user: userData, tokens, verificationCode } = response.data.data;
 
     await storeTokens(tokens.accessToken, tokens.refreshToken);
     await SecureStore.setItemAsync(USER_KEY, JSON.stringify(userData));
     setAuthToken(tokens.accessToken);
     setUser(userData);
+
+    return verificationCode;
+  }
+
+  async function verifyEmail(code: string) {
+    const response = await api.post('/api/v1/auth/verify-email', { code });
+
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Verification failed');
+    }
+
+    const userData = response.data.data.user;
+    setUser(userData);
+    await SecureStore.setItemAsync(USER_KEY, JSON.stringify(userData));
+  }
+
+  async function resendVerification(): Promise<string> {
+    const response = await api.post('/api/v1/auth/resend-verification');
+
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Failed to resend code');
+    }
+
+    return response.data.data.verificationCode;
+  }
+
+  async function completeOnboarding() {
+    const response = await api.post('/api/v1/auth/complete-onboarding');
+
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Failed to complete onboarding');
+    }
+
+    const userData = response.data.data.user;
+    setUser(userData);
+    await SecureStore.setItemAsync(USER_KEY, JSON.stringify(userData));
+  }
+
+  async function updateProfile(data: { name?: string; phone?: string; tradeType?: string; businessName?: string }) {
+    const response = await api.put('/api/v1/auth/me', data);
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Failed to update profile');
+    }
+    const userData = response.data.data.user;
+    setUser(userData);
+    await SecureStore.setItemAsync(USER_KEY, JSON.stringify(userData));
   }
 
   async function logout() {
+    try {
+      // Remove push token before logging out
+      await notificationsApi.removePushToken();
+    } catch {
+      // Ignore push token removal errors
+    }
     try {
       const refreshToken = await SecureStore.getItemAsync(REFRESH_KEY);
       if (refreshToken) {
@@ -189,6 +247,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         logout,
         refreshUser,
+        verifyEmail,
+        resendVerification,
+        completeOnboarding,
+        updateProfile,
       }}
     >
       {children}

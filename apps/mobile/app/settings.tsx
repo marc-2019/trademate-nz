@@ -14,6 +14,8 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../src/contexts/AuthContext';
+import { notificationsApi } from '../src/services/api';
+import { registerForPushNotificationsAsync } from '../src/hooks/useNotifications';
 
 interface MenuItem {
   id: string;
@@ -41,29 +43,61 @@ export default function SettingsScreen() {
     ]);
   }
 
+  async function handleTestNotification() {
+    try {
+      // Make sure we have a token registered first
+      const token = await registerForPushNotificationsAsync();
+      if (!token) {
+        Alert.alert('Notifications', 'Push notifications are not available on this device. Please use a physical device.');
+        return;
+      }
+      await notificationsApi.registerPushToken(token);
+      const response = await notificationsApi.sendTest();
+      if ((response.data as any).success) {
+        Alert.alert('Success', 'Test notification sent! You should receive it shortly.');
+      } else {
+        Alert.alert('Error', 'Failed to send test notification. Please try again.');
+      }
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to send test notification.');
+    }
+  }
+
   const menuSections: { title: string; items: MenuItem[] }[] = [
     {
       title: 'Account',
       items: [
-        { id: 'profile', icon: 'person-outline', label: 'Edit Profile', showChevron: true },
-        { id: 'business', icon: 'business-outline', label: 'Business Details', showChevron: true },
-        { id: 'bank', icon: 'card-outline', label: 'Bank Details', showChevron: true },
-        { id: 'notifications', icon: 'notifications-outline', label: 'Notifications', showChevron: true },
+        { id: 'profile', icon: 'person-outline', label: 'Edit Profile', showChevron: true, onPress: () => router.push('/settings/profile' as any) },
+        { id: 'business', icon: 'business-outline', label: 'Business Details', showChevron: true, onPress: () => router.push('/settings/business-profile' as any) },
+        { id: 'bank', icon: 'card-outline', label: 'Bank Details', showChevron: true, onPress: () => router.push('/settings/bank-details' as any) },
+        { id: 'notifications', icon: 'notifications-outline', label: 'Test Notifications', onPress: handleTestNotification },
+      ],
+    },
+    {
+      title: 'Subscription',
+      items: [
+        { id: 'subscription', icon: 'diamond-outline', label: 'Manage Plan', showChevron: true, onPress: () => router.push('/subscription' as any) },
+      ],
+    },
+    {
+      title: 'Team',
+      items: [
+        { id: 'team', icon: 'people-outline', label: 'Manage Team', showChevron: true, onPress: () => router.push('/teams' as any) },
       ],
     },
     {
       title: 'Data',
       items: [
-        { id: 'export', icon: 'download-outline', label: 'Export Data', showChevron: true },
-        { id: 'sync', icon: 'sync-outline', label: 'Sync Status', showChevron: true },
+        { id: 'export', icon: 'download-outline', label: 'Export Data', showChevron: true, onPress: () => Alert.alert('Coming Soon', 'Data export will be available in a future update.') },
+        { id: 'sync', icon: 'sync-outline', label: 'Sync Status', showChevron: true, onPress: () => Alert.alert('Sync Status', 'All data is synced and up to date.') },
       ],
     },
     {
       title: 'Support',
       items: [
-        { id: 'help', icon: 'help-circle-outline', label: 'Help Centre', showChevron: true },
-        { id: 'feedback', icon: 'chatbubble-outline', label: 'Send Feedback', showChevron: true },
-        { id: 'about', icon: 'information-circle-outline', label: 'About TradeMate', showChevron: true },
+        { id: 'help', icon: 'help-circle-outline', label: 'Help Centre', showChevron: true, onPress: () => Alert.alert('Help Centre', 'Visit our website for help and FAQs.') },
+        { id: 'feedback', icon: 'chatbubble-outline', label: 'Send Feedback', showChevron: true, onPress: () => Alert.alert('Send Feedback', 'Email us at support@instilligent.nz with your feedback.') },
+        { id: 'about', icon: 'information-circle-outline', label: 'About', showChevron: true, onPress: () => Alert.alert('About', 'TradeMate NZ v0.5.0\nBuilt by Instilligent Limited\n\nMobile-first compliance & cashflow platform for NZ tradies.') },
       ],
     },
     {
@@ -96,7 +130,7 @@ export default function SettingsScreen() {
             <Text style={styles.profileBusiness}>{user.businessName}</Text>
           )}
         </View>
-        <TouchableOpacity style={styles.editButton}>
+        <TouchableOpacity style={styles.editButton} onPress={() => router.push('/settings/profile' as any)}>
           <Ionicons name="pencil" size={20} color="#2563EB" />
         </TouchableOpacity>
       </View>
@@ -146,7 +180,7 @@ export default function SettingsScreen() {
         </View>
       ))}
 
-      <Text style={styles.version}>TradeMate NZ v0.1.0</Text>
+      <Text style={styles.version}>TradeMate NZ v0.5.0</Text>
     </ScrollView>
   );
 }

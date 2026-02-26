@@ -1,0 +1,190 @@
+# =============================================================================
+# TradeMate NZ - Production Docker Compose
+# =============================================================================
+#
+# Usage:
+#   docker-compose -f docker-compose.production.yml up -d
+#
+# Prerequisites:
+#   - Copy .env.production.example to .env.production and fill in values
+#   - SSL certificates in /etc/letsencrypt/ (use scripts/deploy.sh ssl-setup)
+#
+# Architecture:
+#   nginx (80/443) -> trademate-api (29000) -> postgres (5432) + redis (6379)
+#
+# =============================================================================
+
+services:
+  # ===========================================================================
+  # Nginx Reverse Proxy - SSL Termination & Static Files
+  # ===========================================================================
+  trademate-nginx:
+    image: nginx:1.25-alpine
+    container_name: trademate-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/html:/var/www/html:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      trademate-api:
+        condition: service_healthy
+    networks:
+      - trademate-production
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/nginx-health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 10s
+      retries: 3
+
+  # ===========================================================================
+  # API Server - Node.js/Express (Production Build)
+  # ===========================================================================
+  trademate-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+      target: production
+    container_name: trademate-api
+    expose:
+      - "29000"
+    env_file:
+      - .env.production
+    environment:
+      - NODE_ENV=production
+      - PORT=29000
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-trademate}:${POSTGRES_PASSWORD}@trademate-postgres:5432/${POSTGRES_DB:-trademate}
+      - REDIS_URL=redis://trademate-redis:6379
+    depends_on:
+      trademate-postgres:
+        condition: service_healthy
+      trademate-redis:
+        condition: service_healthy
+    volumes:
+      - api_uploads:/app/uploads
+    networks:
+      - trademate-production
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:29000/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
+        reservations:
+          memory: 256M
+          cpus: "0.25"
+
+  # ===========================================================================
+  # PostgreSQL 16 - Primary Database
+  # ===========================================================================
+  trademate-postgres:
+    image: postgres:16-alpine
+    container_name: trademate-postgres
+    expose:
+      - "5432"
+    env_file:
+      - .env.production
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-trademate}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-trademate}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+      - ./database/migrations:/docker-entrypoint-initdb.d/migrations:ro
+      - postgres_backups:/backups
+    networks:
+      - trademate-production
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-trademate} -d ${POSTGRES_DB:-trademate}"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
+        reservations:
+          memory: 128M
+          cpus: "0.25"
+    command:
+      - "postgres"
+      - "-c"
+      - "max_connections=100"
+      - "-c"
+      - "shared_buffers=128MB"
+      - "-c"
+      - "effective_cache_size=256MB"
+      - "-c"
+      - "work_mem=4MB"
+      - "-c"
+      - "maintenance_work_mem=64MB"
+      - "-c"
+      - "log_min_duration_statement=1000"
+
+  # ===========================================================================
+  # Redis 7 - Session Cache & Job Queues
+  # ===========================================================================
+  trademate-redis:
+    image: redis:7-alpine
+    container_name: trademate-redis
+    expose:
+      - "6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - trademate-production
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.5"
+        reservations:
+          memory: 64M
+          cpus: "0.1"
+    command: redis-server --appendonly yes --maxmemory 64mb --maxmemory-policy allkeys-lru
+
+# =============================================================================
+# Persistent Volumes
+# =============================================================================
+volumes:
+  postgres_data:
+    driver: local
+  postgres_backups:
+    driver: local
+  redis_data:
+    driver: local
+  api_uploads:
+    driver: local
+  nginx_logs:
+    driver: local
+
+# =============================================================================
+# Network
+# =============================================================================
+networks:
+  trademate-production:
+    name: trademate-production
+    driver: bridge

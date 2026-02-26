@@ -131,7 +131,7 @@ router.get('/expiring', authenticate, async (req: Request, res: Response) => {
  */
 router.get('/:id', authenticate, async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const certification = await certificationsService.getCertificationById(
       id,
       req.user!.userId
@@ -171,7 +171,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
       return;
     }
 
-    const { id } = req.params;
+    const id = req.params.id as string;
     const certification = await certificationsService.updateCertification(
       id,
       req.user!.userId,
@@ -203,7 +203,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
  */
 router.delete('/:id', authenticate, async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const deleted = await certificationsService.deleteCertification(
       id,
       req.user!.userId
