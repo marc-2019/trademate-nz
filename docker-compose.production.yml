@@ -1,5 +1,5 @@
 # =============================================================================
-# TradeMate NZ - Production Docker Compose
+# BossBoard - Production Docker Compose
 # =============================================================================
 #
 # Usage:
@@ -10,7 +10,7 @@
 #   - SSL certificates in /etc/letsencrypt/ (use scripts/deploy.sh ssl-setup)
 #
 # Architecture:
-#   nginx (80/443) -> trademate-api (29000) -> postgres (5432) + redis (6379)
+#   nginx (80/443) -> bossboard-api (29000) -> postgres (5432) + redis (6379)
 #
 # =============================================================================
 
@@ -18,9 +18,9 @@ services:
   # ===========================================================================
   # Nginx Reverse Proxy - SSL Termination & Static Files
   # ===========================================================================
-  trademate-nginx:
+  bossboard-nginx:
     image: nginx:1.25-alpine
-    container_name: trademate-nginx
+    container_name: bossboard-nginx
     ports:
       - "80:80"
       - "443:443"
@@ -31,10 +31,10 @@ services:
       - /var/www/certbot:/var/www/certbot:ro
       - nginx_logs:/var/log/nginx
     depends_on:
-      trademate-api:
+      bossboard-api:
         condition: service_healthy
     networks:
-      - trademate-production
+      - bossboard-production
     restart: always
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/nginx-health"]
@@ -46,12 +46,12 @@ services:
   # ===========================================================================
   # API Server - Node.js/Express (Production Build)
   # ===========================================================================
-  trademate-api:
+  bossboard-api:
     build:
       context: .
       dockerfile: Dockerfile.api
       target: production
-    container_name: trademate-api
+    container_name: bossboard-api
     expose:
       - "29000"
     env_file:
@@ -59,17 +59,17 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=29000
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-trademate}:${POSTGRES_PASSWORD}@trademate-postgres:5432/${POSTGRES_DB:-trademate}
-      - REDIS_URL=redis://trademate-redis:6379
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-bossboard}:${POSTGRES_PASSWORD}@bossboard-postgres:5432/${POSTGRES_DB:-bossboard}
+      - REDIS_URL=redis://bossboard-redis:6379
     depends_on:
-      trademate-postgres:
+      bossboard-postgres:
         condition: service_healthy
-      trademate-redis:
+      bossboard-redis:
         condition: service_healthy
     volumes:
       - api_uploads:/app/uploads
     networks:
-      - trademate-production
+      - bossboard-production
     restart: always
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:29000/health"]
@@ -89,27 +89,27 @@ services:
   # ===========================================================================
   # PostgreSQL 16 - Primary Database
   # ===========================================================================
-  trademate-postgres:
+  bossboard-postgres:
     image: postgres:16-alpine
-    container_name: trademate-postgres
+    container_name: bossboard-postgres
     expose:
       - "5432"
     env_file:
       - .env.production
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-trademate}
+      POSTGRES_USER: ${POSTGRES_USER:-bossboard}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB:-trademate}
+      POSTGRES_DB: ${POSTGRES_DB:-bossboard}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
       - ./database/migrations:/docker-entrypoint-initdb.d/migrations:ro
       - postgres_backups:/backups
     networks:
-      - trademate-production
+      - bossboard-production
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-trademate} -d ${POSTGRES_DB:-trademate}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bossboard} -d ${POSTGRES_DB:-bossboard}"]
       interval: 10s
       timeout: 5s
       start_period: 30s
@@ -140,15 +140,15 @@ services:
   # ===========================================================================
   # Redis 7 - Session Cache & Job Queues
   # ===========================================================================
-  trademate-redis:
+  bossboard-redis:
     image: redis:7-alpine
-    container_name: trademate-redis
+    container_name: bossboard-redis
     expose:
       - "6379"
     volumes:
       - redis_data:/data
     networks:
-      - trademate-production
+      - bossboard-production
     restart: always
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -185,6 +185,6 @@ volumes:
 # Network
 # =============================================================================
 networks:
-  trademate-production:
-    name: trademate-production
+  bossboard-production:
+    name: bossboard-production
     driver: bridge

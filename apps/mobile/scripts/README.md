@@ -1,6 +1,6 @@
-# TradeMate NZ - Asset Generation Scripts
+# BossBoard - Asset Generation Scripts
 
-This directory contains scripts for generating branded image assets for the TradeMate NZ mobile app.
+This directory contains scripts for generating branded image assets for the BossBoard mobile app.
 
 ## Prerequisites
 
@@ -43,16 +43,16 @@ This will generate the following files in the `assets/` directory:
 
 | File | Size | Description |
 |------|------|-------------|
-| `icon.png` | 1024x1024 | App icon - white "TM" + accent "NZ" on dark navy rounded rect |
+| `icon.png` | 1024x1024 | App icon - white "BB" on dark navy rounded rect |
 | `adaptive-icon.png` | 1024x1024 | Android adaptive icon - content centered in 66% safe area |
-| `splash.png` | 1284x2778 | Splash screen - "TradeMate NZ" + tagline on dark navy |
-| `notification-icon.png` | 96x96 | Android notification icon - white "TM" on transparent background |
-| `favicon.png` | 48x48 | Web favicon - "TM" on dark navy with rounded corners |
+| `splash.png` | 1284x2778 | Splash screen - "BossBoard" + tagline on dark navy |
+| `notification-icon.png` | 96x96 | Android notification icon - white "BB" on transparent background |
+| `favicon.png` | 48x48 | Web favicon - "BB" on dark navy with rounded corners |
 
 ## Brand Colors
 
 - **Primary Navy**: `#1e3a5f` (dark navy blue - backgrounds)
-- **Accent Blue**: `#2563EB` (blue - "NZ" text, decorative elements)
+- **Accent Blue**: `#2563EB` (blue - decorative elements)
 - **Text**: `#FFFFFF` (white - primary text)
 
 ## Customization

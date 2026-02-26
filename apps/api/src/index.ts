@@ -1,7 +1,7 @@
 /**
- * TradeMate NZ API Server
+ * BossBoard API Server
  *
- * Express server providing REST API for the TradeMate mobile app.
+ * Express server providing REST API for the BossBoard mobile app.
  *
  * Port: 29000
  *

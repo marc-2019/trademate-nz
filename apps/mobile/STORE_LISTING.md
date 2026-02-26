@@ -1,7 +1,7 @@
-# TradeMate NZ - App Store Listing
+# BossBoard - App Store Listing
 
 ## App Name
-**TradeMate NZ** (iOS & Android)
+**BossBoard** (iOS & Android)
 
 ## Short Description (80 chars)
 Compliance made easy for NZ tradies. SWMS, risk assessments & certifications.
@@ -10,9 +10,9 @@ Compliance made easy for NZ tradies. SWMS, risk assessments & certifications.
 
 ### English (NZ)
 
-**TradeMate NZ - Compliance & Safety for Kiwi Tradies**
+**BossBoard - Compliance & Safety for Kiwi Tradies**
 
-Stop wasting time on paperwork. TradeMate NZ helps electricians, plumbers, builders, and tradies across New Zealand create professional compliance documents in minutes, not hours.
+Stop wasting time on paperwork. BossBoard helps electricians, plumbers, builders, and tradies across New Zealand create professional compliance documents in minutes, not hours.
 
 **SWMS Generation Made Simple**
 - Generate Safe Work Method Statements with one tap
@@ -45,7 +45,7 @@ Stop wasting time on paperwork. TradeMate NZ helps electricians, plumbers, build
 - Invoice chasing & GST tracking
 - Visa compliance for employers
 
-Built by Kiwis, for Kiwis. TradeMate NZ understands the unique requirements of New Zealand's health and safety regulations.
+Built by Kiwis, for Kiwis. BossBoard understands the unique requirements of New Zealand's health and safety regulations.
 
 Download now and spend less time on admin, more time on the tools.
 
@@ -70,13 +70,13 @@ SWMS, safety, compliance, tradies, NZ, WorkSafe, electrician, plumber, builder, 
 - No objectionable content
 
 ## Privacy Policy URL
-https://trademate.co.nz/privacy
+https://your-domain.co.nz/privacy
 
 ## Support URL
-https://trademate.co.nz/support
+https://your-domain.co.nz/support
 
 ## Marketing URL
-https://trademate.co.nz
+https://your-domain.co.nz
 
 ---
 
@@ -127,6 +127,6 @@ Same 5 screens, optimised for tablet
 ## Contact Information
 
 **Developer Name**: Instilligent Limited
-**Email**: support@trademate.co.nz
+**Email**: support@your-domain.co.nz
 **Address**: Auckland, New Zealand
-**Website**: https://trademate.co.nz
+**Website**: https://your-domain.co.nz

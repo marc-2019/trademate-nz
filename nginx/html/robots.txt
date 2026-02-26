@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /api/
 
-Sitemap: https://trademate.co.nz/sitemap.xml
+Sitemap: https://your-domain.co.nz/sitemap.xml

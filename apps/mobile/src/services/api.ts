@@ -1,6 +1,6 @@
 /**
  * API Service
- * Handles all HTTP requests to the TradeMate API
+ * Handles all HTTP requests to the BossBoard API
  */
 
 import Constants from 'expo-constants';

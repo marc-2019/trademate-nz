@@ -53,7 +53,7 @@ describe('Health Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body).toMatchObject({
         status: 'healthy',
-        service: 'trademate-api',
+        service: 'bossboard-api',
         version: '0.5.0',
         dependencies: {
           database: 'connected',

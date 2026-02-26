@@ -1,6 +1,6 @@
 /**
  * Cron Service
- * Scheduled tasks for TradeMate NZ
+ * Scheduled tasks for BossBoard
  *
  * Runs:
  * - Daily cert expiry check at 8:00 AM NZST (20:00 UTC previous day)

@@ -2,29 +2,29 @@ services:
   # =============================================================================
   # API Server
   # =============================================================================
-  trademate-api:
+  bossboard-api:
     build:
       context: .
       dockerfile: Dockerfile.api
       target: development
-    container_name: trademate-api
+    container_name: bossboard-api
     ports:
       - "29000:29000"
     environment:
       - NODE_ENV=development
       - PORT=29000
-      - DATABASE_URL=postgresql://trademate:${POSTGRES_PASSWORD:-trademate_dev_2026}@trademate-postgres:5432/trademate
-      - REDIS_URL=redis://trademate-redis:6379
+      - DATABASE_URL=postgresql://bossboard:${POSTGRES_PASSWORD:-bossboard_dev_2026}@bossboard-postgres:5432/bossboard
+      - REDIS_URL=redis://bossboard-redis:6379
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - USE_LOCAL_LLM=${USE_LOCAL_LLM:-true}
       - LM_STUDIO_URL=${LM_STUDIO_URL:-http://host.docker.internal:1234}
       - LM_STUDIO_MODEL=${LM_STUDIO_MODEL:-qwen/qwen3-vl-4b}
-      - JWT_SECRET=${JWT_SECRET:-trademate_jwt_dev_secret_2026}
-      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-trademate_jwt_refresh_dev_2026}
+      - JWT_SECRET=${JWT_SECRET:-bossboard_jwt_dev_secret_2026}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-bossboard_jwt_refresh_dev_2026}
     depends_on:
-      trademate-postgres:
+      bossboard-postgres:
         condition: service_healthy
-      trademate-redis:
+      bossboard-redis:
         condition: service_healthy
     volumes:
       - ./apps/api/src:/app/src:ro
@@ -42,20 +42,20 @@ services:
   # =============================================================================
   # PostgreSQL Database
   # =============================================================================
-  trademate-postgres:
+  bossboard-postgres:
     image: postgres:16-alpine
-    container_name: trademate-postgres
+    container_name: bossboard-postgres
     environment:
-      POSTGRES_USER: trademate
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-trademate_dev_2026}
-      POSTGRES_DB: trademate
+      POSTGRES_USER: bossboard
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bossboard_dev_2026}
+      POSTGRES_DB: bossboard
     ports:
       - "29432:5432"
     volumes:
-      - trademate_postgres_data:/var/lib/postgresql/data
+      - bossboard_postgres_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U trademate -d trademate"]
+      test: ["CMD-SHELL", "pg_isready -U bossboard -d bossboard"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -64,13 +64,13 @@ services:
   # =============================================================================
   # Redis Cache
   # =============================================================================
-  trademate-redis:
+  bossboard-redis:
     image: redis:7-alpine
-    container_name: trademate-redis
+    container_name: bossboard-redis
     ports:
       - "29379:6379"
     volumes:
-      - trademate_redis_data:/data
+      - bossboard_redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -79,9 +79,9 @@ services:
     restart: unless-stopped
 
 volumes:
-  trademate_postgres_data:
-  trademate_redis_data:
+  bossboard_postgres_data:
+  bossboard_redis_data:
 
 networks:
   default:
-    name: trademate-network
+    name: bossboard-network

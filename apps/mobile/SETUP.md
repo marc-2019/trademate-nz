@@ -1,4 +1,4 @@
-# TradeMate NZ Mobile App - Setup Guide
+# BossBoard Mobile App - Setup Guide
 
 ## Quick Start (Development)
 
@@ -116,7 +116,7 @@ eas submit --platform android
 
 1. **Apple Developer Account Setup**
    - Enroll at https://developer.apple.com
-   - Create App ID: `nz.instilligent.trademate`
+   - Create App ID: `nz.instilligent.bossboard`
    - Create App in App Store Connect
 
 2. **Update eas.json**
@@ -172,7 +172,7 @@ The app connects to your API. Configure in:
 **Production** (eas.json):
 ```json
 "env": {
-  "EXPO_PUBLIC_API_URL": "https://api.trademate.co.nz"
+  "EXPO_PUBLIC_API_URL": "https://api.your-domain.co.nz"
 }
 ```
 

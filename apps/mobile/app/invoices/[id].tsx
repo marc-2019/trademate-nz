@@ -294,7 +294,7 @@ export default function InvoiceDetailScreen() {
       const response = await invoicesApi.generateShareLink(id);
       if (response.data.success) {
         const { shareUrl } = response.data.data;
-        const message = `Invoice ${invoice.invoice_number} from ${invoice.company_name || 'TradeMate NZ'}\nTotal: ${formatCurrency(invoice.total)}\n\nView invoice: ${shareUrl}`;
+        const message = `Invoice ${invoice.invoice_number} from ${invoice.company_name || 'BossBoard'}\nTotal: ${formatCurrency(invoice.total)}\n\nView invoice: ${shareUrl}`;
 
         await Share.share({
           message,

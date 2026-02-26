@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# TradeMate NZ - Production Deployment Script
+# BossBoard - Production Deployment Script
 # =============================================================================
 #
 # Usage:
@@ -18,7 +18,7 @@
 # Requirements:
 #   - Ubuntu 22.04 or 24.04
 #   - Root or sudo access (for setup and ssl commands)
-#   - Git repository cloned to /opt/trademate or current directory
+#   - Git repository cloned to /opt/bossboard or current directory
 #
 # =============================================================================
 
@@ -32,9 +32,9 @@ PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 COMPOSE_FILE="${PROJECT_DIR}/docker-compose.production.yml"
 ENV_FILE="${PROJECT_DIR}/.env.production"
 BACKUP_DIR="${PROJECT_DIR}/backups"
-DOMAIN="trademate.co.nz"
-API_DOMAIN="api.trademate.co.nz"
-CERTBOT_EMAIL="admin@trademate.co.nz"
+DOMAIN="your-domain.co.nz"
+API_DOMAIN="api.your-domain.co.nz"
+CERTBOT_EMAIL="admin@your-domain.co.nz"
 
 # =============================================================================
 # Colors
@@ -85,7 +85,7 @@ docker_compose() {
 # Command: setup
 # =============================================================================
 cmd_setup() {
-    log_step "Setting up TradeMate NZ production environment"
+    log_step "Setting up BossBoard production environment"
 
     # Check if running as root or with sudo
     if [ "$(id -u)" -ne 0 ]; then
@@ -155,7 +155,7 @@ cmd_setup() {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TradeMate NZ - Coming Soon</title>
+    <title>BossBoard - Coming Soon</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -171,7 +171,7 @@ cmd_setup() {
 </head>
 <body>
     <div>
-        <h1>TradeMate NZ</h1>
+        <h1>BossBoard</h1>
         <p>The all-in-one compliance and business management platform for New Zealand tradies.</p>
         <div class="badge">Coming Soon</div>
     </div>
@@ -211,7 +211,7 @@ HTMLEOF
 # Command: deploy
 # =============================================================================
 cmd_deploy() {
-    log_step "Deploying TradeMate NZ"
+    log_step "Deploying BossBoard"
     check_env_file
 
     # Pull latest code if in a git repo
@@ -224,7 +224,7 @@ cmd_deploy() {
 
     # Build production images
     log_info "Building production Docker images..."
-    docker_compose build --no-cache trademate-api
+    docker_compose build --no-cache bossboard-api
     log_success "API image built"
 
     # Stop existing containers (if running)
@@ -233,13 +233,13 @@ cmd_deploy() {
 
     # Start database and redis first
     log_info "Starting database and cache..."
-    docker_compose up -d trademate-postgres trademate-redis
+    docker_compose up -d bossboard-postgres bossboard-redis
 
     # Wait for database to be healthy
     log_info "Waiting for PostgreSQL to be ready..."
     local retries=30
     while [ $retries -gt 0 ]; do
-        if docker_compose exec -T trademate-postgres pg_isready -U trademate -d trademate > /dev/null 2>&1; then
+        if docker_compose exec -T bossboard-postgres pg_isready -U bossboard -d bossboard > /dev/null 2>&1; then
             break
         fi
         retries=$((retries - 1))
@@ -248,7 +248,7 @@ cmd_deploy() {
 
     if [ $retries -eq 0 ]; then
         log_error "PostgreSQL failed to start within 60 seconds"
-        docker_compose logs trademate-postgres
+        docker_compose logs bossboard-postgres
         exit 1
     fi
     log_success "PostgreSQL is ready"
@@ -267,11 +267,11 @@ cmd_deploy() {
     sleep 10
 
     # Check health
-    if docker_compose exec -T trademate-api wget --no-verbose --tries=3 --spider http://localhost:29000/health 2>/dev/null; then
+    if docker_compose exec -T bossboard-api wget --no-verbose --tries=3 --spider http://localhost:29000/health 2>/dev/null; then
         log_success "API health check passed"
     else
         log_warn "API health check failed - checking logs..."
-        docker_compose logs --tail=20 trademate-api
+        docker_compose logs --tail=20 bossboard-api
     fi
 
     echo ""
@@ -291,18 +291,18 @@ cmd_migrate() {
     source "${ENV_FILE}"
     set +a
 
-    local PG_USER="${POSTGRES_USER:-trademate}"
-    local PG_DB="${POSTGRES_DB:-trademate}"
+    local PG_USER="${POSTGRES_USER:-bossboard}"
+    local PG_DB="${POSTGRES_DB:-bossboard}"
 
     # Check if postgres container is running
-    if ! docker ps --filter "name=trademate-postgres" --filter "status=running" -q | grep -q .; then
+    if ! docker ps --filter "name=bossboard-postgres" --filter "status=running" -q | grep -q .; then
         log_error "PostgreSQL container is not running. Start it first."
         exit 1
     fi
 
     # Run init.sql
     log_info "Applying init.sql..."
-    if docker exec -i trademate-postgres psql -U "${PG_USER}" -d "${PG_DB}" < "${PROJECT_DIR}/database/init.sql" 2>&1; then
+    if docker exec -i bossboard-postgres psql -U "${PG_USER}" -d "${PG_DB}" < "${PROJECT_DIR}/database/init.sql" 2>&1; then
         log_success "init.sql applied"
     else
         log_warn "init.sql had warnings (tables may already exist - this is normal)"
@@ -315,7 +315,7 @@ cmd_migrate() {
                 local filename
                 filename=$(basename "${migration}")
                 log_info "Applying migration: ${filename}..."
-                if docker exec -i trademate-postgres psql -U "${PG_USER}" -d "${PG_DB}" < "${migration}" 2>&1; then
+                if docker exec -i bossboard-postgres psql -U "${PG_USER}" -d "${PG_DB}" < "${migration}" 2>&1; then
                     log_success "  ${filename} applied"
                 else
                     log_warn "  ${filename} had warnings (may already be applied)"
@@ -339,22 +339,22 @@ cmd_backup() {
     source "${ENV_FILE}"
     set +a
 
-    local PG_USER="${POSTGRES_USER:-trademate}"
-    local PG_DB="${POSTGRES_DB:-trademate}"
+    local PG_USER="${POSTGRES_USER:-bossboard}"
+    local PG_DB="${POSTGRES_DB:-bossboard}"
     local TIMESTAMP
     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-    local BACKUP_FILE="${BACKUP_DIR}/trademate_${TIMESTAMP}.sql.gz"
+    local BACKUP_FILE="${BACKUP_DIR}/bossboard_${TIMESTAMP}.sql.gz"
 
     mkdir -p "${BACKUP_DIR}"
 
     # Check if postgres container is running
-    if ! docker ps --filter "name=trademate-postgres" --filter "status=running" -q | grep -q .; then
+    if ! docker ps --filter "name=bossboard-postgres" --filter "status=running" -q | grep -q .; then
         log_error "PostgreSQL container is not running."
         exit 1
     fi
 
     log_info "Dumping database to ${BACKUP_FILE}..."
-    docker exec trademate-postgres pg_dump -U "${PG_USER}" -d "${PG_DB}" --no-owner --no-acl | gzip > "${BACKUP_FILE}"
+    docker exec bossboard-postgres pg_dump -U "${PG_USER}" -d "${PG_DB}" --no-owner --no-acl | gzip > "${BACKUP_FILE}"
 
     local FILESIZE
     FILESIZE=$(du -sh "${BACKUP_FILE}" | cut -f1)
@@ -362,14 +362,14 @@ cmd_backup() {
 
     # Clean up old backups (keep last 30)
     local BACKUP_COUNT
-    BACKUP_COUNT=$(ls -1 "${BACKUP_DIR}"/trademate_*.sql.gz 2>/dev/null | wc -l)
+    BACKUP_COUNT=$(ls -1 "${BACKUP_DIR}"/bossboard_*.sql.gz 2>/dev/null | wc -l)
     if [ "${BACKUP_COUNT}" -gt 30 ]; then
         log_info "Cleaning old backups (keeping last 30)..."
-        ls -1t "${BACKUP_DIR}"/trademate_*.sql.gz | tail -n +31 | xargs rm -f
+        ls -1t "${BACKUP_DIR}"/bossboard_*.sql.gz | tail -n +31 | xargs rm -f
         log_success "Old backups cleaned"
     fi
 
-    log_info "Total backups: $(ls -1 "${BACKUP_DIR}"/trademate_*.sql.gz 2>/dev/null | wc -l)"
+    log_info "Total backups: $(ls -1 "${BACKUP_DIR}"/bossboard_*.sql.gz 2>/dev/null | wc -l)"
 }
 
 # =============================================================================
@@ -452,7 +452,7 @@ cmd_ssl_setup() {
     # Step 4: Copy SSL params config
     log_info "Installing SSL parameters..."
     cp "${PROJECT_DIR}/nginx/ssl-params.conf" "${PROJECT_DIR}/nginx/ssl-params.conf"
-    docker cp "${PROJECT_DIR}/nginx/ssl-params.conf" trademate-nginx:/etc/nginx/ssl-params.conf 2>/dev/null || true
+    docker cp "${PROJECT_DIR}/nginx/ssl-params.conf" bossboard-nginx:/etc/nginx/ssl-params.conf 2>/dev/null || true
 
     # Step 5: Switch to full SSL nginx config
     log_info "Switching to full SSL nginx configuration..."
@@ -464,7 +464,7 @@ cmd_ssl_setup() {
     fi
 
     # Restart nginx with SSL config
-    docker_compose restart trademate-nginx
+    docker_compose restart bossboard-nginx
 
     # Clean up
     rm -f "${PROJECT_DIR}/nginx/nginx.conf.active"
@@ -482,8 +482,8 @@ cmd_ssl_setup() {
 
     # Step 6: Set up auto-renewal cron job
     log_info "Setting up auto-renewal cron job..."
-    local CRON_JOB="0 3 * * * ${PROJECT_DIR}/scripts/deploy.sh ssl-renew >> /var/log/trademate-ssl-renew.log 2>&1"
-    (crontab -l 2>/dev/null | grep -v "trademate.*ssl-renew"; echo "${CRON_JOB}") | crontab -
+    local CRON_JOB="0 3 * * * ${PROJECT_DIR}/scripts/deploy.sh ssl-renew >> /var/log/bossboard-ssl-renew.log 2>&1"
+    (crontab -l 2>/dev/null | grep -v "bossboard.*ssl-renew"; echo "${CRON_JOB}") | crontab -
     log_success "Auto-renewal cron job installed (runs daily at 3am)"
 
     echo ""
@@ -505,7 +505,7 @@ cmd_ssl_renew() {
         exit 1
     fi
 
-    certbot renew --quiet --deploy-hook "docker exec trademate-nginx nginx -s reload"
+    certbot renew --quiet --deploy-hook "docker exec bossboard-nginx nginx -s reload"
 
     if [ $? -eq 0 ]; then
         log_success "SSL certificates renewed and nginx reloaded"
@@ -520,7 +520,7 @@ cmd_ssl_renew() {
 # =============================================================================
 show_usage() {
     echo ""
-    echo -e "${CYAN}TradeMate NZ - Production Deployment Script${NC}"
+    echo -e "${CYAN}BossBoard - Production Deployment Script${NC}"
     echo ""
     echo "Usage: $0 <command> [options]"
     echo ""
@@ -537,7 +537,7 @@ show_usage() {
     echo "  $0 setup                    # First-time server setup"
     echo "  $0 deploy                   # Deploy or update the application"
     echo "  $0 backup                   # Create database backup"
-    echo "  $0 logs trademate-api       # View API logs"
+    echo "  $0 logs bossboard-api       # View API logs"
     echo "  $0 logs                     # View all logs"
     echo "  sudo $0 ssl-setup           # Set up SSL certificates"
     echo "  sudo $0 ssl-renew           # Renew SSL certificates"

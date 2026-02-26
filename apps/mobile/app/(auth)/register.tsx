@@ -87,7 +87,7 @@ export default function RegisterScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
-          <Text style={styles.logo}>TradeMate</Text>
+          <Text style={styles.logo}>BossBoard</Text>
           <Text style={styles.subtitle}>Create Your Account</Text>
         </View>
 

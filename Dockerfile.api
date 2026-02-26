@@ -1,4 +1,4 @@
-# TradeMate NZ API - Multi-stage Dockerfile
+# BossBoard API - Multi-stage Dockerfile
 # Supports both development (with hot reload) and production builds
 
 # =============================================================================

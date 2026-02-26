@@ -1,14 +1,14 @@
 {
   "expo": {
-    "name": "TradeMate NZ",
-    "slug": "trademate-nz",
+    "name": "BossBoard",
+    "slug": "bossboard",
     "owner": "instilligent",
     "version": "0.5.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "scheme": "trademate",
+    "scheme": "bossboard",
     "backgroundColor": "#1e3a5f",
     "primaryColor": "#1e3a5f",
     "splash": {
@@ -21,13 +21,13 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "nz.instilligent.trademate",
+      "bundleIdentifier": "nz.instilligent.bossboard",
       "buildNumber": "1",
       "infoPlist": {
-        "NSCameraUsageDescription": "TradeMate NZ needs camera access to photograph receipts, job sites, and safety documentation for your records.",
-        "NSPhotoLibraryUsageDescription": "TradeMate NZ needs photo library access to attach receipt images, site photos, and documentation to invoices, expenses, and job logs.",
-        "NSPhotoLibraryAddUsageDescription": "TradeMate NZ needs permission to save generated PDF documents and photos to your photo library.",
-        "NSLocationWhenInUseUsageDescription": "TradeMate NZ uses your location to auto-fill site addresses for job logs and SWMS documents.",
+        "NSCameraUsageDescription": "BossBoard needs camera access to photograph receipts, job sites, and safety documentation for your records.",
+        "NSPhotoLibraryUsageDescription": "BossBoard needs photo library access to attach receipt images, site photos, and documentation to invoices, expenses, and job logs.",
+        "NSPhotoLibraryAddUsageDescription": "BossBoard needs permission to save generated PDF documents and photos to your photo library.",
+        "NSLocationWhenInUseUsageDescription": "BossBoard uses your location to auto-fill site addresses for job logs and SWMS documents.",
         "UIBackgroundModes": [
           "remote-notification"
         ]
@@ -104,7 +104,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1e3a5f"
       },
-      "package": "nz.instilligent.trademate",
+      "package": "nz.instilligent.bossboard",
       "versionCode": 1,
       "permissions": [
         "android.permission.CAMERA",
@@ -130,7 +130,7 @@
       "icon": "./assets/notification-icon.png",
       "color": "#1e3a5f",
       "androidMode": "default",
-      "androidCollapsedTitle": "TradeMate NZ"
+      "androidCollapsedTitle": "BossBoard"
     },
     "plugins": [
       "expo-router",
@@ -146,14 +146,14 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "TradeMate NZ needs camera access to photograph receipts, job sites, and safety documentation."
+          "cameraPermission": "BossBoard needs camera access to photograph receipts, job sites, and safety documentation."
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "TradeMate NZ needs photo library access to attach images to invoices, expenses, and job logs.",
-          "cameraPermission": "TradeMate NZ needs camera access to capture receipt and site photos."
+          "photosPermission": "BossBoard needs photo library access to attach images to invoices, expenses, and job logs.",
+          "cameraPermission": "BossBoard needs camera access to capture receipt and site photos."
         }
       ],
       [
@@ -166,7 +166,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "TradeMate NZ uses your location to auto-fill site addresses for job logs and SWMS documents."
+          "locationWhenInUsePermission": "BossBoard uses your location to auto-fill site addresses for job logs and SWMS documents."
         }
       ]
     ],

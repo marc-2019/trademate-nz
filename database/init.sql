@@ -1,4 +1,4 @@
--- TradeMate NZ Database Initialization
+-- BossBoard Database Initialization
 -- PostgreSQL 16
 -- Version: 0.1.0
 
@@ -266,7 +266,7 @@ BEGIN
         -- Insert test user
         INSERT INTO users (email, name, trade_type, business_name, is_verified)
         VALUES (
-            'test@trademate.nz',
+            'test@bossboard.nz',
             'Test Tradie',
             'electrician',
             'Test Electrical Ltd',
@@ -276,4 +276,4 @@ BEGIN
 END $$;
 
 -- Log completion
-DO $$ BEGIN RAISE NOTICE 'TradeMate NZ database initialized successfully'; END $$;
+DO $$ BEGIN RAISE NOTICE 'BossBoard database initialized successfully'; END $$;

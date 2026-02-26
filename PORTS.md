@@ -1,4 +1,4 @@
-# TradeMate NZ - Port Assignments
+# BossBoard - Port Assignments
 
 **DO NOT CHANGE** - These ports are configured for the project infrastructure.
 
@@ -6,13 +6,13 @@
 
 | Service | Port | Protocol | Purpose | Notes |
 |---------|------|----------|---------|-------|
-| trademate-api | 29000 | HTTP | Express API server | Main backend |
-| trademate-postgres | 29432 | TCP | PostgreSQL database | Data storage |
-| trademate-redis | 29379 | TCP | Redis cache | Session/cache |
+| bossboard-api | 29000 | HTTP | Express API server | Main backend |
+| bossboard-postgres | 29432 | TCP | PostgreSQL database | Data storage |
+| bossboard-redis | 29379 | TCP | Redis cache | Session/cache |
 
 ## Port Range
 
-TradeMate NZ uses the **29000-29099** port range to avoid conflicts with:
+BossBoard uses the **29000-29099** port range to avoid conflicts with:
 - CortexForge (28000-28099)
 - Other Instilligent projects
 
@@ -30,8 +30,8 @@ TradeMate NZ uses the **29000-29099** port range to avoid conflicts with:
 | Environment | API URL |
 |-------------|---------|
 | Local | http://localhost:29000 |
-| Staging | https://staging-api.trademate.nz |
-| Production | https://api.trademate.nz |
+| Staging | TBD |
+| Production | TBD |
 
 ## Health Check Endpoints
 
@@ -40,8 +40,8 @@ TradeMate NZ uses the **29000-29099** port range to avoid conflicts with:
 curl http://localhost:29000/health
 
 # PostgreSQL
-docker exec trademate-postgres pg_isready -U trademate
+docker exec bossboard-postgres pg_isready -U bossboard
 
 # Redis
-docker exec trademate-redis redis-cli ping
+docker exec bossboard-redis redis-cli ping
 ```

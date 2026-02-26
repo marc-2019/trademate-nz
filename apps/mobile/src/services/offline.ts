@@ -6,7 +6,7 @@
 import * as SQLite from 'expo-sqlite';
 import * as Network from 'expo-network';
 
-const DB_NAME = 'trademate.db';
+const DB_NAME = 'bossboard.db';
 
 let db: SQLite.SQLiteDatabase | null = null;
 

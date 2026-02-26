@@ -1,5 +1,5 @@
 /**
- * AI Service for TradeMate NZ
+ * AI Service for BossBoard
  *
  * Supports both:
  * - Anthropic Claude API (cloud)

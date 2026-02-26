@@ -44,9 +44,9 @@ interface RegisterData {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const TOKEN_KEY = 'trademate_access_token';
-const REFRESH_KEY = 'trademate_refresh_token';
-const USER_KEY = 'trademate_user';
+const TOKEN_KEY = 'bossboard_access_token';
+const REFRESH_KEY = 'bossboard_refresh_token';
+const USER_KEY = 'bossboard_user';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);

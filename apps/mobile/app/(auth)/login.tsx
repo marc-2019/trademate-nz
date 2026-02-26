@@ -48,8 +48,8 @@ export default function LoginScreen() {
     >
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.logo}>TradeMate</Text>
-          <Text style={styles.subtitle}>NZ Compliance Made Easy</Text>
+          <Text style={styles.logo}>BossBoard</Text>
+          <Text style={styles.subtitle}>Compliance Made Easy</Text>
         </View>
 
         <View style={styles.form}>

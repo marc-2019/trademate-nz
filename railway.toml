@@ -1,7 +1,7 @@
 # =============================================================================
 # Railway Deployment Configuration
 # =============================================================================
-# Deploy the TradeMate API to Railway
+# Deploy the BossBoard API to Railway
 #
 # Railway services needed:
 #   1. API (this service) - Dockerfile-based Node.js app

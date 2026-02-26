@@ -14,7 +14,7 @@
 import * as Network from 'expo-network';
 import * as SQLite from 'expo-sqlite';
 
-const DB_NAME = 'trademate.db';
+const DB_NAME = 'bossboard.db';
 
 export enum SyncPriority {
   CRITICAL = 0,  // Time-sensitive: clock-ins, safety docs

@@ -1,10 +1,10 @@
-# TradeMate NZ
+# BossBoard
 
 Mobile-first compliance and cashflow platform for New Zealand tradies and small service businesses.
 
 ## Overview
 
-TradeMate NZ helps plumbers, electricians, builders, and landscapers with:
+BossBoard helps plumbers, electricians, builders, and landscapers with:
 - **Compliance Documentation**: AI-powered SWMS, risk assessments, WorkSafe checklists
 - **Cashflow Forecasting**: Xero integration, invoice chasing, GST tracking
 - **Visa/Hiring Compliance**: Employee visa tracking, certification management
@@ -20,8 +20,8 @@ TradeMate NZ helps plumbers, electricians, builders, and landscapers with:
 
 ```bash
 # Clone repository
-git clone https://github.com/instilligent/trademate-nz.git
-cd trademate-nz
+git clone https://github.com/instilligent/bossboard.git
+cd bossboard
 
 # Start all services
 docker-compose up -d
@@ -37,9 +37,9 @@ curl http://localhost:29000/health
 
 | Service | Port | Description |
 |---------|------|-------------|
-| trademate-api | 29000 | Express API server |
-| trademate-postgres | 29432 | PostgreSQL database |
-| trademate-redis | 29379 | Redis cache |
+| bossboard-api | 29000 | Express API server |
+| bossboard-postgres | 29432 | PostgreSQL database |
+| bossboard-redis | 29379 | Redis cache |
 
 ### API Endpoints
 
@@ -114,10 +114,10 @@ npm run dev
 
 ```bash
 # Run all tests
-docker-compose exec trademate-api npm test
+docker-compose exec bossboard-api npm test
 
 # Run with coverage
-docker-compose exec trademate-api npm run test:coverage
+docker-compose exec bossboard-api npm run test:coverage
 
 # Watch mode (local development)
 cd apps/api && npm run test:watch

@@ -146,7 +146,7 @@ export default function OnboardingScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.logo}>TradeMate</Text>
+          <Text style={styles.logo}>BossBoard</Text>
           <Text style={styles.welcome}>
             Welcome{user?.name ? `, ${user.name}` : ''}! 👋
           </Text>

@@ -135,7 +135,7 @@ export default function VerifyEmailScreen() {
       <View style={styles.content}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.logo}>TradeMate</Text>
+          <Text style={styles.logo}>BossBoard</Text>
           <View style={styles.iconContainer}>
             <Text style={styles.icon}>✉️</Text>
           </View>

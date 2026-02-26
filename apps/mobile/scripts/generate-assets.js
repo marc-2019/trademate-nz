@@ -1,5 +1,5 @@
 /**
- * TradeMate NZ - Asset Generator Script (sharp-based)
+ * BossBoard - Asset Generator Script (sharp-based)
  *
  * Generates branded PNG image assets for the Expo mobile app using the 'sharp' package.
  * sharp uses pre-built native binaries (no C++ build tools needed on Windows).
@@ -86,14 +86,10 @@ async function generateIcon() {
   const svg = `
     <svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
       <rect width="${size}" height="${size}" rx="${radius}" ry="${radius}" fill="${NAVY}" />
-      <text x="${size / 2}" y="${size / 2 - 60}"
+      <text x="${size / 2}" y="${size / 2}"
             font-family="Arial, Helvetica, sans-serif"
             font-weight="bold" font-size="420"
-            fill="${WHITE}" text-anchor="middle" dominant-baseline="central">TM</text>
-      <text x="${size / 2}" y="${size / 2 + 180}"
-            font-family="Arial, Helvetica, sans-serif"
-            font-weight="bold" font-size="180"
-            fill="${ACCENT}" text-anchor="middle" dominant-baseline="central">NZ</text>
+            fill="${WHITE}" text-anchor="middle" dominant-baseline="central">BB</text>
     </svg>`;
 
   await svgToPng(svg, size, size, 'icon.png');
@@ -109,20 +105,15 @@ async function generateAdaptiveIcon() {
   const safeSize = Math.round(size * 0.66);
   const cx = size / 2;
   const cy = size / 2;
-  const tmFontSize = Math.round(safeSize * 0.52);
-  const nzFontSize = Math.round(safeSize * 0.22);
+  const bbFontSize = Math.round(safeSize * 0.52);
 
   const svg = `
     <svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
       <rect width="${size}" height="${size}" fill="${NAVY}" />
-      <text x="${cx}" y="${cy - safeSize * 0.09}"
+      <text x="${cx}" y="${cy}"
             font-family="Arial, Helvetica, sans-serif"
-            font-weight="bold" font-size="${tmFontSize}"
-            fill="${WHITE}" text-anchor="middle" dominant-baseline="central">TM</text>
-      <text x="${cx}" y="${cy + safeSize * 0.24}"
-            font-family="Arial, Helvetica, sans-serif"
-            font-weight="bold" font-size="${nzFontSize}"
-            fill="${ACCENT}" text-anchor="middle" dominant-baseline="central">NZ</text>
+            font-weight="bold" font-size="${bbFontSize}"
+            fill="${WHITE}" text-anchor="middle" dominant-baseline="central">BB</text>
     </svg>`;
 
   await svgToPng(svg, size, size, 'adaptive-icon.png');
@@ -137,14 +128,10 @@ async function generateSplashIcon() {
   const svg = `
     <svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
       <rect width="${size}" height="${size}" fill="${NAVY}" rx="80" ry="80" />
-      <text x="${size / 2}" y="${size / 2 - 30}"
+      <text x="${size / 2}" y="${size / 2}"
             font-family="Arial, Helvetica, sans-serif"
             font-weight="bold" font-size="210"
-            fill="${WHITE}" text-anchor="middle" dominant-baseline="central">TM</text>
-      <text x="${size / 2}" y="${size / 2 + 90}"
-            font-family="Arial, Helvetica, sans-serif"
-            font-weight="bold" font-size="90"
-            fill="${ACCENT}" text-anchor="middle" dominant-baseline="central">NZ</text>
+            fill="${WHITE}" text-anchor="middle" dominant-baseline="central">BB</text>
     </svg>`;
 
   await svgToPng(svg, size, size, 'splash-icon.png');
@@ -162,17 +149,13 @@ async function generateSplash() {
   const svg = `
     <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
       <rect width="${width}" height="${height}" fill="${NAVY}" />
-      <text x="${cx}" y="${cy - 80}"
+      <text x="${cx}" y="${cy - 40}"
             font-family="Arial, Helvetica, sans-serif"
             font-weight="bold" font-size="140"
-            fill="${WHITE}" text-anchor="middle" dominant-baseline="central">TradeMate</text>
-      <text x="${cx}" y="${cy + 40}"
-            font-family="Arial, Helvetica, sans-serif"
-            font-weight="bold" font-size="90"
-            fill="${ACCENT}" text-anchor="middle" dominant-baseline="central">NZ</text>
-      <line x1="${cx - 100}" y1="${cy + 100}" x2="${cx + 100}" y2="${cy + 100}"
+            fill="${WHITE}" text-anchor="middle" dominant-baseline="central">BossBoard</text>
+      <line x1="${cx - 100}" y1="${cy + 40}" x2="${cx + 100}" y2="${cy + 40}"
             stroke="${ACCENT}" stroke-width="3" />
-      <text x="${cx}" y="${cy + 160}"
+      <text x="${cx}" y="${cy + 100}"
             font-family="Arial, Helvetica, sans-serif"
             font-size="36"
             fill="rgba(255,255,255,0.75)" text-anchor="middle" dominant-baseline="central">Built for Kiwi Tradies</text>
@@ -193,7 +176,7 @@ async function generateNotificationIcon() {
       <text x="${size / 2}" y="${size / 2 + 2}"
             font-family="Arial, Helvetica, sans-serif"
             font-weight="bold" font-size="52"
-            fill="${WHITE}" text-anchor="middle" dominant-baseline="central">TM</text>
+            fill="${WHITE}" text-anchor="middle" dominant-baseline="central">BB</text>
     </svg>`;
 
   // Create with transparent background
@@ -218,7 +201,7 @@ async function generateFavicon() {
       <text x="${size / 2}" y="${size / 2 + 1}"
             font-family="Arial, Helvetica, sans-serif"
             font-weight="bold" font-size="22"
-            fill="${WHITE}" text-anchor="middle" dominant-baseline="central">TM</text>
+            fill="${WHITE}" text-anchor="middle" dominant-baseline="central">BB</text>
     </svg>`;
 
   await svgToPng(svg, size, size, 'favicon.png');
@@ -229,7 +212,7 @@ async function generateFavicon() {
 // ---------------------------------------------------------------------------
 async function main() {
   console.log('');
-  console.log('  TradeMate NZ - Asset Generator (sharp)');
+  console.log('  BossBoard - Asset Generator (sharp)');
   console.log('  =======================================');
   console.log('');
   console.log(`  Brand:  Navy ${NAVY}  |  Accent ${ACCENT}`);

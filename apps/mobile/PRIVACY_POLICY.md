@@ -1,8 +1,8 @@
-# Privacy Policy - TradeMate NZ
+# Privacy Policy - BossBoard
 
 **Last Updated: February 2026**
 
-Instilligent Limited ("we", "us", or "our") operates the TradeMate NZ mobile application (the "App"). This Privacy Policy explains how we collect, use, and protect your information.
+Instilligent Limited ("we", "us", or "our") operates the BossBoard mobile application (the "App"). This Privacy Policy explains how we collect, use, and protect your information.
 
 ## 1. Information We Collect
 
@@ -76,7 +76,7 @@ Under the New Zealand Privacy Act 2020, you have the right to:
 - Export your data
 - Withdraw consent
 
-To exercise these rights, contact us at privacy@trademate.co.nz
+To exercise these rights, contact us at privacy@your-domain.co.nz
 
 ## 6. Children's Privacy
 
@@ -89,11 +89,11 @@ We may update this Privacy Policy from time to time. We will notify you of signi
 ## 8. Contact Us
 
 **Instilligent Limited**
-Email: privacy@trademate.co.nz
-Website: https://trademate.co.nz/privacy
+Email: privacy@your-domain.co.nz
+Website: https://your-domain.co.nz/privacy
 
 **Privacy Officer**
-For privacy concerns, contact our Privacy Officer at privacy@trademate.co.nz
+For privacy concerns, contact our Privacy Officer at privacy@your-domain.co.nz
 
 ---
 

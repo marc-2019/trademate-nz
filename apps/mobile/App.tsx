@@ -1,5 +1,5 @@
 /**
- * TradeMate NZ Mobile App
+ * BossBoard Mobile App
  *
  * React Native (Expo) entry point.
  * Offline-first architecture with SQLite for local storage.
@@ -71,7 +71,7 @@ export default function App() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#2563EB" />
-        <Text style={styles.loadingText}>Loading TradeMate...</Text>
+        <Text style={styles.loadingText}>Loading BossBoard...</Text>
       </View>
     );
   }
@@ -93,12 +93,11 @@ export default function App() {
       <View style={styles.content}>
         {/* Logo */}
         <View style={styles.logoContainer}>
-          <Text style={styles.logoText}>TradeMate</Text>
-          <Text style={styles.logoSubtext}>NZ</Text>
+          <Text style={styles.logoText}>BossBoard</Text>
         </View>
 
         {/* Welcome Message */}
-        <Text style={styles.title}>Welcome to TradeMate</Text>
+        <Text style={styles.title}>Welcome to BossBoard</Text>
         <Text style={styles.subtitle}>
           Compliance & Cashflow for NZ Tradies
         </Text>

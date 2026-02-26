@@ -9,7 +9,7 @@ dotenv.config();
 
 export const config = {
   // App Branding (configurable - no hardcoded product name)
-  appName: process.env.APP_NAME || 'TradeMate NZ',
+  appName: process.env.APP_NAME || 'BossBoard',
   appDomain: process.env.APP_DOMAIN || '',
 
   // Server
@@ -18,15 +18,15 @@ export const config = {
   isDevelopment: process.env.NODE_ENV !== 'production',
 
   // Database
-  databaseUrl: process.env.DATABASE_URL || 'postgresql://trademate:trademate_dev_2026@localhost:29432/trademate',
+  databaseUrl: process.env.DATABASE_URL || 'postgresql://bossboard:bossboard_dev_2026@localhost:29432/bossboard',
 
   // Redis
   redisUrl: process.env.REDIS_URL || 'redis://localhost:29379',
 
   // JWT
   jwt: {
-    secret: process.env.JWT_SECRET || 'trademate_jwt_dev_secret_2026',
-    refreshSecret: process.env.JWT_REFRESH_SECRET || 'trademate_jwt_refresh_dev_2026',
+    secret: process.env.JWT_SECRET || 'bossboard_jwt_dev_secret_2026',
+    refreshSecret: process.env.JWT_REFRESH_SECRET || 'bossboard_jwt_refresh_dev_2026',
     accessTokenExpiry: '15m',
     refreshTokenExpiry: '7d',
   },
@@ -48,7 +48,7 @@ export const config = {
     secure: process.env.SMTP_SECURE === 'true', // true for 465, false for 587
     user: process.env.SMTP_USER || '',
     pass: process.env.SMTP_PASS || '',
-    fromName: process.env.SMTP_FROM_NAME || 'TradeMate NZ',
+    fromName: process.env.SMTP_FROM_NAME || 'BossBoard',
     fromEmail: process.env.SMTP_FROM_EMAIL || '',
   },
 } as const;

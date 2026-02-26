@@ -26,7 +26,7 @@ router.get('/', async (_req: Request, res: Response) => {
 
   res.status(statusCode).json({
     status,
-    service: 'trademate-api',
+    service: 'bossboard-api',
     version: '0.5.0',
     timestamp: new Date().toISOString(),
     environment: config.nodeEnv,

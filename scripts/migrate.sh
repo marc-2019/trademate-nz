@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# TradeMate NZ - Database Migration Script
+# BossBoard - Database Migration Script
 # =============================================================================
 #
 # Runs all database migrations against the PostgreSQL container.
@@ -22,9 +22,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 # Defaults
-PG_CONTAINER="trademate-postgres"
-PG_USER="trademate"
-PG_DB="trademate"
+PG_CONTAINER="bossboard-postgres"
+PG_USER="bossboard"
+PG_DB="bossboard"
 ENV_FILE="${PROJECT_DIR}/.env.production"
 DEV_MODE=false
 
@@ -78,15 +78,15 @@ done
 # =============================================================================
 if [ "${DEV_MODE}" = true ]; then
     log_info "Running in development mode"
-    PG_USER="trademate"
-    PG_DB="trademate"
+    PG_USER="bossboard"
+    PG_DB="bossboard"
 elif [ -n "${ENV_FILE}" ] && [ -f "${ENV_FILE}" ]; then
     log_info "Loading environment from: ${ENV_FILE}"
     set -a
     source "${ENV_FILE}"
     set +a
-    PG_USER="${POSTGRES_USER:-trademate}"
-    PG_DB="${POSTGRES_DB:-trademate}"
+    PG_USER="${POSTGRES_USER:-bossboard}"
+    PG_DB="${POSTGRES_DB:-bossboard}"
 elif [ -n "${ENV_FILE}" ]; then
     log_error "Environment file not found: ${ENV_FILE}"
     exit 1
@@ -104,7 +104,7 @@ fi
 
 if ! docker ps --filter "name=${PG_CONTAINER}" --filter "status=running" -q | grep -q .; then
     log_error "PostgreSQL container '${PG_CONTAINER}' is not running"
-    log_info "Start it with: docker-compose up -d trademate-postgres"
+    log_info "Start it with: docker-compose up -d bossboard-postgres"
     exit 1
 fi
 
