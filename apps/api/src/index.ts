@@ -41,6 +41,7 @@ import notificationsRoutes from './routes/notifications.js';
 import teamsRoutes from './routes/teams.js';
 import publicRoutes from './routes/public.js';
 import subscriptionsRoutes from './routes/subscriptions.js';
+import stripeWebhookRoutes from './routes/stripe-webhook.js';
 import syncRoutes from './routes/sync.js';
 import legalRoutes from './routes/legal.js';
 import cronService from './services/cron.js';
@@ -62,7 +63,17 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// Body parsing
+// ---------------------------------------------------------------------------
+// Stripe webhook MUST be registered before express.json() so that the raw
+// Buffer body is available for HMAC signature verification.
+// ---------------------------------------------------------------------------
+app.use(
+  '/webhooks/stripe',
+  express.raw({ type: 'application/json' }),
+  stripeWebhookRoutes
+);
+
+// Body parsing (all other routes)
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 

@@ -1,11 +1,10 @@
 /**
  * Subscription Routes
- * Tier info, usage, and subscription management
- * Phase A: Read-only tier info + usage tracking
- * Phase B (~50 users): Stripe checkout integration
+ * Tier info, usage, and Stripe payment integration
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
+import { z } from 'zod';
 import { authenticate } from '../middleware/auth.js';
 import {
   getTierLimits,
@@ -14,6 +13,12 @@ import {
   getUserSubscription,
   getTierUsage,
 } from '../services/subscriptions.js';
+import {
+  createCheckoutSession,
+  createPortalSession,
+} from '../services/stripe.js';
+import { config } from '../config/index.js';
+import db from '../services/database.js';
 
 const router = Router();
 
@@ -131,57 +136,124 @@ router.get('/limits', async (req: Request, res: Response, next: NextFunction) =>
 });
 
 // =============================================================================
-// PHASE B: Stripe Integration (stub routes for future)
+// Stripe Integration
 // =============================================================================
+
+const checkoutSchema = z.object({
+  tier: z.enum(['tradie', 'team']),
+  // URLs the mobile app wants Stripe to redirect to after success/cancel
+  successUrl: z.string().url().optional(),
+  cancelUrl: z.string().url().optional(),
+});
 
 /**
  * POST /api/v1/subscriptions/checkout
- * Create Stripe checkout session for upgrading
- * Phase B: Will redirect user to Stripe Checkout
+ * Create a Stripe Checkout session for upgrading to Tradie or Team tier.
+ *
+ * Returns { sessionId, url } — the mobile app should open `url` in a browser/WebView.
+ * After payment, Stripe redirects to successUrl and fires a webhook to update the tier.
  */
-router.post('/checkout', (_req: Request, res: Response) => {
-  if (isBetaMode()) {
+router.post('/checkout', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (isBetaMode()) {
+      res.json({
+        success: true,
+        data: {
+          message: 'All features are free during beta! No payment required.',
+          betaMode: true,
+        },
+      });
+      return;
+    }
+
+    const parsed = checkoutSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: parsed.error.errors[0]?.message ?? 'Invalid request body',
+      });
+      return;
+    }
+
+    const { tier, successUrl, cancelUrl } = parsed.data;
+    const userId = req.user!.userId;
+
+    // Fetch user email + name for Stripe customer creation
+    const userResult = await db.query<{ email: string; name: string | null }>(
+      'SELECT email, name FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      res.status(404).json({ success: false, error: 'USER_NOT_FOUND' });
+      return;
+    }
+
+    const { email, name } = userResult.rows[0];
+    const appReturnUrl = config.stripe.returnUrl;
+
+    const result = await createCheckoutSession({
+      userId,
+      userEmail: email,
+      userName: name,
+      tier,
+      successUrl: successUrl ?? `${appReturnUrl}/subscription/success`,
+      cancelUrl: cancelUrl ?? `${appReturnUrl}/subscription/cancel`,
+    });
+
     res.json({
       success: true,
-      data: {
-        message: 'All features are free during beta! No payment required.',
-        betaMode: true,
-      },
+      data: result,
     });
-    return;
+  } catch (error) {
+    next(error);
   }
-
-  // Phase B: Create Stripe checkout session
-  res.status(501).json({
-    success: false,
-    error: 'NOT_IMPLEMENTED',
-    message: 'Stripe checkout will be available soon.',
-  });
 });
 
 /**
  * POST /api/v1/subscriptions/portal
- * Create Stripe billing portal session for managing subscription
- * Phase B: Will redirect user to Stripe Billing Portal
+ * Create a Stripe Billing Portal session for managing subscription
+ * (cancel, change plan, update payment method).
+ *
+ * Returns { url } — open in browser/WebView.
+ * Requires the user to already have a Stripe customer ID (i.e. be on a paid plan).
  */
-router.post('/portal', (_req: Request, res: Response) => {
-  if (isBetaMode()) {
+router.post('/portal', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (isBetaMode()) {
+      res.json({
+        success: true,
+        data: {
+          message: 'Billing portal will be available when beta ends.',
+          betaMode: true,
+        },
+      });
+      return;
+    }
+
+    const userId = req.user!.userId;
+    const subscription = await getUserSubscription(userId);
+
+    if (!subscription.stripeCustomerId) {
+      res.status(400).json({
+        success: false,
+        error: 'NO_STRIPE_CUSTOMER',
+        message: 'No active subscription found. Start a subscription first via /subscriptions/checkout.',
+      });
+      return;
+    }
+
+    const returnUrl = (req.body as { returnUrl?: string }).returnUrl ?? config.stripe.returnUrl;
+    const portalUrl = await createPortalSession(subscription.stripeCustomerId, returnUrl);
+
     res.json({
       success: true,
-      data: {
-        message: 'Billing portal will be available when beta ends.',
-        betaMode: true,
-      },
+      data: { url: portalUrl },
     });
-    return;
+  } catch (error) {
+    next(error);
   }
-
-  // Phase B: Create Stripe portal session
-  res.status(501).json({
-    success: false,
-    error: 'NOT_IMPLEMENTED',
-    message: 'Billing portal will be available soon.',
-  });
 });
 
 export default router;

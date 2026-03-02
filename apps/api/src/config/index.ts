@@ -41,6 +41,16 @@ export const config = {
     'http://localhost:3000',
   ],
 
+  // Stripe
+  stripe: {
+    secretKey: process.env.STRIPE_SECRET_KEY || '',
+    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
+    priceIdTradie: process.env.STRIPE_PRICE_ID_TRADIE || '',
+    priceIdTeam: process.env.STRIPE_PRICE_ID_TEAM || '',
+    // Billing portal return URL (must be the mobile app or a web success page)
+    returnUrl: process.env.STRIPE_RETURN_URL || 'http://localhost:19006',
+  },
+
   // Email (SMTP)
   smtp: {
     host: process.env.SMTP_HOST || '',
