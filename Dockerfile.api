@@ -44,73 +44,6 @@ COPY apps/api/src ./src
 
 EXPOSE 29000
 
-CMD ["npm", "run", "#d eBvo"s]s
-B
-o#a r=d= =A=P=I= =-= =M=u=l=t=i=-=s=t=a=g=e= =D=o=c=k=e=r=f=i=l=e=
-=#= =S=u=p=p=o=r=t=s= =b=o=t=h= =d=e=v=e=l=o=p=m=e=n=t= =(=w=i=t=h= =h=o=t= =r=e=l=o=a=d=)= 
-a#n dP RpOrDoUdCuTcItOiNo nS TbAuGiEl d-s 
-M
-i#n i=m=a=l= =p=r=o=d=u=c=t=i=o=n= =i=m=a=g=e= =(=D=E=F=A=U=L=T= =-= =l=a=s=t= =s=t=a=g=e=)=
-=#= ==============================================================
-=#= =B=A=S=E= =S=T=A=G=E= =-= =C=o=m=m=o=n= =d=e=p=e=n=d=e=n=c=i=e=s=
-=#= ==================
-=F=R=O=M= =b=a=s=e= =A=S= =p=r=o=d=u=c=t=i=o=n=
-=E=N=V= =N=O=D=E=_=E=N=V===p=r=o=d=u=c=t=i=o=n=
-=U=S=E=R= =n=o=d=e=
-=
-=C=O=P=Y= =-=-=c=h
-oFwRnO=Mn ondoed:en:o2d0e- a-l-pfirnoem =AdSe pbsa s/ea
-pWpO/RnKoDdIeR_ m/oadpupl
-eRsU N. /anpokd ea_dmdo d-u-lneos-
-cCaOcPhYe  -d-ucmhbo-winn=into
-d
-e#: n=o=d=e= =-=-=f=r=o=m===b=u=i=l=d=e=r= =/=a=p=p=/=d=i=s=t= =.=/=d=i=s=t=
-=C=O=P=Y= =-=-=c=h=o=w=n===n=o=d=e=:=n=o=d=e= =a=p=p=s=/=a=p=i=/=p=a=c=k=a=g=e=*=.
-j#s oDnE P.E/N
-D
-E#N CRIaEiSl wSaTyA GiEn j-e cItnss tPaOlRlT  pdryondaumcitciaolnl yd;e pdeenfdaeunlcti etso
- #2 9=0=0=0= =f=o=r= =l=o=c=a=l= =D=o=c=k=e=r= =u=s=e=
-=E=N=V= =P=O=R=T===2=9=0=0=0=
-=E=X=P=O=S=E= =$={=P=O=R=T=}=
-=
-=H=E=A=L=T=H=C=H=E=C=K= =-=-=i=n=t=e=r=v=a
-lF=R3O0Ms  b-a-stei mAeSo udte=p1s0
-sC O-P-Ys taaprpts-/paeprii/opda=c5ksa g-e-*r.ejtsroine s.=/3
- R\U
-N   nCpMmD  iwngsetta l-l- n-o--ovnelryb=opsreo d-u-cttriioens =&1&  -n-psmp icdaecrh eh tctlpe:a/n/ l-o-cfaolrhcoes
-t
-:#$ {=P=O=R=T=}=/=h=e=a=l=t=h= =|=|= =e=x=i=t= =1=
-=
-=E=N=T=R=Y=P=O=I=N=T= =[="=d=u=m=b=-=i=n=i=t="=,= ="=-=-="=]=
-=C=M=D= =[="=n=o=d=e="=,= ="=d=i=s=t=/=i=n=d
-e#x .BjUsI"L]D STAGE - Compile TypeScript
-# =============================================================================
-FROM base AS builder
-COPY apps/api/package*.json ./
-RUN npm install
-COPY apps/api/tsconfig.json ./
-COPY apps/api/jest.config.js ./
-COPY apps/api/src ./src
-RUN npm run build
-# Copy JSON templates to dist (TypeScript doesn't copy JSON files)
-RUN cp -r src/templates dist/templates 2>/dev/null || true
-
-# =============================================================================
-# DEVELOPMENT STAGE - With hot reload support
-# =============================================================================
-FROM base AS development
-ENV NODE_ENV=development
-WORKDIR /app
-
-COPY apps/api/package*.json ./
-RUN npm install
-
-COPY apps/api/tsconfig.json ./
-COPY apps/api/jest.config.js ./
-COPY apps/api/src ./src
-
-EXPOSE 29000
-
 CMD ["npm", "run", "dev"]
 
 # =============================================================================
@@ -123,3 +56,13 @@ USER node
 COPY --chown=node:node --from=deps /app/node_modules ./node_modules
 COPY --chown=node:node --from=builder /app/dist ./dist
 COPY --chown=node:node apps/api/package*.json ./
+
+# Railway injects PORT dynamically; default to 29000 for local Docker use
+ENV PORT=29000
+EXPOSE ${PORT}
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/health || exit 1
+
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "dist/index.js"]
