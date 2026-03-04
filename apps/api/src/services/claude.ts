@@ -1,4 +1,4 @@
-h/**
+/**
  * AI Service for BossBoard
  *
  * Supports both:
