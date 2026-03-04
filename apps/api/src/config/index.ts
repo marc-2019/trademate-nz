@@ -62,6 +62,9 @@ export const config = {
     fromName: process.env.SMTP_FROM_NAME || 'BossBoard',
     fromEmail: process.env.SMTP_FROM_EMAIL || '',
   },
+
+  // Resend HTTP API (preferred over SMTP on cloud platforms)
+  resendApiKey: process.env.RESEND_API_KEY || '',
 } as const;
 
 // Fail fast: require JWT secrets in production
@@ -75,3 +78,4 @@ if (!config.isDevelopment) {
 }
 
 export default config;
+
