@@ -1,10 +1,10 @@
-/**
+﻿/**
  * Auth Context
  * Manages authentication state and token storage
  */
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from '../utils/storage';
 import { api, setAuthToken, notificationsApi } from '../services/api';
 
 interface User {
@@ -265,3 +265,4 @@ export function useAuth() {
   }
   return context;
 }
+

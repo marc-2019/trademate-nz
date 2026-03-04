@@ -13,9 +13,9 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../src/contexts/AuthContext';
-import { notificationsApi } from '../src/services/api';
-import { registerForPushNotificationsAsync } from '../src/hooks/useNotifications';
+import { useAuth } from '../../src/contexts/AuthContext';
+import { notificationsApi } from '../../src/services/api';
+import { registerForPushNotificationsAsync } from '../../src/hooks/useNotifications';
 
 interface MenuItem {
   id: string;
@@ -131,14 +131,14 @@ export default function SettingsScreen() {
           )}
         </View>
         <TouchableOpacity style={styles.editButton} onPress={() => router.push('/settings/profile' as any)}>
-          <Ionicons name="pencil" size={20} color="#2563EB" />
+          <Ionicons name="pencil" size={20} color="#FF6B35" />
         </TouchableOpacity>
       </View>
 
       {/* Trade Badge */}
       {user?.tradeType && (
         <View style={styles.tradeBadge}>
-          <Ionicons name="construct" size={16} color="#2563EB" />
+          <Ionicons name="construct" size={16} color="#FF6B35" />
           <Text style={styles.tradeText}>
             {user.tradeType.charAt(0).toUpperCase() + user.tradeType.slice(1)}
           </Text>
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   tradeText: {
-    color: '#2563EB',
+    color: '#FF6B35',
     fontSize: 14,
     fontWeight: '500',
   },

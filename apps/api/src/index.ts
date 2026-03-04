@@ -1,4 +1,4 @@
-/**
+﻿/**
  * BossBoard API Server
  *
  * Express server providing REST API for the BossBoard mobile app.
@@ -20,6 +20,7 @@ import { config } from './config/index.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
 import db from './services/database.js';
 import redis from './services/redis.js';
+import { runMigrations } from './services/migrate.js';
 
 // Route imports
 import healthRoutes from './routes/health.js';
@@ -180,44 +181,28 @@ process.on('SIGINT', async () => {
 
 const PORT = config.port;
 
-// Connect Redis before starting the server
-redis.connect().catch((err) => {
-  console.error('Failed to connect to Redis on startup:', err.message);
-  // Continue running - health check will report Redis as disconnected
-});
+// Async startup: run migrations, connect Redis, then start server
+async function startServer() {
+  // Run database migrations first
+  try {
+    await runMigrations();
+  } catch (err) {
+    console.error('Database migration failed:', err);
+    console.error('Server will start but database may be incomplete.');
+  }
 
-app.listen(PORT, () => {
-  // Start cron jobs
-  cronService.start();
+  // Connect Redis (non-blocking)
+  redis.connect().catch((err) => {
+    console.error('Failed to connect to Redis on startup:', err.message);
+  });
 
-  console.log(`
-╔═══════════════════════════════════════════════════════════════╗
-║                     ${config.appName.padEnd(16)} API                           ║
-╠═══════════════════════════════════════════════════════════════╣
-║  Status:      Running                                          ║
-║  Port:        ${String(PORT).padEnd(47)}║
-║  Environment: ${config.nodeEnv.padEnd(47)}║
-║                                                                ║
-║  Endpoints:                                                    ║
-║    Health:    http://localhost:${PORT}/health                      ║
-║    Auth:      http://localhost:${PORT}/api/v1/auth                 ║
-║    SWMS:      http://localhost:${PORT}/api/v1/swms                 ║
-║    Invoices:  http://localhost:${PORT}/api/v1/invoices             ║
-║    Certs:     http://localhost:${PORT}/api/v1/certifications       ║
-║    Stats:     http://localhost:${PORT}/api/v1/stats                ║
-║    Profile:   http://localhost:${PORT}/api/v1/business-profile     ║
-║    Customers: http://localhost:${PORT}/api/v1/customers            ║
-║    Products:  http://localhost:${PORT}/api/v1/products             ║
-║    Recurring: http://localhost:${PORT}/api/v1/recurring-invoices  ║
-║    Bank:      http://localhost:${PORT}/api/v1/bank-transactions   ║
-║    Photos:    http://localhost:${PORT}/api/v1/photos             ║
-║    Expenses:  http://localhost:${PORT}/api/v1/expenses           ║
-║    Job Logs:  http://localhost:${PORT}/api/v1/job-logs           ║
-║    Notifs:    http://localhost:${PORT}/api/v1/notifications       ║
-║    Teams:     http://localhost:${PORT}/api/v1/teams              ║
-║    Subs:      http://localhost:${PORT}/api/v1/subscriptions     ║
-╚═══════════════════════════════════════════════════════════════╝
-  `);
-});
+  app.listen(PORT, () => {
+    // Start cron jobs
+    cronService.start();
+    console.log('[server] BossBoard API running on port ' + PORT + ' (' + config.nodeEnv + ')');
+  });
+}
+
+startServer();
 
 export default app;
