@@ -56,7 +56,7 @@ async function sendPushNotifications(messages: ExpoPushMessage[]): Promise<ExpoP
         body: JSON.stringify(batch),
       });
 
-      const result = await response.json();
+      const result: any = await response.json();
 
       if (result.data) {
         tickets.push(...result.data);
