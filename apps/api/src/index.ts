@@ -1,4 +1,4 @@
-﻿/**
+/**
  * BossBoard API Server
  *
  * Express server providing REST API for the BossBoard mobile app.
@@ -54,7 +54,10 @@ const app = express();
 // =============================================================================
 
 // Security headers
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  crossOriginOpenerPolicy: false,
+}));
 
 // CORS configuration
 app.use(cors({

@@ -38,6 +38,7 @@ export const config = {
   corsOrigins: process.env.CORS_ORIGINS?.split(',') || [
     'http://localhost:19006',
     'http://localhost:8081',
+    'http://localhost:8082',
     'http://localhost:3000',
   ],
 
