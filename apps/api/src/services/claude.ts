@@ -71,7 +71,7 @@ async function chatCompletion(prompt: string): Promise<string> {
         throw new Error(`LM Studio error: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
 
       if (!data.choices || !data.choices[0] || !data.choices[0].message) {
         console.error('[AI] Unexpected LM Studio response structure:', JSON.stringify(data).slice(0, 500));
