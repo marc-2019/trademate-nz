@@ -123,7 +123,7 @@ export default function BankUploadScreen() {
     >
       {/* Header Info */}
       <View style={styles.infoBox}>
-        <Ionicons name="information-circle" size={20} color="#2563EB" />
+        <Ionicons name="information-circle" size={20} color="#FF6B35" />
         <Text style={styles.infoText}>
           Upload a CSV export from your bank (e.g. Wise, ASB, ANZ). Transactions
           will be imported and can be matched against your invoices.
@@ -140,7 +140,7 @@ export default function BankUploadScreen() {
             onPress={handlePickFile}
           >
             <View style={styles.filePickerIcon}>
-              <Ionicons name="document-text-outline" size={32} color="#2563EB" />
+              <Ionicons name="document-text-outline" size={32} color="#FF6B35" />
             </View>
             <Text style={styles.filePickerText}>
               {selectedFile ? 'Change File' : 'Select CSV File'}
@@ -154,7 +154,7 @@ export default function BankUploadScreen() {
           {selectedFile && (
             <View style={styles.filePreview}>
               <View style={styles.filePreviewIcon}>
-                <Ionicons name="document-attach" size={24} color="#2563EB" />
+                <Ionicons name="document-attach" size={24} color="#FF6B35" />
               </View>
               <View style={styles.filePreviewInfo}>
                 <Text style={styles.fileName} numberOfLines={1}>
@@ -241,7 +241,7 @@ export default function BankUploadScreen() {
           {/* Auto-Match Result */}
           {autoMatchResult && (
             <View style={styles.matchResultCard}>
-              <Ionicons name="git-compare" size={24} color="#2563EB" />
+              <Ionicons name="git-compare" size={24} color="#FF6B35" />
               <Text style={styles.matchResultText}>
                 Matched{' '}
                 <Text style={styles.matchResultCount}>{autoMatchResult.matched}</Text>
@@ -255,7 +255,7 @@ export default function BankUploadScreen() {
             style={styles.secondaryButton}
             onPress={() => router.replace('/bank/' as any)}
           >
-            <Ionicons name="list" size={20} color="#2563EB" />
+            <Ionicons name="list" size={20} color="#FF6B35" />
             <Text style={styles.secondaryButtonText}>View Transactions</Text>
           </TouchableOpacity>
 
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
   filePickerText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#2563EB',
+    color: '#FF6B35',
   },
   filePickerHint: {
     fontSize: 13,
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     paddingVertical: 16,
     borderRadius: 12,
     marginTop: 16,
@@ -411,7 +411,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   secondaryButtonText: {
-    color: '#2563EB',
+    color: '#FF6B35',
     fontSize: 16,
     fontWeight: '600',
   },

@@ -115,7 +115,7 @@ export default function BusinessProfileScreen() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2563EB" />
+        <ActivityIndicator size="large" color="#FF6B35" />
         <Text style={styles.loadingText}>Loading profile...</Text>
       </View>
     );
@@ -274,7 +274,7 @@ export default function BusinessProfileScreen() {
               value={isGstRegistered}
               onValueChange={setIsGstRegistered}
               trackColor={{ false: '#D1D5DB', true: '#93C5FD' }}
-              thumbColor={isGstRegistered ? '#2563EB' : '#9CA3AF'}
+              thumbColor={isGstRegistered ? '#FF6B35' : '#9CA3AF'}
             />
           </View>
 
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   submitButton: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     padding: 18,
     borderRadius: 12,
     alignItems: 'center',

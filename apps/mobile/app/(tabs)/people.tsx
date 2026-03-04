@@ -127,7 +127,7 @@ export default function PeopleScreen() {
       >
         <View style={styles.certHeader}>
           <View style={styles.certIcon}>
-            <Ionicons name={getCertTypeIcon(item.type)} size={24} color="#2563EB" />
+            <Ionicons name={getCertTypeIcon(item.type)} size={24} color="#FF6B35" />
           </View>
           <View style={styles.certInfo}>
             <Text style={styles.certName}>{item.name}</Text>
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
   },
   emptyButton: {
     marginTop: 16,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
@@ -338,10 +338,10 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#2563EB',
+    shadowColor: '#FF6B35',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

@@ -587,7 +587,7 @@ function getStyles(): string {
 
     /* ── Header ────────────────────────────────────────────────── */
     .site-header {
-      background: #1e3a5f;
+      background: #1A2A44;
       color: #fff;
       padding: 0 16px;
     }
@@ -631,7 +631,7 @@ function getStyles(): string {
     h1 {
       font-size: 28px;
       font-weight: 700;
-      color: #1e3a5f;
+      color: #1A2A44;
       margin-bottom: 8px;
     }
     .meta {
@@ -642,7 +642,7 @@ function getStyles(): string {
     h2 {
       font-size: 20px;
       font-weight: 600;
-      color: #1e3a5f;
+      color: #1A2A44;
       margin-top: 36px;
       margin-bottom: 12px;
       padding-bottom: 6px;
@@ -725,7 +725,7 @@ function getStyles(): string {
     }
     .support-card h3 {
       margin-top: 0;
-      color: #1e3a5f;
+      color: #1A2A44;
     }
     .support-email a {
       font-size: 18px;

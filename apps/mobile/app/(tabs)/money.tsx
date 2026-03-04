@@ -90,7 +90,7 @@ export default function MoneyScreen() {
       case 'paid':
         return '#10B981';
       case 'sent':
-        return '#2563EB';
+        return '#FF6B35';
       case 'overdue':
         return '#EF4444';
       default:
@@ -168,7 +168,7 @@ export default function MoneyScreen() {
             <Text style={styles.summaryLabel}>Unpaid Invoices</Text>
             <Text style={styles.summaryAmount}>{formatCurrency(unpaidTotal)}</Text>
           </View>
-          <Ionicons name="trending-up" size={32} color="#2563EB" />
+          <Ionicons name="trending-up" size={32} color="#FF6B35" />
         </View>
       )}
 
@@ -176,7 +176,7 @@ export default function MoneyScreen() {
       <View style={styles.quickActions}>
         <TouchableOpacity style={styles.quickAction} onPress={() => router.push('/customers/' as any)}>
           <View style={[styles.quickActionIcon, { backgroundColor: '#EFF6FF' }]}>
-            <Ionicons name="people" size={20} color="#2563EB" />
+            <Ionicons name="people" size={20} color="#FF6B35" />
           </View>
           <Text style={styles.quickActionLabel}>Customers</Text>
         </TouchableOpacity>
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
   },
   filterChipActive: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
   },
   filterText: {
     fontSize: 13,
@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
   invoiceNumber: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#2563EB',
+    color: '#FF6B35',
   },
   clientName: {
     fontSize: 16,
@@ -470,7 +470,7 @@ const styles = StyleSheet.create({
   },
   emptyButton: {
     marginTop: 16,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
@@ -487,10 +487,10 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#2563EB',
+    shadowColor: '#FF6B35',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

@@ -36,7 +36,7 @@ interface ExpenseStats {
 
 const CATEGORIES = [
   { key: 'all', label: 'All' },
-  { key: 'materials', label: 'Materials', icon: 'construct', color: '#2563EB' },
+  { key: 'materials', label: 'Materials', icon: 'construct', color: '#FF6B35' },
   { key: 'fuel', label: 'Fuel', icon: 'car', color: '#F59E0B' },
   { key: 'tools', label: 'Tools', icon: 'hammer', color: '#8B5CF6' },
   { key: 'subcontractor', label: 'Subbie', icon: 'people', color: '#EC4899' },

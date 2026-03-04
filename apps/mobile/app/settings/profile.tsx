@@ -219,8 +219,8 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
   },
   tradeChipActive: {
-    backgroundColor: '#2563EB',
-    borderColor: '#2563EB',
+    backgroundColor: '#FF6B35',
+    borderColor: '#FF6B35',
   },
   tradeChipText: {
     fontSize: 14,
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   saveButton: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     borderRadius: 12,
     padding: 16,
     flexDirection: 'row',

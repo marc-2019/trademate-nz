@@ -298,7 +298,7 @@ export default function HomeScreen() {
             {/* Revenue Comparison */}
             <View style={styles.insightCard}>
               <View style={styles.insightHeader}>
-                <Ionicons name="trending-up" size={20} color="#2563EB" />
+                <Ionicons name="trending-up" size={20} color="#FF6B35" />
                 <Text style={styles.insightTitle}>Revenue</Text>
               </View>
               <View style={styles.revenueRow}>
@@ -367,7 +367,7 @@ export default function HomeScreen() {
                                 insights.monthlyRevenue[
                                   insights.monthlyRevenue.length - 1
                                 ].month
-                                  ? '#2563EB'
+                                  ? '#FF6B35'
                                   : '#BFDBFE',
                             },
                           ]}
@@ -547,7 +547,7 @@ export default function HomeScreen() {
             onPress={() => router.push('/swms/generate' as any)}
           >
             <View style={[styles.actionIcon, { backgroundColor: '#EFF6FF' }]}>
-              <Ionicons name="add-circle" size={28} color="#2563EB" />
+              <Ionicons name="add-circle" size={28} color="#FF6B35" />
             </View>
             <Text style={styles.actionLabel}>New SWMS</Text>
           </TouchableOpacity>
@@ -645,7 +645,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   welcomeCard: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     borderRadius: 12,
     padding: 20,
     marginBottom: 16,
@@ -813,7 +813,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   emptyButton: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,

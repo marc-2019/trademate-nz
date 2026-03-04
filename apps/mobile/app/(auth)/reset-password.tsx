@@ -73,7 +73,7 @@ export default function ResetPasswordScreen() {
 
         <View style={styles.header}>
           <View style={styles.iconContainer}>
-            <Ionicons name="key-outline" size={32} color="#2563EB" />
+            <Ionicons name="key-outline" size={32} color="#FF6B35" />
           </View>
           <Text style={styles.title}>Reset Password</Text>
           <Text style={styles.subtitle}>
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   button: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   linkText: {
-    color: '#2563EB',
+    color: '#FF6B35',
     fontSize: 14,
     fontWeight: '500',
   },

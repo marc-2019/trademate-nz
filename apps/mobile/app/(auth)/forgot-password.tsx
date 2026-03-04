@@ -61,7 +61,7 @@ export default function ForgotPasswordScreen() {
         </TouchableOpacity>
 
         <View style={styles.iconContainer}>
-          <Ionicons name="lock-open-outline" size={48} color="#2563EB" />
+          <Ionicons name="lock-open-outline" size={48} color="#FF6B35" />
         </View>
 
         <Text style={styles.title}>Forgot Password?</Text>
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     color: '#111827',
   },
   button: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     borderRadius: 12,
     height: 52,
     alignItems: 'center',
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   linkText: {
-    color: '#2563EB',
+    color: '#FF6B35',
     fontSize: 15,
     fontWeight: '500',
   },

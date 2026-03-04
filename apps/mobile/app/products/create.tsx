@@ -155,7 +155,7 @@ export default function CreateProductScreen() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2563EB" />
+        <ActivityIndicator size="large" color="#FF6B35" />
         <Text style={styles.loadingText}>Loading product...</Text>
       </View>
     );
@@ -258,7 +258,7 @@ export default function CreateProductScreen() {
               </Text>
               {type === 'fixed' && (
                 <View style={styles.typeCheckmark}>
-                  <Ionicons name="checkmark-circle" size={22} color="#2563EB" />
+                  <Ionicons name="checkmark-circle" size={22} color="#FF6B35" />
                 </View>
               )}
             </TouchableOpacity>
@@ -295,7 +295,7 @@ export default function CreateProductScreen() {
               </Text>
               {type === 'variable' && (
                 <View style={styles.typeCheckmark}>
-                  <Ionicons name="checkmark-circle" size={22} color="#2563EB" />
+                  <Ionicons name="checkmark-circle" size={22} color="#FF6B35" />
                 </View>
               )}
             </TouchableOpacity>
@@ -315,7 +315,7 @@ export default function CreateProductScreen() {
               value={isGstApplicable}
               onValueChange={setIsGstApplicable}
               trackColor={{ false: '#D1D5DB', true: '#93C5FD' }}
-              thumbColor={isGstApplicable ? '#2563EB' : '#9CA3AF'}
+              thumbColor={isGstApplicable ? '#FF6B35' : '#9CA3AF'}
             />
           </View>
         </View>
@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   typeCardSelected: {
-    borderColor: '#2563EB',
+    borderColor: '#FF6B35',
     backgroundColor: '#EFF6FF',
   },
   typeIconContainer: {
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   typeIconContainerSelected: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
   },
   typeCardTitle: {
     fontSize: 16,
@@ -465,7 +465,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   typeCardTitleSelected: {
-    color: '#2563EB',
+    color: '#FF6B35',
   },
   typeCardDescription: {
     fontSize: 13,
@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   submitButton: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     padding: 18,
     borderRadius: 12,
     alignItems: 'center',

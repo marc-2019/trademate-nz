@@ -1,16 +1,11 @@
 /**
  * Tabs Layout
  * Bottom tab navigation for main app sections
- *
- * New Tab Structure:
- * - Home: Dashboard, stats, quick actions
- * - Work: SWMS documents (future: jobs, site briefings)
- * - People: Certifications (future: staff, visa compliance)
- * - Money: Invoices (future: cashflow forecasting)
  */
 
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { colors } from '@/src/theme/colors';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -18,24 +13,24 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#2563EB',
-        tabBarInactiveTintColor: '#6B7280',
+        tabBarActiveTintColor: colors.accent,
+        tabBarInactiveTintColor: colors.disabled,
         tabBarStyle: {
           borderTopWidth: 1,
-          borderTopColor: '#E5E7EB',
+          borderTopColor: colors.border,
           paddingTop: 8,
           paddingBottom: 8,
           height: 60,
         },
         headerStyle: {
-          backgroundColor: '#fff',
+          backgroundColor: colors.surface,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 1 },
           shadowOpacity: 0.05,
           shadowRadius: 2,
           elevation: 2,
         },
-        headerTintColor: '#111827',
+        headerTintColor: colors.textPrimary,
         headerTitleStyle: {
           fontWeight: '600',
         },

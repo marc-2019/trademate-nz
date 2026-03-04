@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
   logo: {
     fontSize: 36,
     fontWeight: '700',
-    color: '#2563EB',
+    color: '#FF6B35',
     marginBottom: 16,
   },
   welcome: {
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E5E7EB',
   },
   progressDotActive: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
   },
   stepLabel: {
     textAlign: 'center',
@@ -424,7 +424,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
   },
   tradeButtonSelected: {
-    borderColor: '#2563EB',
+    borderColor: '#FF6B35',
     backgroundColor: '#EFF6FF',
   },
   tradeButtonText: {
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   tradeButtonTextSelected: {
-    color: '#2563EB',
+    color: '#FF6B35',
     fontWeight: '600',
   },
   inputGroup: {
@@ -492,7 +492,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   nextButton: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 32,

@@ -182,7 +182,7 @@ export default function SubscriptionScreen() {
     return (
       <View style={styles.loadingContainer}>
         <Stack.Screen options={{ title: 'Subscription' }} />
-        <ActivityIndicator size="large" color="#2563EB" />
+        <ActivityIndicator size="large" color="#FF6B35" />
       </View>
     );
   }
@@ -463,7 +463,7 @@ const styles = StyleSheet.create({
   },
   usageBarFill: {
     height: '100%',
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     borderRadius: 4,
   },
   usageBarFillWarning: {

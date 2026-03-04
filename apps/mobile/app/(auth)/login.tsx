@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
   logo: {
     fontSize: 36,
     fontWeight: '700',
-    color: '#2563EB',
+    color: '#FF6B35',
   },
   subtitle: {
     fontSize: 16,
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
   },
   button: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     borderRadius: 8,
     padding: 16,
     alignItems: 'center',
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   linkText: {
-    color: '#2563EB',
+    color: '#FF6B35',
     fontSize: 14,
     fontWeight: '600',
   },

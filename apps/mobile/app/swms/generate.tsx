@@ -110,7 +110,7 @@ export default function GenerateSWMSScreen() {
             <Ionicons
               name={trade.icon as any}
               size={24}
-              color={tradeType === trade.id ? '#2563EB' : '#6B7280'}
+              color={tradeType === trade.id ? '#FF6B35' : '#6B7280'}
             />
             <Text
               style={[
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   tradeCardSelected: {
-    borderColor: '#2563EB',
+    borderColor: '#FF6B35',
     backgroundColor: '#EFF6FF',
   },
   tradeLabel: {
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   tradeLabelSelected: {
-    color: '#2563EB',
+    color: '#FF6B35',
     fontWeight: '500',
   },
   input: {
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   generateButton: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     borderRadius: 12,
     padding: 16,
     flexDirection: 'row',

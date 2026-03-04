@@ -349,7 +349,7 @@ export default function CreateInvoiceScreen() {
   if (isLoadingProfile) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2563EB" />
+        <ActivityIndicator size="large" color="#FF6B35" />
         <Text style={styles.loadingText}>Loading defaults...</Text>
       </View>
     );
@@ -400,7 +400,7 @@ export default function CreateInvoiceScreen() {
                   setCustomerModalVisible(true);
                 }}
               >
-                <Ionicons name="people" size={20} color="#2563EB" />
+                <Ionicons name="people" size={20} color="#FF6B35" />
                 <Text style={styles.selectCustomerText}>Select from Customers</Text>
                 <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
               </TouchableOpacity>
@@ -501,7 +501,7 @@ export default function CreateInvoiceScreen() {
 
           <View style={styles.addItemButtons}>
             <TouchableOpacity style={styles.addItemButton} onPress={addLineItem}>
-              <Ionicons name="add" size={20} color="#2563EB" />
+              <Ionicons name="add" size={20} color="#FF6B35" />
               <Text style={styles.addItemText}>Add Item</Text>
             </TouchableOpacity>
 
@@ -531,7 +531,7 @@ export default function CreateInvoiceScreen() {
               value={includeGst}
               onValueChange={setIncludeGst}
               trackColor={{ false: '#D1D5DB', true: '#93C5FD' }}
-              thumbColor={includeGst ? '#2563EB' : '#9CA3AF'}
+              thumbColor={includeGst ? '#FF6B35' : '#9CA3AF'}
             />
           </View>
         </View>
@@ -699,7 +699,7 @@ export default function CreateInvoiceScreen() {
           </View>
 
           {isLoadingCustomers ? (
-            <ActivityIndicator size="large" color="#2563EB" style={{ marginTop: 40 }} />
+            <ActivityIndicator size="large" color="#FF6B35" style={{ marginTop: 40 }} />
           ) : (
             <FlatList
               data={filteredCustomers}
@@ -777,7 +777,7 @@ export default function CreateInvoiceScreen() {
           </View>
 
           {isLoadingProducts ? (
-            <ActivityIndicator size="large" color="#2563EB" style={{ marginTop: 40 }} />
+            <ActivityIndicator size="large" color="#FF6B35" style={{ marginTop: 40 }} />
           ) : (
             <FlatList
               data={filteredProducts}
@@ -922,7 +922,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     borderWidth: 2,
-    borderColor: '#2563EB',
+    borderColor: '#FF6B35',
   },
   selectedCustomerInfo: {
     flexDirection: 'row',
@@ -933,7 +933,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -961,7 +961,7 @@ const styles = StyleSheet.create({
   changeButtonText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#2563EB',
+    color: '#FF6B35',
   },
   selectCustomerButton: {
     flexDirection: 'row',
@@ -977,7 +977,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: '500',
-    color: '#2563EB',
+    color: '#FF6B35',
   },
   orDivider: {
     textAlign: 'center',
@@ -1025,7 +1025,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderWidth: 2,
     borderStyle: 'dashed',
-    borderColor: '#2563EB',
+    borderColor: '#FF6B35',
     borderRadius: 10,
     gap: 8,
   },
@@ -1035,7 +1035,7 @@ const styles = StyleSheet.create({
   addItemText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#2563EB',
+    color: '#FF6B35',
   },
   // Toggle
   toggleRow: {
@@ -1107,7 +1107,7 @@ const styles = StyleSheet.create({
   },
   // Submit
   submitButton: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     padding: 18,
     borderRadius: 12,
     alignItems: 'center',
@@ -1173,7 +1173,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1243,7 +1243,7 @@ const styles = StyleSheet.create({
   },
   modalEmptyButton: {
     marginTop: 16,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,

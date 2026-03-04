@@ -135,7 +135,7 @@ export default function CreateCustomerScreen() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2563EB" />
+        <ActivityIndicator size="large" color="#FF6B35" />
       </View>
     );
   }
@@ -235,7 +235,7 @@ export default function CreateCustomerScreen() {
               value={defaultIncludeGst}
               onValueChange={setDefaultIncludeGst}
               trackColor={{ false: '#D1D5DB', true: '#93C5FD' }}
-              thumbColor={defaultIncludeGst ? '#2563EB' : '#9CA3AF'}
+              thumbColor={defaultIncludeGst ? '#FF6B35' : '#9CA3AF'}
             />
           </View>
         </View>
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   submitButton: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     padding: 18,
     borderRadius: 12,
     alignItems: 'center',

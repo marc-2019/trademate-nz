@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { colors } from '@/src/theme/colors';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
@@ -65,7 +66,7 @@ function RootLayoutNav() {
   if (isLoading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-        <ActivityIndicator size="large" color="#2563EB" />
+        <ActivityIndicator size="large" color="#FF6B35" />
       </View>
     );
   }
@@ -79,7 +80,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'SWMS Document',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       <Stack.Screen
@@ -87,7 +88,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'Generate SWMS',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       {/* Invoices */}
@@ -96,7 +97,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'New Invoice',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       <Stack.Screen
@@ -104,7 +105,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'Invoice',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       {/* Quotes */}
@@ -113,7 +114,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'Quotes',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       <Stack.Screen
@@ -121,7 +122,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'New Quote',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       <Stack.Screen
@@ -129,7 +130,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'Quote',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       {/* Expenses */}
@@ -138,7 +139,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'Expenses',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       <Stack.Screen
@@ -146,7 +147,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'New Expense',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       <Stack.Screen
@@ -154,7 +155,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'Expense',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       {/* Jobs */}
@@ -163,7 +164,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'Job Logs',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       <Stack.Screen
@@ -171,7 +172,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'New Job',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       <Stack.Screen
@@ -179,7 +180,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'Job Details',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       {/* Settings (group with its own _layout.tsx) */}
@@ -195,7 +196,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'Subscription',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       {/* Certifications */}
@@ -204,7 +205,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'Add Certification',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       {/* Customers */}
@@ -213,7 +214,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'Customers',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       <Stack.Screen
@@ -221,7 +222,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'Add Customer',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       <Stack.Screen
@@ -229,7 +230,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'Customer Details',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       {/* Products */}
@@ -238,7 +239,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'Products & Services',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       <Stack.Screen
@@ -246,7 +247,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'Add Product',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       {/* Recurring Invoices */}
@@ -255,7 +256,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'Recurring Invoices',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       <Stack.Screen
@@ -263,7 +264,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'New Recurring Invoice',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       <Stack.Screen
@@ -271,7 +272,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'Recurring Invoice',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       <Stack.Screen
@@ -279,7 +280,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'Generate Invoice',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       {/* Teams */}
@@ -288,7 +289,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'Team',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       {/* Bank Reconciliation */}
@@ -297,7 +298,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'Bank Transactions',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
       <Stack.Screen
@@ -305,7 +306,7 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: 'Upload CSV',
-          headerTintColor: '#2563EB',
+          headerTintColor: colors.primary,
         }}
       />
     </Stack>

@@ -202,7 +202,7 @@ export default function GenerateInvoiceScreen() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2563EB" />
+        <ActivityIndicator size="large" color="#FF6B35" />
       </View>
     );
   }
@@ -232,7 +232,7 @@ export default function GenerateInvoiceScreen() {
         {/* Header Info */}
         <View style={styles.headerCard}>
           <View style={styles.headerRow}>
-            <Ionicons name="repeat" size={20} color="#2563EB" />
+            <Ionicons name="repeat" size={20} color="#FF6B35" />
             <Text style={styles.headerName}>{recurring.name}</Text>
           </View>
           <Text style={styles.headerCustomer}>{recurring.customer_name}</Text>
@@ -240,7 +240,7 @@ export default function GenerateInvoiceScreen() {
 
         {/* Info Banner */}
         <View style={styles.infoBanner}>
-          <Ionicons name="information-circle" size={20} color="#2563EB" />
+          <Ionicons name="information-circle" size={20} color="#FF6B35" />
           <Text style={styles.infoBannerText}>
             Enter amounts for variable items below. Fixed items use their saved amounts.
           </Text>
@@ -419,7 +419,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     paddingHorizontal: 20,
     paddingVertical: 10,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     borderRadius: 8,
   },
   backButtonText: {
@@ -638,7 +638,7 @@ const styles = StyleSheet.create({
   },
   // Generate button
   generateButton: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

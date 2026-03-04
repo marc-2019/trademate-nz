@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
   logo: {
     fontSize: 36,
     fontWeight: '700',
-    color: '#2563EB',
+    color: '#FF6B35',
     marginBottom: 24,
   },
   iconContainer: {
@@ -263,11 +263,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
   },
   codeInputFilled: {
-    borderColor: '#2563EB',
+    borderColor: '#FF6B35',
     backgroundColor: '#EFF6FF',
   },
   button: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   resendLink: {
-    color: '#2563EB',
+    color: '#FF6B35',
     fontSize: 14,
     fontWeight: '600',
   },

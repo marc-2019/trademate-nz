@@ -70,7 +70,7 @@ export default function App() {
   if (!state.isReady) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2563EB" />
+        <ActivityIndicator size="large" color="#FF6B35" />
         <Text style={styles.loadingText}>Loading BossBoard...</Text>
       </View>
     );
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#2563EB',
+    color: '#1A2A44',
   },
   logoSubtext: {
     fontSize: 20,
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   },
   featureStatus: {
     fontSize: 12,
-    color: '#2563EB',
+    color: '#FF6B35',
     fontWeight: '500',
   },
   statusContainer: {

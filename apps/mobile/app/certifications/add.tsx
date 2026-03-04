@@ -173,7 +173,7 @@ export default function AddCertificationScreen() {
                   <Ionicons
                     name={type.icon as keyof typeof Ionicons.glyphMap}
                     size={24}
-                    color={certType === type.id ? '#fff' : '#2563EB'}
+                    color={certType === type.id ? '#fff' : '#FF6B35'}
                   />
                 </View>
                 <Text
@@ -259,7 +259,7 @@ export default function AddCertificationScreen() {
 
         {/* Info Box */}
         <View style={styles.infoBox}>
-          <Ionicons name="information-circle" size={20} color="#2563EB" />
+          <Ionicons name="information-circle" size={20} color="#FF6B35" />
           <Text style={styles.infoText}>
             Track your certifications to stay compliant and get reminders before
             they expire. Under NZ law, you must hold a current practising licence
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   typeCardSelected: {
-    borderColor: '#2563EB',
+    borderColor: '#FF6B35',
     backgroundColor: '#EFF6FF',
   },
   typeIcon: {
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   typeIconSelected: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
   },
   typeLabel: {
     fontSize: 12,
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   typeLabelSelected: {
-    color: '#2563EB',
+    color: '#FF6B35',
     fontWeight: '600',
   },
   inputGroup: {
@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   submitButton: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     padding: 18,
     borderRadius: 12,
     alignItems: 'center',

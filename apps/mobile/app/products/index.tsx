@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
   },
   filterChipActive: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
   },
   filterText: {
     fontSize: 13,
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
   gstBadgeText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#2563EB',
+    color: '#FF6B35',
   },
   emptyState: {
     alignItems: 'center',
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
   },
   emptyButton: {
     marginTop: 16,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
@@ -357,10 +357,10 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#2563EB',
+    shadowColor: '#FF6B35',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

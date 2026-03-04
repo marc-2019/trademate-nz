@@ -240,7 +240,7 @@ export default function RecurringInvoicesListScreen() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2563EB" />
+        <ActivityIndicator size="large" color="#FF6B35" />
       </View>
     );
   }
@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
   gstBadgeText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#2563EB',
+    color: '#FF6B35',
   },
   emptyState: {
     alignItems: 'center',
@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
   },
   emptyButton: {
     marginTop: 20,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 10,
@@ -477,10 +477,10 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#2563EB',
+    shadowColor: '#FF6B35',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

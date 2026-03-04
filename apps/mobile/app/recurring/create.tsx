@@ -280,7 +280,7 @@ export default function CreateRecurringInvoiceScreen() {
   if (isLoadingData) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2563EB" />
+        <ActivityIndicator size="large" color="#FF6B35" />
       </View>
     );
   }
@@ -325,7 +325,7 @@ export default function CreateRecurringInvoiceScreen() {
               style={styles.selectCustomerButton}
               onPress={() => setShowCustomerPicker(true)}
             >
-              <Ionicons name="person-add-outline" size={20} color="#2563EB" />
+              <Ionicons name="person-add-outline" size={20} color="#FF6B35" />
               <Text style={styles.selectCustomerText}>Select a Customer</Text>
             </TouchableOpacity>
           )}
@@ -466,7 +466,7 @@ export default function CreateRecurringInvoiceScreen() {
             style={styles.addItemButton}
             onPress={() => setShowProductPicker(true)}
           >
-            <Ionicons name="add" size={20} color="#2563EB" />
+            <Ionicons name="add" size={20} color="#FF6B35" />
             <Text style={styles.addItemText}>Add from Products</Text>
           </TouchableOpacity>
         </View>
@@ -504,7 +504,7 @@ export default function CreateRecurringInvoiceScreen() {
               value={includeGst}
               onValueChange={setIncludeGst}
               trackColor={{ false: '#D1D5DB', true: '#93C5FD' }}
-              thumbColor={includeGst ? '#2563EB' : '#9CA3AF'}
+              thumbColor={includeGst ? '#FF6B35' : '#9CA3AF'}
             />
           </View>
 
@@ -675,7 +675,7 @@ export default function CreateRecurringInvoiceScreen() {
                       </View>
                     </View>
                   </View>
-                  <Ionicons name="add-circle-outline" size={24} color="#2563EB" />
+                  <Ionicons name="add-circle-outline" size={24} color="#FF6B35" />
                 </TouchableOpacity>
               )}
             />
@@ -767,7 +767,7 @@ const styles = StyleSheet.create({
   customerAvatarText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#2563EB',
+    color: '#FF6B35',
   },
   customerDetails: {
     flex: 1,
@@ -791,7 +791,7 @@ const styles = StyleSheet.create({
   changeButtonText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#2563EB',
+    color: '#FF6B35',
   },
   selectCustomerButton: {
     flexDirection: 'row',
@@ -800,14 +800,14 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: 2,
     borderStyle: 'dashed',
-    borderColor: '#2563EB',
+    borderColor: '#FF6B35',
     borderRadius: 12,
     gap: 8,
   },
   selectCustomerText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#2563EB',
+    color: '#FF6B35',
   },
   // Line items
   lineItemCard: {
@@ -925,14 +925,14 @@ const styles = StyleSheet.create({
     padding: 14,
     borderWidth: 2,
     borderStyle: 'dashed',
-    borderColor: '#2563EB',
+    borderColor: '#FF6B35',
     borderRadius: 10,
     gap: 8,
   },
   addItemText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#2563EB',
+    color: '#FF6B35',
   },
   // Totals
   totalsCard: {
@@ -992,7 +992,7 @@ const styles = StyleSheet.create({
   },
   // Submit
   submitButton: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     padding: 18,
     borderRadius: 12,
     alignItems: 'center',

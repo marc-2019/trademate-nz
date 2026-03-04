@@ -20,7 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { expensesApi } from '../../src/services/api';
 
 const CATEGORIES = [
-  { key: 'materials', label: 'Materials', icon: 'construct', color: '#2563EB' },
+  { key: 'materials', label: 'Materials', icon: 'construct', color: '#FF6B35' },
   { key: 'fuel', label: 'Fuel', icon: 'car', color: '#F59E0B' },
   { key: 'tools', label: 'Tools', icon: 'hammer', color: '#8B5CF6' },
   { key: 'subcontractor', label: 'Subcontractor', icon: 'people', color: '#EC4899' },

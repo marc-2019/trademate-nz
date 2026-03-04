@@ -328,7 +328,7 @@ export default function BankTransactionsScreen() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2563EB" />
+        <ActivityIndicator size="large" color="#FF6B35" />
         <Text style={styles.loadingText}>Loading transactions...</Text>
       </View>
     );
@@ -353,9 +353,9 @@ export default function BankTransactionsScreen() {
           disabled={isAutoMatching}
         >
           {isAutoMatching ? (
-            <ActivityIndicator size="small" color="#2563EB" />
+            <ActivityIndicator size="small" color="#FF6B35" />
           ) : (
-            <Ionicons name="git-compare-outline" size={18} color="#2563EB" />
+            <Ionicons name="git-compare-outline" size={18} color="#FF6B35" />
           )}
           <Text style={styles.autoMatchButtonText}>
             {isAutoMatching ? 'Matching...' : 'Auto-Match'}
@@ -509,7 +509,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     paddingVertical: 10,
     borderRadius: 10,
     gap: 6,
@@ -535,7 +535,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   autoMatchButtonText: {
-    color: '#2563EB',
+    color: '#FF6B35',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -554,7 +554,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
   },
   filterChipActive: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
   },
   filterText: {
     fontSize: 13,
@@ -652,7 +652,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   confirmButton: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
   },
   confirmButtonText: {
     color: '#fff',
@@ -687,7 +687,7 @@ const styles = StyleSheet.create({
   },
   emptyButton: {
     marginTop: 16,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,

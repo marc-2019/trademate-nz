@@ -180,7 +180,7 @@ export default function CertificationsScreen() {
       >
         <View style={styles.certHeader}>
           <View style={styles.certIcon}>
-            <Ionicons name={getCertTypeIcon(item.type)} size={24} color="#2563EB" />
+            <Ionicons name={getCertTypeIcon(item.type)} size={24} color="#FF6B35" />
           </View>
           <View style={styles.certInfo}>
             <Text style={styles.certName}>{item.name}</Text>
@@ -355,8 +355,8 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
   },
   filterChipActive: {
-    backgroundColor: '#2563EB',
-    borderColor: '#2563EB',
+    backgroundColor: '#FF6B35',
+    borderColor: '#FF6B35',
   },
   filterChipText: {
     fontSize: 12,
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
   },
   certType: {
     fontSize: 12,
-    color: '#2563EB',
+    color: '#FF6B35',
     fontWeight: '500',
     marginTop: 1,
   },
@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
   },
   emptyButton: {
     marginTop: 16,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
@@ -496,10 +496,10 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#2563EB',
+    shadowColor: '#FF6B35',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

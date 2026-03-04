@@ -271,7 +271,7 @@ export default function TeamsScreen() {
   function getRoleBadgeColor(role: string) {
     switch (role) {
       case 'owner': return '#7C3AED';
-      case 'admin': return '#2563EB';
+      case 'admin': return '#FF6B35';
       case 'worker': return '#059669';
       default: return '#6B7280';
     }
@@ -280,7 +280,7 @@ export default function TeamsScreen() {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#2563EB" />
+        <ActivityIndicator size="large" color="#FF6B35" />
       </View>
     );
   }
@@ -389,7 +389,7 @@ export default function TeamsScreen() {
       {/* Team Header */}
       <View style={styles.teamHeader}>
         <View style={styles.teamIcon}>
-          <Ionicons name="people" size={28} color="#2563EB" />
+          <Ionicons name="people" size={28} color="#FF6B35" />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.teamName}>{team.name}</Text>
@@ -482,7 +482,7 @@ export default function TeamsScreen() {
           {/* Invite button */}
           {isOwnerOrAdmin && !showInviteForm && (
             <TouchableOpacity style={styles.inviteButton} onPress={() => setShowInviteForm(true)}>
-              <Ionicons name="person-add-outline" size={20} color="#2563EB" />
+              <Ionicons name="person-add-outline" size={20} color="#FF6B35" />
               <Text style={styles.inviteButtonText}>Invite Team Member</Text>
             </TouchableOpacity>
           )}
@@ -580,7 +580,7 @@ export default function TeamsScreen() {
 
           {!showInviteForm && (
             <TouchableOpacity style={styles.inviteButton} onPress={() => { setShowInviteForm(true); setActiveTab('members'); }}>
-              <Ionicons name="person-add-outline" size={20} color="#2563EB" />
+              <Ionicons name="person-add-outline" size={20} color="#FF6B35" />
               <Text style={styles.inviteButtonText}>Send New Invite</Text>
             </TouchableOpacity>
           )}
@@ -728,7 +728,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   activeTab: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
   },
   tabText: {
     fontSize: 13,
@@ -862,7 +862,7 @@ const styles = StyleSheet.create({
 
   // Buttons
   createButton: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
@@ -883,7 +883,7 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 14,
     borderWidth: 1.5,
-    borderColor: '#2563EB',
+    borderColor: '#FF6B35',
     borderRadius: 10,
     borderStyle: 'dashed',
     marginTop: 8,
@@ -891,7 +891,7 @@ const styles = StyleSheet.create({
   inviteButtonText: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#2563EB',
+    color: '#FF6B35',
   },
   leaveButton: {
     flexDirection: 'row',
@@ -954,8 +954,8 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
   },
   roleOptionActive: {
-    backgroundColor: '#2563EB',
-    borderColor: '#2563EB',
+    backgroundColor: '#FF6B35',
+    borderColor: '#FF6B35',
   },
   roleOptionText: {
     fontSize: 14,
@@ -980,7 +980,7 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   submitButton: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FF6B35',
     paddingHorizontal: 24,
     paddingVertical: 10,
     borderRadius: 8,

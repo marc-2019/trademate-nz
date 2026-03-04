@@ -148,7 +148,7 @@ export default function PhotoAttachments({
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Photos</Text>
         <View style={styles.loadingRow}>
-          <ActivityIndicator size="small" color="#2563EB" />
+          <ActivityIndicator size="small" color="#FF6B35" />
         </View>
       </View>
     );
@@ -168,10 +168,10 @@ export default function PhotoAttachments({
             disabled={isUploading}
           >
             {isUploading ? (
-              <ActivityIndicator size="small" color="#2563EB" />
+              <ActivityIndicator size="small" color="#FF6B35" />
             ) : (
               <>
-                <Ionicons name="camera-outline" size={18} color="#2563EB" />
+                <Ionicons name="camera-outline" size={18} color="#FF6B35" />
                 <Text style={styles.addButtonText}>Add</Text>
               </>
             )}
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
   addButtonText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#2563EB',
+    color: '#FF6B35',
   },
   loadingRow: {
     paddingVertical: 24,
