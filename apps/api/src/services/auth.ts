@@ -12,7 +12,7 @@ import db from './database.js';
 import teamsService from './teams.js';
 import { User, UserCreateInput, UserLoginInput, AuthTokens, JwtPayload } from '../types/index.js';
 import { createError } from '../middleware/error.js';
-import { isSmtpConfigured, sendPasswordResetEmail } from './email.js';
+import { isSmtpConfigured, sendPasswordResetEmail, sendVerificationEmail } from './email.js';
 
 const SALT_ROUNDS = 12;
 
