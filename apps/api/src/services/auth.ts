@@ -65,8 +65,15 @@ export async function register(input: UserCreateInput): Promise<{ user: User; to
   // Store refresh token
   await storeRefreshToken(user.id, tokens.refreshToken);
 
-  // Log verification code in dev only (in production, send via email)
-  if (config.isDevelopment) {
+  // Send verification email
+  if (isSmtpConfigured()) {
+    try {
+      await sendVerificationEmail(user.email, verificationCode);
+      console.log(`[VERIFY] Verification email sent to ${user.email}`);
+    } catch (err) {
+      console.error(`[VERIFY] Failed to send verification email to ${user.email}:`, err);
+    }
+  } else if (config.isDevelopment) {
     console.log(`[VERIFY] Code for ${user.email}: ${verificationCode}`);
   }
 
@@ -285,8 +292,15 @@ export async function resendVerification(userId: string): Promise<{ verification
     [verificationCode, codeExpiresAt, userId]
   );
 
-  // Log verification code in dev only (in production, send via email)
-  if (config.isDevelopment) {
+  // Send verification email
+  if (isSmtpConfigured()) {
+    try {
+      await sendVerificationEmail(result.rows[0].email, verificationCode);
+      console.log(`[VERIFY] Verification email resent to ${result.rows[0].email}`);
+    } catch (err) {
+      console.error(`[VERIFY] Failed to resend verification email to ${result.rows[0].email}:`, err);
+    }
+  } else if (config.isDevelopment) {
     console.log(`[VERIFY] New code for ${result.rows[0].email}: ${verificationCode}`);
   }
 

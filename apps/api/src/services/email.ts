@@ -211,6 +211,67 @@ export async function sendInvoiceEmail(
 }
 
 /**
+ * Send an email verification code
+ */
+export async function sendVerificationEmail(
+  recipientEmail: string,
+  code: string
+): Promise<{ messageId: string }> {
+  const transport = createTransport();
+
+  const fromEmail = config.smtp.fromEmail || config.smtp.user;
+  const appName = config.smtp.fromName;
+
+  const subject = `${appName} - Verify Your Email`;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #F3F4F6; margin: 0; padding: 20px;">
+  <div style="max-width: 600px; margin: 0 auto; background: #FFFFFF; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <div style="background: #F97316; padding: 24px 32px;">
+      <h1 style="margin: 0; color: #FFFFFF; font-size: 20px;">Verify Your Email</h1>
+      <p style="margin: 8px 0 0; color: #FED7AA; font-size: 14px;">${appName}</p>
+    </div>
+    <div style="padding: 32px;">
+      <p style="margin: 0 0 16px; color: #374151; font-size: 16px;">Welcome to ${appName}! Enter this code to verify your email:</p>
+      <div style="margin: 24px 0; padding: 20px; background: #FFF7ED; border: 2px solid #F97316; border-radius: 8px; text-align: center;">
+        <span style="font-size: 32px; font-weight: 700; letter-spacing: 8px; color: #111827;">${code}</span>
+      </div>
+      <p style="margin: 0 0 8px; color: #6B7280; font-size: 13px;">This code expires in 30 minutes.</p>
+      <p style="margin: 0; color: #6B7280; font-size: 13px;">If you didn't create an account, you can safely ignore this email.</p>
+    </div>
+    <div style="padding: 16px 32px; background: #F9FAFB; border-top: 1px solid #E5E7EB;">
+      <p style="margin: 0; color: #9CA3AF; font-size: 12px; text-align: center;">Sent via ${appName}</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  const text = [
+    `${appName} - Email Verification`,
+    '',
+    'Welcome! Enter this code to verify your email:',
+    '',
+    `  ${code}`,
+    '',
+    'This code expires in 30 minutes.',
+    "If you didn't create an account, you can safely ignore this email.",
+  ].join('\n');
+
+  const info = await transport.sendMail({
+    from: `"${appName}" <${fromEmail}>`,
+    to: recipientEmail,
+    subject,
+    text,
+    html,
+  });
+
+  return { messageId: info.messageId };
+}
+
+/**
  * Send a password reset email with 6-digit code
  */
 export async function sendPasswordResetEmail(
@@ -274,5 +335,6 @@ export async function sendPasswordResetEmail(
 export default {
   isSmtpConfigured,
   sendInvoiceEmail,
+  sendVerificationEmail,
   sendPasswordResetEmail,
 };
