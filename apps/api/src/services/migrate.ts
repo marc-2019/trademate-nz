@@ -26,13 +26,13 @@ export async function runMigrations(): Promise<void> {
     console.log('[migrate] Starting database migration check...');
 
     // Create migrations tracking table if it doesn't exist
-    await pool.query(
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS _migrations (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) UNIQUE NOT NULL,
         applied_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       )
-    );
+    `);
 
     // Get list of already-applied migrations
     const { rows: applied } = await pool.query(
@@ -75,21 +75,21 @@ export async function runMigrations(): Promise<void> {
         continue;
       }
 
-      console.log([migrate] Applying: );
+      console.log(`[migrate] Applying: ${migration.name}`);
       const client = await pool.connect();
       try {
         await client.query('BEGIN');
         await client.query(migration.sql);
         await client.query(
-          'INSERT INTO _migrations (name) VALUES ()',
+          'INSERT INTO _migrations (name) VALUES ($1)',
           [migration.name]
         );
         await client.query('COMMIT');
-        console.log([migrate] Applied: );
+        console.log(`[migrate] Applied: ${migration.name}`);
         ranCount++;
       } catch (err) {
         await client.query('ROLLBACK');
-        console.error([migrate] FAILED: , err);
+        console.error(`[migrate] FAILED: ${migration.name}`, err);
         throw err;
       } finally {
         client.release();
@@ -99,7 +99,7 @@ export async function runMigrations(): Promise<void> {
     if (ranCount === 0) {
       console.log('[migrate] All migrations already applied. Database is up to date.');
     } else {
-      console.log([migrate] Successfully applied  migration(s).);
+      console.log(`[migrate] Successfully applied ${ranCount} migration(s).`);
     }
   } finally {
     await pool.end();
