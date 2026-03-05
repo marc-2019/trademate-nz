@@ -22,6 +22,7 @@ export function isSmtpConfigured(): boolean {
 
   return !!(config.smtp.host && config.smtp.user && config.smtp.pass);
 
+}
 /**
 
  * Check if Resend HTTP API is configured (preferred over SMTP)
