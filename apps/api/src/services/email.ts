@@ -6,15 +6,11 @@
 
  */
 
-
-
 import nodemailer from 'nodemailer';
 
 import { config } from '../config/index.js';
 
 import { Invoice } from '../types/index.js';
-
-
 
 /**
 
@@ -25,8 +21,6 @@ import { Invoice } from '../types/index.js';
 export function isSmtpConfigured(): boolean {
 
   return !!(config.smtp.host && config.smtp.user && config.smtp.pass);
-
-
 
 /**
 
@@ -39,8 +33,6 @@ export function isResendConfigured(): boolean {
   return !!config.resendApiKey;
 
 }
-
-
 
 /**
 
@@ -66,15 +58,13 @@ async function sendViaResendApi(
 
   const fromName = config.smtp.fromName || 'BossBoard';
 
-
-
   const response = await fetch('https://api.resend.com/emails', {
 
     method: 'POST',
 
     headers: {
 
-      'Authorization': \Bearer \\,
+      'Authorization': `Bearer ${config.resendApiKey}`,
 
       'Content-Type': 'application/json',
 
@@ -82,7 +72,7 @@ async function sendViaResendApi(
 
     body: JSON.stringify({
 
-      from: \\ <\>\,
+      from: `${fromName} <${fromEmail}>`,
 
       to: [to],
 
@@ -96,27 +86,19 @@ async function sendViaResendApi(
 
   });
 
-
-
   if (!response.ok) {
 
     const errorBody = await response.text();
 
-    throw new Error(\Resend API error (\): \\);
+    throw new Error(`Resend API error (${response.status}): ${errorBody}`);
 
   }
-
-
 
   const data = await response.json() as any;
 
   return { messageId: data.id || 'resend-' + Date.now() };
 
 }
-
-}
-
-
 
 /**
 
@@ -133,8 +115,6 @@ function createTransport() {
     throw new Error('SMTP not configured. Set SMTP_HOST, SMTP_USER, and SMTP_PASS environment variables.');
 
   }
-
-
 
   return nodemailer.createTransport({
 
@@ -156,8 +136,6 @@ function createTransport() {
 
 }
 
-
-
 /**
 
  * Format cents to NZD currency string
@@ -169,8 +147,6 @@ function formatCurrency(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`;
 
 }
-
-
 
 /**
 
@@ -198,8 +174,6 @@ function buildInvoiceEmailHtml(invoice: Invoice, senderName: string): string {
 
     .join('');
 
-
-
   const dueDateHtml = invoice.dueDate
 
     ? `<p style="margin: 0 0 8px; color: #374151;">
@@ -209,8 +183,6 @@ function buildInvoiceEmailHtml(invoice: Invoice, senderName: string): string {
       </p>`
 
     : '';
-
-
 
   const bankHtml = invoice.bankAccountName || invoice.bankAccountNumber
 
@@ -226,8 +198,6 @@ function buildInvoiceEmailHtml(invoice: Invoice, senderName: string): string {
 
     : '';
 
-
-
   const notesHtml = invoice.notes
 
     ? `<div style="margin-top: 16px; padding: 12px; background: #FFFBEB; border-radius: 8px;">
@@ -237,8 +207,6 @@ function buildInvoiceEmailHtml(invoice: Invoice, senderName: string): string {
       </div>`
 
     : '';
-
-
 
   return `
 
@@ -258,8 +226,6 @@ function buildInvoiceEmailHtml(invoice: Invoice, senderName: string): string {
 
   <div style="max-width: 600px; margin: 0 auto; background: #FFFFFF; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
 
-
-
     <!-- Header -->
 
     <div style="background: #2563EB; padding: 24px 32px;">
@@ -270,8 +236,6 @@ function buildInvoiceEmailHtml(invoice: Invoice, senderName: string): string {
 
     </div>
 
-
-
     <!-- Body -->
 
     <div style="padding: 32px;">
@@ -280,15 +244,9 @@ function buildInvoiceEmailHtml(invoice: Invoice, senderName: string): string {
 
       <p style="margin: 0 0 16px; color: #111827; font-size: 16px; font-weight: 600;">${invoice.clientName}</p>
 
-
-
       ${invoice.jobDescription ? `<p style="margin: 0 0 16px; color: #374151; font-size: 14px;">${invoice.jobDescription}</p>` : ''}
 
-
-
       ${dueDateHtml}
-
-
 
       <!-- Line Items Table -->
 
@@ -314,8 +272,6 @@ function buildInvoiceEmailHtml(invoice: Invoice, senderName: string): string {
 
       </table>
 
-
-
       <!-- Totals -->
 
       <div style="margin-top: 16px; text-align: right;">
@@ -328,15 +284,11 @@ function buildInvoiceEmailHtml(invoice: Invoice, senderName: string): string {
 
       </div>
 
-
-
       ${bankHtml}
 
       ${notesHtml}
 
     </div>
-
-
 
     <!-- Footer -->
 
@@ -357,8 +309,6 @@ function buildInvoiceEmailHtml(invoice: Invoice, senderName: string): string {
 </html>`;
 
 }
-
-
 
 /**
 
@@ -400,8 +350,6 @@ function buildInvoiceEmailText(invoice: Invoice, senderName: string): string {
 
   ];
 
-
-
   if (invoice.bankAccountName || invoice.bankAccountNumber) {
 
     lines.push('--- Payment Details ---');
@@ -414,8 +362,6 @@ function buildInvoiceEmailText(invoice: Invoice, senderName: string): string {
 
   }
 
-
-
   if (invoice.notes) {
 
     lines.push(`Notes: ${invoice.notes}`);
@@ -424,17 +370,11 @@ function buildInvoiceEmailText(invoice: Invoice, senderName: string): string {
 
   }
 
-
-
   lines.push(`Sent via ${config.smtp.fromName}${senderName ? ` on behalf of ${senderName}` : ''}`);
-
-
 
   return lines.filter((l) => l !== undefined).join('\n');
 
 }
-
-
 
 /**
 
@@ -458,21 +398,15 @@ export async function sendInvoiceEmail(
 
   const transport = createTransport();
 
-
-
   const fromEmail = config.smtp.fromEmail || config.smtp.user;
 
   const fromDisplay = senderName || config.smtp.fromName;
-
-
 
   const subject = customMessage
 
     ? `Invoice ${invoice.invoiceNumber} - ${customMessage}`
 
     : `Invoice ${invoice.invoiceNumber} from ${senderName || config.smtp.fromName}`;
-
-
 
   const info = await transport.sendMail({
 
@@ -501,8 +435,6 @@ export async function sendInvoiceEmail(
     ],
 
   });
-
-
 
   return { messageId: info.messageId };
 
@@ -618,7 +550,7 @@ export async function sendPasswordResetEmail(
     `  ${code}`,
     '',
     'This code expires in 30 minutes.',
-    'If you didn''t request this, you can safely ignore this email.',
+    'If you didn\'t request this, you can safely ignore this email.',
   ].join('\n');
 
   // Use Resend HTTP API if available (SMTP ports often blocked on cloud platforms)
