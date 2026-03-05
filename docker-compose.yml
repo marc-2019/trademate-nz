@@ -78,6 +78,27 @@ services:
       retries: 5
     restart: unless-stopped
 
+  # =============================================================================
+  # Web Frontend (Expo Web via nginx)
+  # =============================================================================
+  bossboard-web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: bossboard-web
+    ports:
+      - "29080:80"
+    depends_on:
+      bossboard-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    restart: unless-stopped
+
 volumes:
   bossboard_postgres_data:
   bossboard_redis_data:
