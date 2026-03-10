@@ -4,6 +4,7 @@
     "slug": "bossboard",
     "owner": "instilligent",
     "version": "0.5.0",
+    "description": "Your whole business. One screen. BossBoard is the all-in-one platform for NZ tradies to manage compliance, invoicing, jobs, and teams.",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",

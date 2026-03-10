@@ -49,7 +49,7 @@ export default function LoginScreen() {
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.logo}>BossBoard</Text>
-          <Text style={styles.subtitle}>Compliance Made Easy</Text>
+          <Text style={styles.subtitle}>Your Whole Business. One Screen.</Text>
         </View>
 
         <View style={styles.form}>

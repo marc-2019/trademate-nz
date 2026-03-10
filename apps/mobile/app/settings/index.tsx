@@ -97,7 +97,7 @@ export default function SettingsScreen() {
       items: [
         { id: 'help', icon: 'help-circle-outline', label: 'Help Centre', showChevron: true, onPress: () => Alert.alert('Help Centre', 'Visit our website for help and FAQs.') },
         { id: 'feedback', icon: 'chatbubble-outline', label: 'Send Feedback', showChevron: true, onPress: () => Alert.alert('Send Feedback', 'Email us at support@instilligent.nz with your feedback.') },
-        { id: 'about', icon: 'information-circle-outline', label: 'About', showChevron: true, onPress: () => Alert.alert('About', 'TradeMate NZ v0.5.0\nBuilt by Instilligent Limited\n\nMobile-first compliance & cashflow platform for NZ tradies.') },
+        { id: 'about', icon: 'information-circle-outline', label: 'About', showChevron: true, onPress: () => Alert.alert('About', 'BossBoard v0.5.0\nBuilt by Instilligent Limited\n\nYour whole business. One screen.\nCompliance, cashflow & operations for NZ tradies.') },
       ],
     },
     {
@@ -180,7 +180,7 @@ export default function SettingsScreen() {
         </View>
       ))}
 
-      <Text style={styles.version}>TradeMate NZ v0.5.0</Text>
+      <Text style={styles.version}>BossBoard v0.5.0</Text>
     </ScrollView>
   );
 }
