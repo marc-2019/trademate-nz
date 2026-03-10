@@ -195,7 +195,7 @@ export default function GenerateSWMSScreen() {
       <View style={styles.disclaimer}>
         <Ionicons name="information-circle-outline" size={16} color="#6B7280" />
         <Text style={styles.disclaimerText}>
-          Generated documents comply with NZ Health and Safety at Work Act 2015.
+          Generated documents are designed to align with the NZ Health and Safety at Work Act 2015. This app is not affiliated with WorkSafe NZ or any government agency.
           Always review and customise for your specific situation.
         </Text>
       </View>
