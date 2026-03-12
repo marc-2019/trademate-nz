@@ -46,7 +46,7 @@
       "distribution": "store",
       "autoIncrement": true,
       "ios": {
-        "resourceClass": "m1-medium",
+        "resourceClass": "m-medium",
         "autoIncrement": "buildNumber"
       },
       "android": {
