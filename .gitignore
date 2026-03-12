@@ -73,6 +73,7 @@ secrets/
 credentials/
 *.secret
 google-service-account.json
+google-services.json
 
 # Docker
 docker-compose.override.yml
