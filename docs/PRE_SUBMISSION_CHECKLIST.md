@@ -63,7 +63,7 @@ All placeholders have been filled. EAS project ID `e5d4e8a5-631b-45c8-8e29-2a7c8
 | Location | Current Value | What You Need |
 |----------|---------------|---------------|
 | `contact.phone` | `+64 XX XXX XXXX` | Real NZ business phone number |
-| `reviewAccount.password` | `SET_BEFORE_SUBMISSION` | Password for the reviewer@instilligent.nz test account |
+| `reviewAccount.password` | `SET_BEFORE_SUBMISSION` | Password for the reviewer@instilligent.com test account |
 
 ---
 
@@ -170,13 +170,13 @@ Privacy policy, terms of service, and support pages are now served directly from
 
 | URL | Purpose | Required For | Status |
 |-----|---------|-------------|--------|
-| `https://api.instilligent.nz/legal/privacy` | Privacy policy | Both stores (mandatory) | Done |
-| `https://api.instilligent.nz/legal/terms` | Terms of service | Both stores | Done |
-| `https://api.instilligent.nz/legal/support` | Support page | Both stores | Done |
+| `https://api.instilligent.com/legal/privacy` | Privacy policy | Both stores (mandatory) | Done |
+| `https://api.instilligent.com/legal/terms` | Terms of service | Both stores | Done |
+| `https://api.instilligent.com/legal/support` | Support page | Both stores | Done |
 
-These URLs are already configured in `store-listing.json`. They will go live once the API is deployed to Railway at the `api.instilligent.nz` domain.
+These URLs are already configured in `store-listing.json`. They will go live once the API is deployed to Railway at the `api.instilligent.com` domain.
 
-**Note**: A marketing/landing page is not required for store submission but can be added later at `instilligent.nz/trademate` or similar.
+**Note**: A marketing/landing page is not required for store submission but can be added later at `instilligent.com/trademate` or similar.
 
 ---
 
@@ -245,8 +245,8 @@ Before hitting submit:
 
 - [ ] All `REPLACE_ME_*` placeholders replaced (6 remaining in eas.json)
 - [ ] API deployed and `/health` endpoint responding
-- [ ] Legal pages live at `https://api.instilligent.nz/legal/*`
-- [ ] Test account created (reviewer@instilligent.nz) with demo data
+- [ ] Legal pages live at `https://api.instilligent.com/legal/*`
+- [ ] Test account created (reviewer@instilligent.com) with demo data
 - [ ] All 5+ screenshots uploaded per platform
 - [ ] App description matches current features
 - [ ] Version number is 0.5.0 (or later)

@@ -2,9 +2,11 @@
  * Legal Routes (No Authentication Required)
  * Serves HTML pages required for App Store / Play Store compliance.
  *
- * GET /privacy  - Privacy Policy
- * GET /terms    - Terms of Service
- * GET /support  - Support / Contact
+ * GET /privacy        - Privacy Policy
+ * GET /terms          - Terms of Service
+ * GET /support        - Support / Contact
+ * GET /delete-account - Account Deletion Request
+ * GET /delete-data    - Data Deletion Request
  */
 
 import { Router, Request, Response } from 'express';
@@ -29,6 +31,16 @@ router.get('/terms', (_req: Request, res: Response) => {
 router.get('/support', (_req: Request, res: Response) => {
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.send(renderSupportPage());
+});
+
+router.get('/delete-account', (_req: Request, res: Response) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.send(renderDeleteAccountPage());
+});
+
+router.get('/delete-data', (_req: Request, res: Response) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.send(renderDeleteDataPage());
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -59,11 +71,12 @@ function page(title: string, body: string): string {
 <body>
   <header class="site-header">
     <div class="header-inner">
-      <a href="/privacy" class="brand">${appName}</a>
+      <a href="/legal/privacy" class="brand">${appName}</a>
       <nav>
-        <a href="/privacy">Privacy</a>
-        <a href="/terms">Terms</a>
-        <a href="/support">Support</a>
+        <a href="/legal/privacy">Privacy</a>
+        <a href="/legal/terms">Terms</a>
+        <a href="/legal/support">Support</a>
+        <a href="/legal/delete-account">Delete Account</a>
       </nav>
     </div>
   </header>
@@ -76,9 +89,10 @@ function page(title: string, body: string): string {
     <div class="footer-inner">
       <p>&copy; ${new Date().getFullYear()} Instilligent Limited. All rights reserved.</p>
       <p class="footer-links">
-        <a href="/privacy">Privacy Policy</a>
-        <a href="/terms">Terms of Service</a>
-        <a href="/support">Support</a>
+        <a href="/legal/privacy">Privacy Policy</a>
+        <a href="/legal/terms">Terms of Service</a>
+        <a href="/legal/support">Support</a>
+        <a href="/legal/delete-account">Delete Account</a>
       </p>
     </div>
   </footer>
@@ -190,7 +204,7 @@ function renderPrivacyPolicy(): string {
       </ul>
       <p>
         To exercise any of these rights, contact us at
-        <a href="mailto:privacy@instilligent.nz">privacy@instilligent.nz</a>.
+        <a href="mailto:privacy@instilligent.com">privacy@instilligent.com</a>.
         We will respond within 20 working days as required by the Act.
       </p>
 
@@ -214,7 +228,7 @@ function renderPrivacyPolicy(): string {
         <p><strong>Privacy Officer</strong></p>
         <p>Instilligent Limited</p>
         <p>New Zealand</p>
-        <p>Email: <a href="mailto:privacy@instilligent.nz">privacy@instilligent.nz</a></p>
+        <p>Email: <a href="mailto:privacy@instilligent.com">privacy@instilligent.com</a></p>
       </div>
   `);
 }
@@ -395,7 +409,7 @@ function renderTermsOfService(): string {
         <p><strong>Legal Enquiries</strong></p>
         <p>Instilligent Limited</p>
         <p>New Zealand</p>
-        <p>Email: <a href="mailto:legal@instilligent.nz">legal@instilligent.nz</a></p>
+        <p>Email: <a href="mailto:legal@instilligent.com">legal@instilligent.com</a></p>
       </div>
   `);
 }
@@ -420,7 +434,7 @@ function renderSupportPage(): string {
             For general enquiries, account issues, or anything else, email us at:
           </p>
           <p class="support-email">
-            <a href="mailto:support@instilligent.nz">support@instilligent.nz</a>
+            <a href="mailto:support@instilligent.com">support@instilligent.com</a>
           </p>
           <p class="support-note">We aim to respond within <strong>2 business days</strong>.</p>
         </div>
@@ -437,7 +451,7 @@ function renderSupportPage(): string {
           </ul>
           <p>
             Send bug reports to
-            <a href="mailto:support@instilligent.nz?subject=Bug%20Report">support@instilligent.nz</a>
+            <a href="mailto:support@instilligent.com?subject=Bug%20Report">support@instilligent.com</a>
             with the subject line &ldquo;Bug Report&rdquo;.
           </p>
         </div>
@@ -448,7 +462,7 @@ function renderSupportPage(): string {
           <p>
             Have an idea that would make ${appName} more useful for your trade? We genuinely want
             to hear it. Email us at
-            <a href="mailto:support@instilligent.nz?subject=Feature%20Request">support@instilligent.nz</a>
+            <a href="mailto:support@instilligent.com?subject=Feature%20Request">support@instilligent.com</a>
             with the subject line &ldquo;Feature Request&rdquo;.
           </p>
           <p class="support-note">
@@ -523,7 +537,7 @@ function renderSupportPage(): string {
             You can manage your subscription from the Settings screen in the app. If you cancel,
             you&rsquo;ll continue to have access until the end of your current billing period.
             You can also contact us at
-            <a href="mailto:support@instilligent.nz">support@instilligent.nz</a> for assistance.
+            <a href="mailto:support@instilligent.com">support@instilligent.com</a> for assistance.
           </p>
         </details>
 
@@ -531,7 +545,7 @@ function renderSupportPage(): string {
           <summary>How do I delete my account?</summary>
           <p>
             You can request account deletion by emailing
-            <a href="mailto:support@instilligent.nz?subject=Account%20Deletion%20Request">support@instilligent.nz</a>
+            <a href="mailto:support@instilligent.com?subject=Account%20Deletion%20Request">support@instilligent.com</a>
             with the subject &ldquo;Account Deletion Request&rdquo;. We will process your request
             and confirm deletion within 20 working days. You may also request a copy of your data
             before deletion.
@@ -552,7 +566,7 @@ function renderSupportPage(): string {
           <summary>I have a billing question. Who do I contact?</summary>
           <p>
             For any billing or payment enquiries, email us at
-            <a href="mailto:support@instilligent.nz?subject=Billing%20Enquiry">support@instilligent.nz</a>
+            <a href="mailto:support@instilligent.com?subject=Billing%20Enquiry">support@instilligent.com</a>
             with the subject &ldquo;Billing Enquiry&rdquo;. Please include the email address
             associated with your account.
           </p>
@@ -564,7 +578,198 @@ function renderSupportPage(): string {
       <div class="contact-box">
         <p><strong>Instilligent Limited</strong></p>
         <p>New Zealand</p>
-        <p>Email: <a href="mailto:support@instilligent.nz">support@instilligent.nz</a></p>
+        <p>Email: <a href="mailto:support@instilligent.com">support@instilligent.com</a></p>
+      </div>
+  `);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ACCOUNT DELETION REQUEST
+// ─────────────────────────────────────────────────────────────────────────────
+
+function renderDeleteAccountPage(): string {
+  const appName = esc(config.appName);
+
+  return page('Account Deletion Request', `
+      <h1>Account Deletion Request</h1>
+      <p class="meta">How to request permanent deletion of your ${appName} account and associated data.</p>
+
+      <p>
+        Under the <strong>New Zealand Privacy Act 2020</strong>, you have the right to request deletion
+        of your personal information. This page explains how to request complete deletion of your
+        ${appName} account and all associated data.
+      </p>
+
+      <h2>How to Request Account Deletion</h2>
+      <p>To delete your account, follow these three steps:</p>
+
+      <ol class="steps-list">
+        <li>
+          <div class="step-content">
+            <strong>Send a deletion request</strong>
+            <p>
+              Email <a href="mailto:support@instilligent.com?subject=Account%20Deletion%20Request">support@instilligent.com</a>
+              with the subject line <strong>&ldquo;Account Deletion Request&rdquo;</strong>. Include the
+              email address associated with your ${appName} account so we can locate your records.
+            </p>
+          </div>
+        </li>
+        <li>
+          <div class="step-content">
+            <strong>Identity verification</strong>
+            <p>
+              We will reply to confirm your identity before processing the request. This protects your
+              account from unauthorised deletion. You may be asked to confirm details such as the email
+              address or trade type on your account.
+            </p>
+          </div>
+        </li>
+        <li>
+          <div class="step-content">
+            <strong>Processing &amp; confirmation</strong>
+            <p>
+              Once verified, we will process your deletion request within <strong>20 working days</strong>,
+              as required by the NZ Privacy Act 2020. You will receive a confirmation email when deletion
+              is complete.
+            </p>
+          </div>
+        </li>
+      </ol>
+
+      <h2>What Gets Deleted</h2>
+      <p>When your account is deleted, the following data is permanently removed:</p>
+      <ul>
+        <li><strong>Account information</strong> &ndash; your name, email address, phone number, password, and profile settings.</li>
+        <li><strong>Business data</strong> &ndash; invoices, quotes, expenses, and job logs you created.</li>
+        <li><strong>Compliance documents</strong> &ndash; Safe Work Method Statements (SWMS), risk assessments, and generated documents.</li>
+        <li><strong>Certifications</strong> &ndash; trade licences, certification records, and expiry tracking data.</li>
+        <li><strong>Photos</strong> &ndash; all uploaded images (job photos, receipts, certification images).</li>
+        <li><strong>Team data</strong> &ndash; team memberships, invitations, and role assignments. If you are a team owner, the team will be dissolved.</li>
+        <li><strong>Customer records</strong> &ndash; client names, contact details, and associated invoice/quote history.</li>
+      </ul>
+
+      <h2>Data Retention Requirements</h2>
+      <div class="disclaimer-box">
+        <p>
+          <strong>Important:</strong> Certain financial records may be retained for up to
+          <strong>7 years</strong> after deletion as required by the
+          <strong>Tax Administration Act 1994</strong>. This includes invoice amounts, GST records,
+          and expense totals needed for tax compliance purposes. Retained records are anonymised
+          where possible and are not accessible through the Service.
+        </p>
+      </div>
+
+      <h2>Before You Delete</h2>
+      <ul>
+        <li>Account deletion is <strong>permanent and cannot be undone</strong>. Once processed, your data cannot be recovered.</li>
+        <li>If you have an active paid subscription, please cancel it before requesting deletion to avoid further charges.</li>
+        <li>You may request a copy of your data before deletion by including this in your email.</li>
+        <li>If you only want to delete specific data without removing your entire account, see our <a href="/legal/delete-data">Data Deletion Request</a> page instead.</li>
+      </ul>
+
+      <h2>Contact Us</h2>
+      <div class="contact-box">
+        <p><strong>Account Deletion Requests</strong></p>
+        <p>Instilligent Limited</p>
+        <p>Email: <a href="mailto:support@instilligent.com?subject=Account%20Deletion%20Request">support@instilligent.com</a></p>
+        <p class="support-note">Subject: &ldquo;Account Deletion Request&rdquo;</p>
+      </div>
+  `);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DATA DELETION REQUEST
+// ─────────────────────────────────────────────────────────────────────────────
+
+function renderDeleteDataPage(): string {
+  const appName = esc(config.appName);
+
+  return page('Data Deletion Request', `
+      <h1>Data Deletion Request</h1>
+      <p class="meta">How to request deletion of specific data from your ${appName} account without deleting the account itself.</p>
+
+      <p>
+        Under the <strong>New Zealand Privacy Act 2020</strong>, you have the right to request deletion
+        of personal information held about you. If you want to remove specific data from your account
+        while keeping your ${appName} account active, this page explains how.
+      </p>
+
+      <h2>How to Request Data Deletion</h2>
+      <p>To request deletion of specific data, follow these steps:</p>
+
+      <ol class="steps-list">
+        <li>
+          <div class="step-content">
+            <strong>Send a data deletion request</strong>
+            <p>
+              Email <a href="mailto:support@instilligent.com?subject=Data%20Deletion%20Request">support@instilligent.com</a>
+              with the subject line <strong>&ldquo;Data Deletion Request&rdquo;</strong>. Include the
+              email address associated with your account and clearly describe which data you want deleted.
+            </p>
+          </div>
+        </li>
+        <li>
+          <div class="step-content">
+            <strong>Identity verification</strong>
+            <p>
+              We will reply to verify your identity before processing the request. This ensures only
+              you can request changes to your data.
+            </p>
+          </div>
+        </li>
+        <li>
+          <div class="step-content">
+            <strong>Processing &amp; confirmation</strong>
+            <p>
+              Once verified, we will delete the specified data within <strong>20 working days</strong>,
+              as required by the NZ Privacy Act 2020. You will receive a confirmation email when the
+              deletion is complete.
+            </p>
+          </div>
+        </li>
+      </ol>
+
+      <h2>Data That Can Be Deleted</h2>
+      <p>You can request deletion of any of the following data types individually:</p>
+      <ul>
+        <li><strong>Invoices</strong> &ndash; specific invoices or all invoice history.</li>
+        <li><strong>Quotes</strong> &ndash; specific quotes or all quote history.</li>
+        <li><strong>Expenses</strong> &ndash; specific expense records or all expenses.</li>
+        <li><strong>Job logs</strong> &ndash; specific job records or all job history.</li>
+        <li><strong>Compliance documents</strong> &ndash; specific SWMS documents or all compliance records.</li>
+        <li><strong>Certifications</strong> &ndash; specific certification records or all certification data.</li>
+        <li><strong>Photos</strong> &ndash; specific uploaded images or all photos.</li>
+        <li><strong>Customer records</strong> &ndash; specific client details or all customer data.</li>
+        <li><strong>Business information</strong> &ndash; company name, GST number, bank details, or business address.</li>
+      </ul>
+
+      <h2>Data Retention Requirements</h2>
+      <div class="disclaimer-box">
+        <p>
+          <strong>Important:</strong> Some data may be subject to mandatory retention periods under
+          New Zealand law. In particular, financial records (invoice amounts, GST records, expense
+          totals) may need to be retained for up to <strong>7 years</strong> as required by the
+          <strong>Tax Administration Act 1994</strong>. Where retention is required, the data will
+          be anonymised where possible and will not be accessible through the Service.
+        </p>
+        <p>
+          We will inform you if any part of your request is subject to a retention requirement and
+          explain how the retained data will be handled.
+        </p>
+      </div>
+
+      <h2>Full Account Deletion</h2>
+      <p>
+        If you want to delete your entire account and all associated data instead, visit our
+        <a href="/legal/delete-account">Account Deletion Request</a> page for instructions.
+      </p>
+
+      <h2>Contact Us</h2>
+      <div class="contact-box">
+        <p><strong>Data Deletion Requests</strong></p>
+        <p>Instilligent Limited</p>
+        <p>Email: <a href="mailto:support@instilligent.com?subject=Data%20Deletion%20Request">support@instilligent.com</a></p>
+        <p class="support-note">Subject: &ldquo;Data Deletion Request&rdquo;</p>
       </div>
   `);
 }
@@ -784,6 +989,63 @@ function getStyles(): string {
     .faq-item ul {
       padding: 0 20px 16px 44px;
       font-size: 14px;
+    }
+
+    /* ── Steps list (wizard-style numbered circles) ────────────── */
+    .steps-list {
+      list-style: none;
+      padding-left: 0;
+      counter-reset: step-counter;
+      margin: 20px 0 24px;
+    }
+    .steps-list li {
+      counter-increment: step-counter;
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      position: relative;
+      padding-left: 56px;
+      min-height: 44px;
+    }
+    .steps-list li::before {
+      content: counter(step-counter);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #1A2A44;
+      color: #fff;
+      font-weight: 700;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .steps-list li:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      left: 19px;
+      top: 44px;
+      bottom: -16px;
+      width: 2px;
+      background: #E5E7EB;
+    }
+    .step-content {
+      padding-top: 8px;
+    }
+    .step-content strong {
+      font-size: 16px;
+      color: #1A2A44;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .step-content p {
+      font-size: 14px;
+      color: #374151;
+      margin-bottom: 0;
     }
 
     /* ── Footer ──────────────────────────────────────────────────── */

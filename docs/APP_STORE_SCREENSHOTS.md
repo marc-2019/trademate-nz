@@ -148,7 +148,7 @@ npx expo install expo-screen-capture
 Before capturing screenshots, set up a demo account with realistic data:
 
 ```
-Email: reviewer@instilligent.nz
+Email: reviewer@instilligent.com
 Password: SET_BEFORE_SUBMISSION
 ```
 
