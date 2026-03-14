@@ -69,17 +69,13 @@ export default function PhotoAttachments({
 
   async function pickPhoto(source: 'camera' | 'gallery') {
     try {
-      // Request permissions
+      // Camera still requires an explicit permission; the gallery/photo-picker
+      // path uses the Android Photo Picker (API 33+) or ACTION_GET_CONTENT
+      // (older), neither of which needs READ_MEDIA_IMAGES or READ_EXTERNAL_STORAGE.
       if (source === 'camera') {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== 'granted') {
           Alert.alert('Permission needed', 'Camera access is required to take photos.');
-          return;
-        }
-      } else {
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== 'granted') {
-          Alert.alert('Permission needed', 'Photo library access is required.');
           return;
         }
       }
