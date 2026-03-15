@@ -12,7 +12,7 @@ import db from './database.js';
 import teamsService from './teams.js';
 import { User, UserCreateInput, UserLoginInput, AuthTokens, JwtPayload } from '../types/index.js';
 import { createError } from '../middleware/error.js';
-import { isSmtpConfigured, isResendConfigured, sendPasswordResetEmail, sendVerificationEmail } from './email.js';
+import { isEmailConfigured, sendPasswordResetEmail, sendVerificationEmail } from './email.js';
 
 const SALT_ROUNDS = 12;
 
@@ -66,7 +66,7 @@ export async function register(input: UserCreateInput): Promise<{ user: User; to
   await storeRefreshToken(user.id, tokens.refreshToken);
 
   // Send verification email
-  if (isSmtpConfigured() || isResendConfigured()) {
+  if (isEmailConfigured()) {
     try {
       await sendVerificationEmail(user.email, verificationCode);
       console.log(`[VERIFY] Verification email sent to ${user.email}`);
@@ -293,7 +293,7 @@ export async function resendVerification(userId: string): Promise<{ verification
   );
 
   // Send verification email
-  if (isSmtpConfigured() || isResendConfigured()) {
+  if (isEmailConfigured()) {
     try {
       await sendVerificationEmail(result.rows[0].email, verificationCode);
       console.log(`[VERIFY] Verification email resent to ${result.rows[0].email}`);
@@ -404,7 +404,7 @@ export async function forgotPassword(email: string): Promise<void> {
   );
 
   // Send email if SMTP is configured, otherwise log for dev
-  if (isSmtpConfigured() || isResendConfigured()) {
+  if (isEmailConfigured()) {
     try {
       await sendPasswordResetEmail(user.email, resetCode);
     } catch (err) {

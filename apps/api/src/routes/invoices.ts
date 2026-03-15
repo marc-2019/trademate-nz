@@ -301,12 +301,12 @@ router.post('/:id/email', authenticate, attachSubscription, requireFeature('emai
       return;
     }
 
-    // Check SMTP is configured
-    if (!emailService.isSmtpConfigured()) {
+    // Check email is configured
+    if (!emailService.isEmailConfigured()) {
       res.status(503).json({
         success: false,
         error: 'EMAIL_NOT_CONFIGURED',
-        message: 'Email sending is not configured. Contact support or set SMTP settings.',
+        message: 'Email sending is not configured. Set RESEND_API_KEY environment variable.',
       });
       return;
     }
