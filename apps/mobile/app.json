@@ -106,7 +106,7 @@
         "backgroundColor": "#1A2A44"
       },
       "package": "nz.instilligent.bossboard",
-      "versionCode": 3,
+      "versionCode": 4,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.ACCESS_FINE_LOCATION",
