@@ -37,6 +37,13 @@ jest.mock('../../middleware/auth.js', () => ({
   },
 }));
 
+// Mock subscription middleware to avoid hitting the real database
+jest.mock('../../middleware/subscription.js', () => ({
+  attachSubscription: function (_req: any, _res: any, next: any) { next(); },
+  checkLimit: function () { return function (_req: any, _res: any, next: any) { next(); }; },
+  requireFeature: function () { return function (_req: any, _res: any, next: any) { next(); }; },
+}));
+
 // Import routes after mocking
 import swmsRoutes from '../../routes/swms.js';
 import { errorHandler } from '../../middleware/error.js';

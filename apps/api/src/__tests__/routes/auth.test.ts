@@ -89,7 +89,7 @@ describe('Auth Routes', () => {
           user: { email: validRegistration.email },
           tokens: { accessToken: 'mock-access-token' },
         },
-        message: 'Registration successful',
+        message: 'Registration successful. Please verify your email.',
       });
     });
 

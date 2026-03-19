@@ -1,0 +1,99 @@
+# BossBoard API - Railway Deployment
+# Deploys the Express API to Railway on push to main/master
+# Railway auto-deploys from GitHub when connected - this workflow handles testing
+
+name: BossBoard API CI/CD
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - 'apps/api/**'
+      - 'database/**'
+      - 'Dockerfile.api'
+      - 'docker-compose.production.yml'
+      - 'railway.toml'
+  pull_request:
+    branches: [master, main]
+    paths:
+      - 'apps/api/**'
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  test:
+    name: Test API
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: bossboard_test
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: bossboard_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://bossboard_test:test_password@localhost:5432/bossboard_test
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: test-jwt-secret-32-chars-minimum
+      JWT_REFRESH_SECRET: test-refresh-secret-32-chars-min
+      NODE_ENV: test
+      PORT: 29000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: apps/api/package-lock.json
+
+      - name: Install dependencies
+        working-directory: apps/api
+        run: npm ci
+
+      - name: Initialize test database
+        run: |
+          PGPASSWORD=test_password psql -h localhost -U bossboard_test -d bossboard_test -f database/init.sql
+
+      - name: Run tests
+        working-directory: apps/api
+        run: npm test
+
+      - name: Build TypeScript
+        working-directory: apps/api
+        run: npm run build
+
+  # Railway auto-deploys on push to main when connected via GitHub integration
+  # No manual deploy step needed - Railway watches the repo
+  deploy-notification:
+    name: Deploy Status
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    steps:
+      - name: Deployment triggered
+        run: |
+          echo "Tests passed! Railway will auto-deploy from this push."
+          echo "Check Railway dashboard for deployment status."

@@ -82,3 +82,19 @@ docker-compose.override.yml
 .cache/
 .turbo/
 .vercel/
+
+# Session artifacts
+nul
+*_err.txt
+*_out.txt
+.playwright-mcp/
+eas-build-log.txt
+cortexforge_chat_openapi.json
+COWORK_HANDOFF.md
+SYNC_OPTIMIZATION_FINAL_REPORT.md
+SYNC_OPTIMIZATION_SUMMARY.md
+TASK_COMPLETION_REPORT.md
+TASK_COMPLETION_SUMMARY.md
+delete-account-page.png
+delete-data-page.png
+.claude/launch.json

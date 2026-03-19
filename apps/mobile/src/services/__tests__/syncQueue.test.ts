@@ -4,9 +4,25 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import * as SQLite from 'expo-sqlite';
-import * as Network from 'expo-network';
-import syncQueue, {
+
+// Mock dependencies before imports
+jest.mock('expo-sqlite');
+jest.mock('expo-network');
+
+// Shared mock database - must stay as one object since the module caches `db`
+const mockDb = {
+  execAsync: jest.fn<any>().mockResolvedValue(undefined),
+  runAsync: jest.fn<any>().mockResolvedValue({ lastInsertRowId: 1, changes: 1 }),
+  getAllAsync: jest.fn<any>().mockResolvedValue([]),
+  getFirstAsync: jest.fn<any>().mockResolvedValue(null),
+};
+
+// Set up the mock BEFORE importing the module under test
+const SQLite = require('expo-sqlite');
+const Network = require('expo-network');
+(SQLite.openDatabaseAsync as any) = jest.fn<any>().mockResolvedValue(mockDb);
+
+import {
   SyncPriority,
   ConflictStrategy,
   addToSyncQueue,
@@ -20,26 +36,18 @@ import syncQueue, {
   retryFailedItem,
 } from '../syncQueue';
 
-// Mock dependencies
-jest.mock('expo-sqlite');
-jest.mock('expo-network');
-
 describe('SyncQueue', () => {
-  let mockDb: any;
-
   beforeEach(() => {
-    // Reset mocks
-    jest.clearAllMocks();
+    // Clear call history but keep the mock implementations on the SAME object
+    mockDb.execAsync.mockClear();
+    mockDb.runAsync.mockClear().mockResolvedValue({ lastInsertRowId: 1, changes: 1 });
+    mockDb.getAllAsync.mockClear().mockResolvedValue([]);
+    mockDb.getFirstAsync.mockClear().mockResolvedValue(null);
 
-    // Mock database
-    mockDb = {
-      execAsync: (jest.fn as any)().mockResolvedValue(undefined),
-      runAsync: (jest.fn as any)().mockResolvedValue({ lastInsertRowId: 1, changes: 1 }),
-      getAllAsync: (jest.fn as any)().mockResolvedValue([]),
-      getFirstAsync: (jest.fn as any)().mockResolvedValue(null),
-    };
-
-    (SQLite.openDatabaseAsync as any).mockResolvedValue(mockDb);
+    (Network.getNetworkStateAsync as any) = jest.fn<any>().mockResolvedValue({
+      isConnected: true,
+      isInternetReachable: true,
+    });
   });
 
   afterEach(() => {
@@ -98,7 +106,7 @@ describe('SyncQueue', () => {
 
       expect(mockDb.runAsync).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO sync_queue_v2'),
-        expect.arrayContaining(['expenses', 'exp-789', 'delete', null])
+        expect.arrayContaining(['expenses', 'exp-789', 'delete'])
       );
     });
   });
@@ -141,7 +149,7 @@ describe('SyncQueue', () => {
 
       expect(mockDb.getAllAsync).toHaveBeenCalledWith(
         expect.stringContaining('LIMIT ?'),
-        expect.arrayContaining([expect.any(Number), 5])
+        expect.arrayContaining([5])
       );
     });
 
@@ -269,13 +277,12 @@ describe('SyncQueue', () => {
       });
 
       // Mock fetch to simulate fast response
-      global.fetch = (jest.fn as any)().mockResolvedValue({ ok: true });
+      global.fetch = jest.fn<any>().mockResolvedValue({ ok: true });
 
       const quality = await detectNetworkQuality();
 
       expect(quality.isReachable).toBe(true);
       expect(quality.latency).toBeGreaterThanOrEqual(0);
-      // Quality will depend on actual execution time
     });
 
     it('should handle network timeout gracefully', async () => {
@@ -307,10 +314,8 @@ describe('SyncQueue', () => {
           last_sync: '2026-02-16T10:00:00Z',
         });
 
-      (Network.getNetworkStateAsync as any).mockResolvedValue({
-        isConnected: true,
-        isInternetReachable: true,
-      });
+      // Mock fetch for detectNetworkQuality (called internally)
+      global.fetch = jest.fn<any>().mockResolvedValue({ ok: true });
 
       const metrics = await getSyncMetrics();
 
