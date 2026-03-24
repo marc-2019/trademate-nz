@@ -40,7 +40,10 @@
       "Bash(xargs grep:*)",
       "Bash(npx expo:*)",
       "Bash(npx tsc:*)",
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(npx kill-port:*)",
+      "Bash(npx playwright:*)"
     ]
   }
 }

@@ -5,10 +5,6 @@
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 
-// Mock dependencies before imports
-jest.mock('expo-sqlite');
-jest.mock('expo-network');
-
 // Shared mock database - must stay as one object since the module caches `db`
 const mockDb = {
   execAsync: jest.fn<any>().mockResolvedValue(undefined),
@@ -17,10 +13,19 @@ const mockDb = {
   getFirstAsync: jest.fn<any>().mockResolvedValue(null),
 };
 
-// Set up the mock BEFORE importing the module under test
-const SQLite = require('expo-sqlite');
-const Network = require('expo-network');
-(SQLite.openDatabaseAsync as any) = jest.fn<any>().mockResolvedValue(mockDb);
+const mockGetNetworkStateAsync = jest.fn<any>().mockResolvedValue({
+  isConnected: true,
+  isInternetReachable: true,
+});
+
+// Mock dependencies with factory functions (avoids requiring ESM modules)
+jest.mock('expo-sqlite', () => ({
+  openDatabaseAsync: jest.fn<any>().mockResolvedValue(mockDb),
+}));
+
+jest.mock('expo-network', () => ({
+  getNetworkStateAsync: mockGetNetworkStateAsync,
+}));
 
 import {
   SyncPriority,
@@ -44,7 +49,7 @@ describe('SyncQueue', () => {
     mockDb.getAllAsync.mockClear().mockResolvedValue([]);
     mockDb.getFirstAsync.mockClear().mockResolvedValue(null);
 
-    (Network.getNetworkStateAsync as any) = jest.fn<any>().mockResolvedValue({
+    mockGetNetworkStateAsync.mockClear().mockResolvedValue({
       isConnected: true,
       isInternetReachable: true,
     });
@@ -259,7 +264,7 @@ describe('SyncQueue', () => {
 
   describe('detectNetworkQuality', () => {
     it('should return offline when not connected', async () => {
-      (Network.getNetworkStateAsync as any).mockResolvedValue({
+      mockGetNetworkStateAsync.mockResolvedValue({
         isConnected: false,
         isInternetReachable: false,
       });
@@ -271,7 +276,7 @@ describe('SyncQueue', () => {
     });
 
     it('should return excellent for low latency', async () => {
-      (Network.getNetworkStateAsync as any).mockResolvedValue({
+      mockGetNetworkStateAsync.mockResolvedValue({
         isConnected: true,
         isInternetReachable: true,
       });
@@ -286,7 +291,7 @@ describe('SyncQueue', () => {
     });
 
     it('should handle network timeout gracefully', async () => {
-      (Network.getNetworkStateAsync as any).mockResolvedValue({
+      mockGetNetworkStateAsync.mockResolvedValue({
         isConnected: true,
         isInternetReachable: true,
       });

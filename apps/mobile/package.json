@@ -17,6 +17,7 @@
     "export:web": "expo export --platform web"
   },
   "dependencies": {
+    "@bossboard/shared": "*",
     "@expo/metro-runtime": "~6.1.2",
     "@expo/vector-icons": "^15.0.3",
     "@react-native-async-storage/async-storage": "^2.1.0",
@@ -59,7 +60,7 @@
     "@typescript-eslint/parser": "^8.21.0",
     "eslint": "^9.18.0",
     "jest": "^29.7.0",
-    "jest-expo": "~54.0.17",
+    "jest-expo": "^47.0.1",
     "sharp": "^0.34.5",
     "typescript": "^5.7.3"
   }
