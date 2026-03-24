@@ -1,5 +1,11 @@
-﻿# BossBoard API - Multi-stage Dockerfile
+# BossBoard API - Multi-stage Dockerfile
 # Supports both development (with hot reload) and production builds
+#
+# Monorepo layout (build context = repo root):
+#   package.json            - root workspace manifest
+#   packages/shared/        - @bossboard/shared workspace package
+#   apps/api/               - BossBoard API (this service)
+#   database/               - SQL migration files
 
 # =============================================================================
 # BASE STAGE - Common dependencies
@@ -9,24 +15,36 @@ WORKDIR /app
 RUN apk add --no-cache dumb-init
 
 # =============================================================================
-# DEPENDENCIES STAGE - Install production dependencies
+# DEPENDENCIES STAGE - Install production dependencies for both workspaces
 # =============================================================================
 FROM base AS deps
-COPY apps/api/package*.json ./
-RUN npm install --only=production && npm cache clean --force
+COPY package.json package-lock.json ./
+COPY packages/shared/package.json ./packages/shared/
+COPY apps/api/package.json ./apps/api/
+RUN npm install --omit=dev --workspace=packages/shared --workspace=apps/api \
+    && npm cache clean --force
 
 # =============================================================================
-# BUILD STAGE - Compile TypeScript
+# BUILD STAGE - Compile shared package, then compile API
 # =============================================================================
 FROM base AS builder
-COPY apps/api/package*.json ./
-RUN npm install
-COPY apps/api/tsconfig.json ./
-COPY apps/api/jest.config.js ./
-COPY apps/api/src ./src
-RUN npm run build
+COPY package.json package-lock.json ./
+COPY packages/shared/package.json ./packages/shared/
+COPY apps/api/package.json ./apps/api/
+RUN npm install --workspace=packages/shared --workspace=apps/api
+
+# Build shared package first (API depends on its compiled output)
+COPY packages/shared/src ./packages/shared/src
+COPY packages/shared/tsconfig.json ./packages/shared/
+RUN npm run build --workspace=packages/shared
+
+# Build API
+COPY apps/api/tsconfig.json ./apps/api/
+COPY apps/api/jest.config.js ./apps/api/
+COPY apps/api/src ./apps/api/src
+RUN npm run build --workspace=apps/api
 # Copy JSON templates to dist (TypeScript doesn't copy JSON files)
-RUN cp -r src/templates dist/templates 2>/dev/null || true
+RUN cp -r apps/api/src/templates apps/api/dist/templates 2>/dev/null || true
 
 # =============================================================================
 # DEVELOPMENT STAGE - With hot reload support
@@ -35,15 +53,22 @@ FROM base AS development
 ENV NODE_ENV=development
 WORKDIR /app
 
-COPY apps/api/package*.json ./
-RUN npm install
+COPY package.json package-lock.json ./
+COPY packages/shared/package.json ./packages/shared/
+COPY apps/api/package.json ./apps/api/
+RUN npm install --workspace=packages/shared --workspace=apps/api
 
-COPY apps/api/tsconfig.json ./
-COPY apps/api/jest.config.js ./
-COPY apps/api/src ./src
+COPY packages/shared/src ./packages/shared/src
+COPY packages/shared/tsconfig.json ./packages/shared/
+RUN npm run build --workspace=packages/shared
+
+COPY apps/api/tsconfig.json ./apps/api/
+COPY apps/api/jest.config.js ./apps/api/
+COPY apps/api/src ./apps/api/src
 
 EXPOSE 29000
 
+WORKDIR /app/apps/api
 CMD ["npm", "run", "dev"]
 
 # =============================================================================
@@ -53,10 +78,17 @@ FROM base AS production
 ENV NODE_ENV=production
 USER node
 
+# Production node_modules (workspace symlinks intact)
 COPY --chown=node:node --from=deps /app/node_modules ./node_modules
-COPY --chown=node:node --from=builder /app/dist ./dist
+COPY --chown=node:node --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
+# Compiled shared package
+COPY --chown=node:node --from=builder /app/packages/shared/dist ./packages/shared/dist
+COPY --chown=node:node --from=builder /app/packages/shared/package.json ./packages/shared/
+# Compiled API
+COPY --chown=node:node --from=builder /app/apps/api/dist ./apps/api/dist
+# SQL migrations
 COPY --chown=node:node database ./database
-COPY --chown=node:node apps/api/package*.json ./
+COPY --chown=node:node apps/api/package.json ./apps/api/
 
 # Railway injects PORT dynamically; default to 29000 for local Docker use
 ENV PORT=29000
@@ -66,4 +98,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/health || exit 1
 
 ENTRYPOINT ["dumb-init", "--"]
+WORKDIR /app/apps/api
 CMD ["node", "dist/index.js"]

@@ -1,0 +1,16 @@
+node_modules
+apps/api/node_modules
+apps/web/node_modules
+apps/mobile/node_modules
+packages/shared/node_modules
+apps/api/dist
+packages/shared/dist
+.git
+*.md
+docs/
+data/
+scripts/
+nginx/
+docker-compose*.yml
+.env*
+*.log
