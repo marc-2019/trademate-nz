@@ -19,6 +19,7 @@ on:
     paths:
       - 'apps/api/**'
       - 'packages/shared/**'
+  workflow_dispatch:
 
 env:
   NODE_VERSION: '20'
