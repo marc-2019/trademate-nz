@@ -78,9 +78,9 @@ FROM base AS production
 ENV NODE_ENV=production
 USER node
 
-# Production node_modules (workspace symlinks intact)
+# Production node_modules (workspace symlinks intact; @bossboard/shared has no
+# production deps so packages/shared/node_modules is never created by npm)
 COPY --chown=node:node --from=deps /app/node_modules ./node_modules
-COPY --chown=node:node --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
 # Compiled shared package
 COPY --chown=node:node --from=builder /app/packages/shared/dist ./packages/shared/dist
 COPY --chown=node:node --from=builder /app/packages/shared/package.json ./packages/shared/
