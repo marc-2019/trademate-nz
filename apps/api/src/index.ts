@@ -151,6 +151,123 @@ app.use('/api/v1/public', apiLimiter, publicRoutes);
 app.use('/api/v1/compliance', apiLimiter, swmsRoutes);
 
 // =============================================================================
+// ROOT LANDING PAGE
+// =============================================================================
+
+app.get('/', (_req: Request, res: Response) => {
+  res.setHeader('Content-Security-Policy', "default-src 'self'; style-src 'unsafe-inline'; font-src https://fonts.gstatic.com; link-src https://fonts.googleapis.com;");
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.status(200).send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Boss Board — NZ Trade Compliance Platform</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .card {
+      background: #fff;
+      border-radius: 1rem;
+      box-shadow: 0 4px 24px rgba(30,64,175,0.08);
+      padding: 3rem 2.5rem;
+      max-width: 520px;
+      width: 100%;
+      text-align: center;
+    }
+    .logo {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #1E40AF;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.5rem;
+    }
+    .tagline {
+      font-size: 1.1rem;
+      color: #475569;
+      margin-bottom: 2rem;
+      line-height: 1.5;
+    }
+    .badge {
+      display: inline-block;
+      background: #EFF6FF;
+      color: #1E40AF;
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-radius: 9999px;
+      padding: 0.35rem 1.1rem;
+      margin-bottom: 2rem;
+      border: 1.5px solid #BFDBFE;
+    }
+    .links {
+      margin: 1.5rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .btn {
+      display: inline-block;
+      background: #1E40AF;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: background 0.15s;
+    }
+    .btn:hover { background: #1d3a9e; }
+    .btn-outline {
+      background: transparent;
+      color: #1E40AF;
+      border: 1.5px solid #1E40AF;
+    }
+    .btn-outline:hover { background: #EFF6FF; }
+    .contact {
+      margin-top: 1.75rem;
+      font-size: 0.9rem;
+      color: #64748b;
+    }
+    .contact a { color: #1E40AF; text-decoration: none; }
+    .contact a:hover { text-decoration: underline; }
+    footer {
+      margin-top: 2.5rem;
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">Boss Board</div>
+    <p class="tagline">NZ's trade compliance platform for Kiwi tradies</p>
+    <div class="badge">Coming Soon</div>
+    <div class="links">
+      <a class="btn" href="https://ournewnormal.co.nz" target="_blank" rel="noopener">View our ONN Listing</a>
+      <a class="btn btn-outline" href="mailto:info@instilligent.com">Get Early Access</a>
+    </div>
+    <div class="contact">
+      Questions? <a href="mailto:info@instilligent.com">info@instilligent.com</a>
+    </div>
+  </div>
+  <footer>&copy; ${new Date().getFullYear()} Instilligent Limited. All rights reserved.</footer>
+</body>
+</html>`);
+});
+
+// =============================================================================
 // ERROR HANDLING
 // =============================================================================
 
