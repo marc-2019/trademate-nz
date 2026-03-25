@@ -188,7 +188,7 @@ app.get('/', (_req: Request, res: Response) => {
     .logo {
       font-size: 2.5rem;
       font-weight: 800;
-      color: #1E40AF;
+      color: #7C3AED;
       letter-spacing: -0.03em;
       margin-bottom: 0.5rem;
     }
@@ -200,8 +200,8 @@ app.get('/', (_req: Request, res: Response) => {
     }
     .badge {
       display: inline-block;
-      background: #EFF6FF;
-      color: #1E40AF;
+      background: #F5F3FF;
+      color: #7C3AED;
       font-weight: 700;
       font-size: 0.85rem;
       letter-spacing: 0.08em;
@@ -209,7 +209,7 @@ app.get('/', (_req: Request, res: Response) => {
       border-radius: 9999px;
       padding: 0.35rem 1.1rem;
       margin-bottom: 2rem;
-      border: 1.5px solid #BFDBFE;
+      border: 1.5px solid #DDD6FE;
     }
     .links {
       margin: 1.5rem 0;
@@ -219,7 +219,7 @@ app.get('/', (_req: Request, res: Response) => {
     }
     .btn {
       display: inline-block;
-      background: #1E40AF;
+      background: #7C3AED;
       color: #fff;
       text-decoration: none;
       border-radius: 0.5rem;
@@ -228,19 +228,19 @@ app.get('/', (_req: Request, res: Response) => {
       font-size: 1rem;
       transition: background 0.15s;
     }
-    .btn:hover { background: #1d3a9e; }
+    .btn:hover { background: #6D28D9; }
     .btn-outline {
       background: transparent;
-      color: #1E40AF;
-      border: 1.5px solid #1E40AF;
+      color: #7C3AED;
+      border: 1.5px solid #7C3AED;
     }
-    .btn-outline:hover { background: #EFF6FF; }
+    .btn-outline:hover { background: #F5F3FF; }
     .contact {
       margin-top: 1.75rem;
       font-size: 0.9rem;
       color: #64748b;
     }
-    .contact a { color: #1E40AF; text-decoration: none; }
+    .contact a { color: #7C3AED; text-decoration: none; }
     .contact a:hover { text-decoration: underline; }
     footer {
       margin-top: 2.5rem;
