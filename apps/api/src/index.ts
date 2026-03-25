@@ -167,8 +167,8 @@ app.get('/', (_req: Request, res: Response) => {
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #f8fafc;
-      color: #1e293b;
+      background: #f5f3ff;
+      color: #1e1a2e;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -179,7 +179,7 @@ app.get('/', (_req: Request, res: Response) => {
     .card {
       background: #fff;
       border-radius: 1rem;
-      box-shadow: 0 4px 24px rgba(30,64,175,0.08);
+      box-shadow: 0 4px 24px rgba(109,40,217,0.10);
       padding: 3rem 2.5rem;
       max-width: 520px;
       width: 100%;
@@ -188,20 +188,28 @@ app.get('/', (_req: Request, res: Response) => {
     .logo {
       font-size: 2.5rem;
       font-weight: 800;
-      color: #1E40AF;
+      color: #6D28D9;
       letter-spacing: -0.03em;
       margin-bottom: 0.5rem;
     }
+    .byline {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #7C3AED;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
     .tagline {
       font-size: 1.1rem;
-      color: #475569;
+      color: #4c4680;
       margin-bottom: 2rem;
       line-height: 1.5;
     }
     .badge {
       display: inline-block;
-      background: #EFF6FF;
-      color: #1E40AF;
+      background: #ede9fe;
+      color: #6D28D9;
       font-weight: 700;
       font-size: 0.85rem;
       letter-spacing: 0.08em;
@@ -209,7 +217,34 @@ app.get('/', (_req: Request, res: Response) => {
       border-radius: 9999px;
       padding: 0.35rem 1.1rem;
       margin-bottom: 2rem;
-      border: 1.5px solid #BFDBFE;
+      border: 1.5px solid #c4b5fd;
+    }
+    .features {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      text-align: left;
+    }
+    .feature {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.95rem;
+      color: #374151;
+    }
+    .feature-icon {
+      width: 1.25rem;
+      height: 1.25rem;
+      background: #ede9fe;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 0.7rem;
+      color: #6D28D9;
+      font-weight: 700;
     }
     .links {
       margin: 1.5rem 0;
@@ -219,7 +254,7 @@ app.get('/', (_req: Request, res: Response) => {
     }
     .btn {
       display: inline-block;
-      background: #1E40AF;
+      background: #6D28D9;
       color: #fff;
       text-decoration: none;
       border-radius: 0.5rem;
@@ -228,19 +263,19 @@ app.get('/', (_req: Request, res: Response) => {
       font-size: 1rem;
       transition: background 0.15s;
     }
-    .btn:hover { background: #1d3a9e; }
+    .btn:hover { background: #5B21B6; }
     .btn-outline {
       background: transparent;
-      color: #1E40AF;
-      border: 1.5px solid #1E40AF;
+      color: #6D28D9;
+      border: 1.5px solid #6D28D9;
     }
-    .btn-outline:hover { background: #EFF6FF; }
+    .btn-outline:hover { background: #ede9fe; }
     .contact {
       margin-top: 1.75rem;
       font-size: 0.9rem;
       color: #64748b;
     }
-    .contact a { color: #1E40AF; text-decoration: none; }
+    .contact a { color: #6D28D9; text-decoration: none; }
     .contact a:hover { text-decoration: underline; }
     footer {
       margin-top: 2.5rem;
@@ -252,8 +287,15 @@ app.get('/', (_req: Request, res: Response) => {
 <body>
   <div class="card">
     <div class="logo">Boss Board</div>
-    <p class="tagline">NZ's trade compliance platform for Kiwi tradies</p>
+    <div class="byline">by Instilligent</div>
+    <p class="tagline">NZ's trade compliance platform — built for Kiwi tradies</p>
     <div class="badge">Coming Soon</div>
+    <div class="features">
+      <div class="feature"><div class="feature-icon">✓</div>AI-powered SWMS generation</div>
+      <div class="feature"><div class="feature-icon">✓</div>Invoicing, quotes &amp; expense tracking</div>
+      <div class="feature"><div class="feature-icon">✓</div>Certification &amp; licence expiry reminders</div>
+      <div class="feature"><div class="feature-icon">✓</div>Team management &amp; job site logging</div>
+    </div>
     <div class="links">
       <a class="btn" href="https://ournewnormal.co.nz" target="_blank" rel="noopener">View our ONN Listing</a>
       <a class="btn btn-outline" href="mailto:info@instilligent.com">Get Early Access</a>
