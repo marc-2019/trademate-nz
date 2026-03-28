@@ -5,6 +5,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'BossBoard',
   description: 'Your whole business. One screen.',
+  icons: { icon: '/favicon.svg' },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
