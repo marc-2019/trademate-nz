@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Legal Routes (No Authentication Required)
  * Serves HTML pages required for App Store / Play Store compliance.
  *
@@ -14,9 +14,9 @@ import { config } from '../config/index.js';
 
 const router = Router();
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // ROUTES
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 router.get('/privacy', (_req: Request, res: Response) => {
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -43,9 +43,9 @@ router.get('/delete-data', (_req: Request, res: Response) => {
   res.send(renderDeleteDataPage());
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // HTML HELPERS
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function esc(text: unknown): string {
   if (text === null || text === undefined) return '';
@@ -100,26 +100,28 @@ function page(title: string, body: string): string {
 </html>`;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // PRIVACY POLICY
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function renderPrivacyPolicy(): string {
   const appName = esc(config.appName);
 
   return page('Privacy Policy', `
       <h1>Privacy Policy</h1>
-      <p class="meta">Effective Date: 1 February 2026 &middot; Last Updated: February 2026</p>
+      <p class="meta">Effective Date: 24 March 2026 &middot; Last Updated: 24 March 2026</p>
 
       <p>
-        Instilligent Limited (&ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;) operates the
+        <strong>Instilligent Limited</strong> (NZBN 9429051796498), trading as <strong>${appName}</strong>
+        (&ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;), operates the
         ${appName} mobile application and associated services (the &ldquo;Service&rdquo;). This Privacy
         Policy explains how we collect, use, disclose, and safeguard your information when you use our
         Service. We are committed to compliance with the
-        <strong>New Zealand Privacy Act 2020</strong> and its Information Privacy Principles.
+        <strong>New Zealand Privacy Act 2020</strong> and its Information Privacy Principles (IPPs).
       </p>
 
-      <h2>1. Information We Collect</h2>
+      <h2>1. Information We Collect <small>(IPP 1&ndash;4)</small></h2>
+      <p>Under IPP 1 (Purpose of Collection) and IPP 3 (Collection from Subject), we only collect personal information that is necessary for providing our services, and we collect it directly from you wherever possible.</p>
 
       <h3>1.1 Information You Provide</h3>
       <ul>
@@ -140,8 +142,8 @@ function renderPrivacyPolicy(): string {
         <li><strong>Approximate location</strong> &ndash; when you explicitly grant permission, for pre-filling site addresses in job logs.</li>
       </ul>
 
-      <h2>2. How We Use Your Information</h2>
-      <p>We use collected information to:</p>
+      <h2>2. How We Use Your Information <small>(IPP 10)</small></h2>
+      <p>Under IPP 10 (Limits on Use), we use personal information only for the purpose for which it was collected or a directly related purpose:</p>
       <ul>
         <li>Provide, operate, and maintain the Service, including generating invoices, quotes, and compliance documents.</li>
         <li>Generate AI-powered compliance documentation (SWMS, hazard suggestions, control measures) using the Anthropic Claude API.</li>
@@ -154,88 +156,107 @@ function renderPrivacyPolicy(): string {
       </ul>
 
       <h2>3. AI-Powered Features</h2>
-      <p>
-        ${appName} uses the Anthropic Claude API to generate compliance documents such as Safe Work
-        Method Statements. When you use AI-powered features:
-      </p>
+      <p>${appName} uses the Anthropic Claude API to generate compliance documents such as Safe Work Method Statements. When you use AI-powered features:</p>
       <ul>
         <li>Relevant job details (trade type, job description, site information) are sent to the Anthropic API to generate document content.</li>
         <li>No personally identifiable information (such as your name or email) is sent to the AI service.</li>
         <li>AI-generated content is suggestions only and should be reviewed by a qualified professional before use.</li>
-        <li>Anthropic&rsquo;s data handling is governed by their own privacy policy.</li>
+        <li>Anthropic does not use your data to train their models under our commercial agreement.</li>
       </ul>
 
-      <h2>4. Data Sharing and Disclosure</h2>
-      <p>We do not sell your personal information. We may share data with:</p>
+      <h2>4. Data Sharing and Disclosure <small>(IPP 11)</small></h2>
+      <p>Under IPP 11 (Limits on Disclosure), we do not sell, rent, or trade your personal information. We share data with the following providers:</p>
+
+      <table class="data-table">
+        <thead><tr><th>Provider</th><th>Purpose</th><th>Data Shared</th><th>Location</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Railway</strong></td><td>Application hosting &amp; database</td><td>All platform data</td><td>Asia-SE (Singapore)</td></tr>
+          <tr><td><strong>Anthropic (Claude API)</strong></td><td>AI document generation</td><td>Trade type, job descriptions (no PII)</td><td>United States</td></tr>
+          <tr><td><strong>Expo</strong></td><td>Push notifications</td><td>Device push tokens</td><td>United States</td></tr>
+          <tr><td><strong>Stripe</strong></td><td>Payment processing</td><td>Name, email, billing address, card data</td><td>United States</td></tr>
+          <tr><td><strong>Email providers</strong></td><td>Invoice &amp; account emails</td><td>Email address, invoice content</td><td>United States</td></tr>
+        </tbody>
+      </table>
+
+      <p>We may also share data with:</p>
       <ul>
-        <li><strong>Anthropic (Claude API)</strong> &ndash; trade type and job descriptions for AI document generation. No personal identifiers are shared.</li>
-        <li><strong>Expo (Push Notifications)</strong> &ndash; device push tokens to deliver notifications you have opted into.</li>
-        <li><strong>Stripe</strong> &ndash; payment processing for subscriptions. Stripe handles payment card data directly; we do not store card numbers.</li>
-        <li><strong>Email service providers</strong> &ndash; to deliver invoice emails and account notifications on your behalf.</li>
-        <li><strong>Your clients</strong> &ndash; when you share an invoice via a public link or email, your business details and invoice data are visible to the recipient.</li>
-        <li><strong>Team members</strong> &ndash; if you use team features, data may be shared with members of your team as configured by the team owner.</li>
+        <li><strong>Your clients</strong> &ndash; when you share an invoice via a public link or email.</li>
+        <li><strong>Team members</strong> &ndash; if you use team features, as configured by the team owner.</li>
         <li><strong>Law enforcement</strong> &ndash; when required by law or to protect the rights, property, or safety of our users.</li>
       </ul>
 
-      <h2>5. Data Storage and Security</h2>
+      <h2>5. Overseas Disclosure of Personal Information <small>(IPP 12)</small></h2>
+      <p>Under IPP 12 of the Privacy Act 2020, before disclosing personal information to a foreign person or entity, we must either believe on reasonable grounds that the recipient is subject to comparable privacy protections, or obtain your express authorisation.</p>
+      <p>Your personal information is hosted in <strong>Singapore</strong> by Railway (Asia-Southeast region). Some data is also processed in the <strong>United States</strong> by Anthropic (AI features), Stripe (payments), and Expo (push notifications).</p>
+      <p>Singapore has the Personal Data Protection Act 2012 (PDPA), which provides broadly comparable privacy protections. The United States does not have equivalent comprehensive privacy legislation at the federal level.</p>
+      <p>We mitigate risks through contractual data processing agreements with all overseas providers, minimising the personal information transferred, encrypting all data in transit (TLS 1.2+) and at rest, and selecting providers with robust security certifications (PCI DSS for Stripe).</p>
+      <p>By using the Service, you acknowledge and consent to the transfer of your personal information to Singapore and the United States for the purposes described in this policy. You may withdraw consent by deleting your account.</p>
+
+      <h2>6. Data Storage and Security <small>(IPP 5)</small></h2>
+      <p>Under IPP 5 (Storage and Security), we implement appropriate measures to protect your personal information:</p>
       <ul>
-        <li>Your data is stored on secure servers. Where commercially practicable, we use infrastructure located in New Zealand or Australia.</li>
-        <li>All data is transmitted using TLS encryption (HTTPS).</li>
-        <li>Passwords are hashed using industry-standard algorithms and are never stored in plain text.</li>
-        <li>Database access is restricted and protected by authentication credentials and network security controls.</li>
+        <li>Data is stored on secure Railway infrastructure in Singapore (Asia-Southeast).</li>
+        <li>All data is transmitted using TLS 1.2+ encryption (HTTPS).</li>
+        <li>Passwords are hashed using bcrypt and never stored in plain text.</li>
+        <li>Database access is restricted by authentication credentials and network security controls.</li>
         <li>We conduct regular reviews of our data collection, storage, and processing practices.</li>
       </ul>
 
-      <h2>6. Data Retention</h2>
-      <p>
-        We retain your personal information for as long as your account is active or as needed to
-        provide the Service. If you delete your account, we will delete or anonymise your personal
-        data within 90 days, except where retention is required by law (for example, financial
-        records required under the Tax Administration Act 1994).
-      </p>
+      <h2>7. Data Retention <small>(IPP 9)</small></h2>
+      <p>Under IPP 9 (Retention), we do not keep personal information for longer than is necessary.</p>
 
-      <h2>7. Your Rights Under the NZ Privacy Act 2020</h2>
-      <p>Under the New Zealand Privacy Act 2020, you have the right to:</p>
+      <table class="data-table">
+        <thead><tr><th>Data Type</th><th>Retention Period</th></tr></thead>
+        <tbody>
+          <tr><td>Active account data</td><td>Duration of subscription + 60 days</td></tr>
+          <tr><td>Job records, quotes, invoices</td><td>7 years after creation (tax/legal)</td></tr>
+          <tr><td>SWMS documents</td><td>7 years (health &amp; safety requirement)</td></tr>
+          <tr><td>Payment records</td><td>7 years (Tax Administration Act 1994)</td></tr>
+          <tr><td>Support communications</td><td>2 years after resolution</td></tr>
+          <tr><td>Usage/analytics data</td><td>12 months</td></tr>
+        </tbody>
+      </table>
+
+      <p>After account deletion, we retain data for 60 days to allow for export, then securely delete it (except records legally required to be retained).</p>
+
+      <h2>8. Your Rights <small>(IPP 6&ndash;7)</small></h2>
+      <p>Under the Privacy Act 2020, you have the right to:</p>
       <ul>
-        <li><strong>Access</strong> &ndash; request a copy of the personal information we hold about you.</li>
-        <li><strong>Correction</strong> &ndash; ask us to correct any inaccurate or incomplete personal information.</li>
-        <li><strong>Deletion</strong> &ndash; request deletion of your personal information, subject to any legal retention requirements.</li>
-        <li><strong>Complaint</strong> &ndash; lodge a complaint with the <a href="https://www.privacy.org.nz" target="_blank" rel="noopener">Office of the Privacy Commissioner</a> if you believe your privacy has been breached.</li>
+        <li><strong>Access (IPP 6)</strong> &ndash; request a copy of the personal information we hold about you. We will respond within 20 working days.</li>
+        <li><strong>Correction (IPP 7)</strong> &ndash; ask us to correct any inaccurate or incomplete personal information.</li>
+        <li><strong>Deletion</strong> &ndash; request deletion of your personal information, subject to legal retention requirements.</li>
+        <li><strong>Data export</strong> &ndash; export your data at any time through the Service.</li>
+        <li><strong>Complaint</strong> &ndash; lodge a complaint with the <a href="https://www.privacy.org.nz" target="_blank" rel="noopener">Office of the Privacy Commissioner</a>.</li>
       </ul>
-      <p>
-        To exercise any of these rights, contact us at
-        <a href="mailto:privacy@instilligent.com">privacy@instilligent.com</a>.
-        We will respond within 20 working days as required by the Act.
-      </p>
+      <p>To exercise any of these rights, contact us at <a href="mailto:privacy@instilligent.com">privacy@instilligent.com</a>. We will respond within 20 working days as required by the Act.</p>
 
-      <h2>8. Children&rsquo;s Privacy</h2>
-      <p>
-        The Service is not directed at individuals under the age of 16. We do not knowingly collect
-        personal information from children under 16. If we become aware that a child under 16 has
-        provided us with personal information, we will take steps to delete such information promptly.
-      </p>
+      <h2>9. Your Client and Worker Data</h2>
+      <p>When you enter client contact details, worker names (in SWMS), or other third-party information into the Service, you are the controller of that information. You are responsible for ensuring you have the right to enter that information, informing your clients and workers, and responding to any access or correction requests from those individuals.</p>
 
-      <h2>9. Changes to This Policy</h2>
-      <p>
-        We may update this Privacy Policy from time to time. We will notify you of material changes
-        by posting the new policy within the app and, where appropriate, sending you a push
-        notification or email. Your continued use of the Service after changes are posted constitutes
-        acceptance of the updated policy.
-      </p>
+      <h2>10. Cookies and Local Storage</h2>
+      <p>The mobile app uses local device storage for session management and user preferences. The web application uses essential cookies for authentication and session management. No third-party advertising or tracking cookies are used.</p>
 
-      <h2>10. Contact Us</h2>
+      <h2>11. Children&rsquo;s Privacy</h2>
+      <p>The Service is designed for business and trade use and is not directed at individuals under the age of 18. We do not knowingly collect personal information from children.</p>
+
+      <h2>12. Changes to This Policy</h2>
+      <p>We may update this Privacy Policy from time to time. We will notify you of material changes by posting the new policy within the app and, where appropriate, sending you a push notification or email at least 14 days before they take effect.</p>
+
+      <h2>13. Contact Us</h2>
       <div class="contact-box">
-        <p><strong>Privacy Officer</strong></p>
-        <p>Instilligent Limited</p>
-        <p>New Zealand</p>
+        <p><strong>Instilligent Limited</strong></p>
+        <p>Trading as ${appName}</p>
+        <p>NZBN: 9429051796498</p>
+        <p>Auckland, New Zealand</p>
         <p>Email: <a href="mailto:privacy@instilligent.com">privacy@instilligent.com</a></p>
+        <p style="margin-top:0.5rem;"><strong>Privacy Commissioner (NZ):</strong> <a href="https://www.privacy.org.nz" target="_blank" rel="noopener">www.privacy.org.nz</a></p>
       </div>
   `);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // TERMS OF SERVICE
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function renderTermsOfService(): string {
   const appName = esc(config.appName);
@@ -414,9 +435,9 @@ function renderTermsOfService(): string {
   `);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // SUPPORT / CONTACT
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function renderSupportPage(): string {
   const appName = esc(config.appName);
@@ -583,9 +604,9 @@ function renderSupportPage(): string {
   `);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // ACCOUNT DELETION REQUEST
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function renderDeleteAccountPage(): string {
   const appName = esc(config.appName);
@@ -677,9 +698,9 @@ function renderDeleteAccountPage(): string {
   `);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // DATA DELETION REQUEST
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function renderDeleteDataPage(): string {
   const appName = esc(config.appName);
@@ -774,9 +795,9 @@ function renderDeleteDataPage(): string {
   `);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // STYLES
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function getStyles(): string {
   return `
@@ -790,7 +811,7 @@ function getStyles(): string {
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ── Header ────────────────────────────────────────────────── */
+    /* â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .site-header {
       background: #1A2A44;
       color: #fff;
@@ -819,7 +840,7 @@ function getStyles(): string {
     }
     .site-header nav a:hover { color: #fff; }
 
-    /* ── Main container ────────────────────────────────────────── */
+    /* â”€â”€ Main container â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .container {
       max-width: 720px;
       margin: 0 auto;
@@ -832,7 +853,7 @@ function getStyles(): string {
       padding: 40px 36px;
     }
 
-    /* ── Typography ─────────────────────────────────────────────── */
+    /* â”€â”€ Typography â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     h1 {
       font-size: 28px;
       font-weight: 700;
@@ -869,7 +890,7 @@ function getStyles(): string {
     a { color: #2563EB; text-decoration: none; }
     a:hover { text-decoration: underline; }
 
-    /* ── Contact box ────────────────────────────────────────────── */
+    /* â”€â”€ Contact box â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .contact-box {
       background: #F9FAFB;
       border: 1px solid #E5E7EB;
@@ -879,7 +900,7 @@ function getStyles(): string {
     }
     .contact-box p { margin-bottom: 4px; }
 
-    /* ── Disclaimer box ─────────────────────────────────────────── */
+    /* â”€â”€ Disclaimer box â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .disclaimer-box {
       background: #FFFBEB;
       border: 1px solid #FCD34D;
@@ -889,7 +910,7 @@ function getStyles(): string {
       margin-top: 12px;
     }
 
-    /* ── Pricing table ──────────────────────────────────────────── */
+    /* â”€â”€ Pricing table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .pricing-table {
       width: 100%;
       border-collapse: collapse;
@@ -912,7 +933,7 @@ function getStyles(): string {
       vertical-align: top;
     }
 
-    /* ── Support grid ───────────────────────────────────────────── */
+    /* â”€â”€ Support grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .support-grid {
       display: grid;
       gap: 20px;
@@ -947,7 +968,7 @@ function getStyles(): string {
       margin-bottom: 12px;
     }
 
-    /* ── FAQ ─────────────────────────────────────────────────────── */
+    /* â”€â”€ FAQ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .faq-list {
       margin-top: 16px;
     }
@@ -991,7 +1012,7 @@ function getStyles(): string {
       font-size: 14px;
     }
 
-    /* ── Steps list (wizard-style numbered circles) ────────────── */
+    /* â”€â”€ Steps list (wizard-style numbered circles) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .steps-list {
       list-style: none;
       padding-left: 0;
@@ -1048,7 +1069,7 @@ function getStyles(): string {
       margin-bottom: 0;
     }
 
-    /* ── Footer ──────────────────────────────────────────────────── */
+    /* â”€â”€ Footer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .site-footer {
       border-top: 1px solid #E5E7EB;
       background: #fff;
@@ -1070,7 +1091,7 @@ function getStyles(): string {
     }
     .footer-links a:hover { color: #2563EB; }
 
-    /* ── Responsive ─────────────────────────────────────────────── */
+    /* â”€â”€ Responsive â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     @media (max-width: 480px) {
       .container { padding: 20px 10px 36px; }
       .card { padding: 28px 20px; border-radius: 8px; }
