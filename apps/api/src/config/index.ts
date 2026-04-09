@@ -35,12 +35,14 @@ export const config = {
   anthropicApiKey: process.env.ANTHROPIC_API_KEY || '',
 
   // CORS
-  corsOrigins: process.env.CORS_ORIGINS?.split(',') || [
-    'http://localhost:19006',
-    'http://localhost:8081',
-    'http://localhost:8082',
-    'http://localhost:3000',
-  ],
+  corsOrigins: process.env.CORS_ORIGINS?.split(',') || (
+    process.env.NODE_ENV === 'production' ? [] : [
+      'http://localhost:19006',
+      'http://localhost:8081',
+      'http://localhost:8082',
+      'http://localhost:3000',
+    ]
+  ),
 
   // Stripe
   stripe: {
@@ -67,14 +69,30 @@ export const config = {
   resendApiKey: process.env.RESEND_API_KEY || '',
 } as const;
 
-// Fail fast: require JWT secrets in production
+// Fail fast: require critical env vars in production
 if (!config.isDevelopment) {
-  if (!process.env.JWT_SECRET) {
-    throw new Error('JWT_SECRET environment variable is required in production');
+  const required: Record<string, string | undefined> = {
+    JWT_SECRET: process.env.JWT_SECRET,
+    JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
+    DATABASE_URL: process.env.DATABASE_URL,
+  };
+  for (const [key, value] of Object.entries(required)) {
+    if (!value) {
+      throw new Error(`${key} environment variable is required in production`);
+    }
   }
-  if (!process.env.JWT_REFRESH_SECRET) {
-    throw new Error('JWT_REFRESH_SECRET environment variable is required in production');
+  // Warn about missing but non-fatal vars
+  if (!process.env.CORS_ORIGINS) {
+    console.warn('WARNING: CORS_ORIGINS not set in production — defaulting to deny-all');
   }
+  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    console.warn('WARNING: STRIPE_WEBHOOK_SECRET not set — Stripe webhooks will fail');
+  }
+}
+
+// Validate NODE_ENV is a known value
+if (!['development', 'test', 'production'].includes(config.nodeEnv)) {
+  throw new Error(`Invalid NODE_ENV: "${config.nodeEnv}". Must be development, test, or production.`);
 }
 
 export default config;

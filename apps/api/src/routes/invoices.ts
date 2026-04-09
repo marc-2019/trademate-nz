@@ -105,10 +105,13 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
   try {
     const { status, limit, offset } = req.query;
 
+    const parsedLimit = limit ? Math.min(Math.max(parseInt(limit as string, 10) || 50, 1), 100) : 50;
+    const parsedOffset = offset ? Math.max(parseInt(offset as string, 10) || 0, 0) : 0;
+
     const result = await invoicesService.listInvoices(req.user!.userId, {
       status: status as 'draft' | 'sent' | 'paid' | 'overdue' | undefined,
-      limit: limit ? parseInt(limit as string, 10) : undefined,
-      offset: offset ? parseInt(offset as string, 10) : undefined,
+      limit: parsedLimit,
+      offset: parsedOffset,
     });
 
     res.json({

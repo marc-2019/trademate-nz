@@ -244,7 +244,18 @@ router.post('/portal', async (req: Request, res: Response, next: NextFunction) =
       return;
     }
 
-    const returnUrl = (req.body as { returnUrl?: string }).returnUrl ?? config.stripe.returnUrl;
+    // Validate returnUrl to prevent open redirect — only allow configured domain or localhost
+    const requestedUrl = (req.body as { returnUrl?: string }).returnUrl;
+    let returnUrl = config.stripe.returnUrl;
+    if (requestedUrl) {
+      try {
+        const parsed = new URL(requestedUrl);
+        const allowedHosts = ['localhost', '127.0.0.1', ...(config.appDomain ? [new URL(config.appDomain).hostname] : [])];
+        if (allowedHosts.includes(parsed.hostname)) {
+          returnUrl = requestedUrl;
+        }
+      } catch { /* invalid URL, use default */ }
+    }
     const portalUrl = await createPortalSession(subscription.stripeCustomerId, returnUrl);
 
     res.json({

@@ -8,6 +8,32 @@ import { z } from 'zod';
 import authService from '../services/auth.js';
 import { authenticate } from '../middleware/auth.js';
 import config from '../config/index.js';
+import redis from '../services/redis.js';
+
+// Brute-force protection: lock out after MAX_ATTEMPTS failed code verifications
+const MAX_CODE_ATTEMPTS = 5;
+const CODE_LOCKOUT_SECONDS = 900; // 15 minutes
+
+async function checkCodeAttempts(key: string): Promise<{ allowed: boolean; attempts: number }> {
+  try {
+    const client = redis.getClient();
+    if (!client.isOpen) return { allowed: true, attempts: 0 };
+    const attempts = await client.incr(key);
+    if (attempts === 1) {
+      await client.expire(key, CODE_LOCKOUT_SECONDS);
+    }
+    return { allowed: attempts <= MAX_CODE_ATTEMPTS, attempts };
+  } catch {
+    return { allowed: true, attempts: 0 }; // Fail open if Redis is down
+  }
+}
+
+async function clearCodeAttempts(key: string): Promise<void> {
+  try {
+    const client = redis.getClient();
+    if (client.isOpen) await client.del(key);
+  } catch { /* ignore */ }
+}
 
 // App error type for error handling
 interface AppError extends Error {
@@ -312,11 +338,26 @@ router.post('/reset-password', async (req: Request, res: Response) => {
       return;
     }
 
+    // Brute-force protection: limit failed attempts per email
+    const attemptKey = `bf:reset:${validation.data.email.toLowerCase()}`;
+    const { allowed } = await checkCodeAttempts(attemptKey);
+    if (!allowed) {
+      res.status(429).json({
+        success: false,
+        error: 'TOO_MANY_ATTEMPTS',
+        message: 'Too many failed attempts. Please request a new reset code.',
+      });
+      return;
+    }
+
     await authService.resetPassword(
       validation.data.email,
       validation.data.code,
       validation.data.newPassword
     );
+
+    // Success — clear attempt counter
+    await clearCodeAttempts(attemptKey);
 
     res.json({
       success: true,
@@ -360,7 +401,22 @@ router.post('/verify-email', authenticate, async (req: Request, res: Response) =
       return;
     }
 
+    // Brute-force protection: limit failed attempts per user
+    const attemptKey = `bf:verify:${req.user!.userId}`;
+    const { allowed } = await checkCodeAttempts(attemptKey);
+    if (!allowed) {
+      res.status(429).json({
+        success: false,
+        error: 'TOO_MANY_ATTEMPTS',
+        message: 'Too many failed attempts. Please request a new verification code.',
+      });
+      return;
+    }
+
     const user = await authService.verifyEmail(req.user!.userId, validation.data.code);
+
+    // Success — clear attempt counter
+    await clearCodeAttempts(attemptKey);
 
     res.json({
       success: true,

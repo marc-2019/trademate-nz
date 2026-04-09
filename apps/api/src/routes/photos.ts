@@ -178,7 +178,18 @@ router.get('/:id/file', authenticate, async (req: Request, res: Response) => {
       return;
     }
 
-    res.sendFile(path.resolve(photo.path));
+    // Path traversal guard: ensure resolved path is within the upload directory
+    const UPLOAD_DIR = path.resolve('./uploads/photos');
+    const resolvedPath = path.resolve(photo.path);
+    if (!resolvedPath.startsWith(UPLOAD_DIR)) {
+      res.status(403).json({
+        success: false,
+        error: 'FORBIDDEN',
+        message: 'Access denied',
+      });
+      return;
+    }
+    res.sendFile(resolvedPath);
   } catch (error) {
     throw error;
   }
