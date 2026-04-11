@@ -1,61 +1,51 @@
 # BossBoard Next.js Webapp — Multi-stage Dockerfile
 #
 # Builds the Next.js 15 app at apps/web and serves it with the
-# standalone output. The webapp lives inside a npm workspaces monorepo
+# standalone output. The webapp lives inside an npm workspaces monorepo
 # (root package.json declares apps/* and packages/*) and depends on
-# @bossboard/shared, so all stages run from the repo root.
+# @bossboard/shared, so the build must run from the repo root with the
+# whole workspace tree intact (per-workspace .bin symlinks live in
+# apps/web/node_modules/.bin and would be lost if we copy only the
+# hoisted root node_modules between stages).
 #
-# Why a separate Dockerfile from Dockerfile.api / Dockerfile.web:
-#   - Dockerfile.api  → builds apps/api (Express, the BossBoard backend)
-#   - Dockerfile.web  → builds apps/mobile via `expo export --platform web`
-#                       (the React Native app's web export, NOT this app)
-#   - Dockerfile.nextweb (this file) → builds apps/web (Next.js 15)
+# Two stages:
+#   1. builder — install + build the webapp from the repo root
+#   2. runner  — minimal node:alpine image, no build toolchain, just
+#                the Next.js standalone output
 #
-# Used by the Railway service `bossboard-web` (created 2026-04-11)
-# which serves bossboard.instilligent.com after the domain handover.
+# Used by Railway service `bossboard-web` (created 2026-04-11). Wired
+# in via railway.web.toml + the service's railwayConfigFile setting.
 
 # =============================================================================
-# DEPS STAGE — install workspace dependencies
+# BUILDER STAGE — install workspace deps + build @bossboard/shared + web
 # =============================================================================
-FROM node:20-alpine AS deps
+FROM node:20-alpine AS builder
 RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
+ENV NEXT_TELEMETRY_DISABLED=1
 
-# Copy ONLY the package manifests so npm install caches well across
-# code-only edits. The full source is copied in the builder stage.
+# Workspace package manifests come first for layer caching.
 COPY package.json package-lock.json ./
 COPY packages/shared/package.json ./packages/shared/
 COPY apps/web/package.json ./apps/web/
 COPY apps/api/package.json ./apps/api/
 COPY apps/mobile/package.json ./apps/mobile/
 
-# Install with legacy-peer-deps because the workspace has a few peer dep
-# conflicts (notably react 19 vs some older expo packages in apps/mobile).
+# --legacy-peer-deps because expo's react peer constraints conflict
+# with react 19 elsewhere in the workspace. --no-audit/--no-fund just
+# trim noise. Keep devDependencies because we need tsc, next, etc.
 RUN npm install --legacy-peer-deps --no-audit --no-fund
 
-# =============================================================================
-# BUILDER STAGE — build @bossboard/shared then @bossboard/web
-# =============================================================================
-FROM node:20-alpine AS builder
-RUN apk add --no-cache libc6-compat
-WORKDIR /app
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_ENV=production
-
-# npm workspaces HOISTS all dependencies to the root /app/node_modules.
-# There are no per-workspace node_modules folders to copy. Earlier
-# versions of this Dockerfile tried to COPY packages/shared/node_modules
-# and apps/web/node_modules and failed because they don't exist.
-COPY --from=deps /app/node_modules ./node_modules
-
-# Now bring in the actual source.
-COPY package.json package-lock.json ./
+# Source files for shared + web only — we don't need apps/api or
+# apps/mobile source for this image, which keeps the build context
+# small and avoids unrelated work invalidating the cache.
 COPY packages/shared ./packages/shared
 COPY apps/web ./apps/web
 
-# Build shared first so apps/web can import compiled types/runtime from
-# packages/shared/dist. Then build the Next.js app — its standalone output
-# lands at apps/web/.next/standalone with a self-contained server.js.
+# Build shared first so apps/web can import compiled types/runtime
+# from packages/shared/dist. Then build the Next.js app — its
+# standalone output lands at apps/web/.next/standalone with a
+# self-contained server.js.
 RUN npm run build --workspace=@bossboard/shared
 RUN npm run build --workspace=@bossboard/web
 
@@ -73,8 +63,11 @@ ENV HOSTNAME=0.0.0.0
 RUN addgroup --system --gid 1001 nodejs \
  && adduser  --system --uid 1001 nextjs
 
-# Next.js standalone output already includes a minimal node_modules and
-# the compiled server. Copy it + the static assets + the public folder.
+# Next.js standalone output already includes a minimal node_modules
+# and the compiled server. Copy it + the static assets + the public
+# folder. The standalone output preserves the monorepo path layout,
+# so the server lives at apps/web/server.js inside the standalone
+# bundle.
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
@@ -83,6 +76,4 @@ USER nextjs
 
 EXPOSE 3000
 
-# The standalone server.js the builder produced lives at apps/web/server.js
-# inside the standalone copy. Run it directly with node.
 CMD ["node", "apps/web/server.js"]
