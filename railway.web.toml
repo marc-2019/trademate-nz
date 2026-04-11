@@ -1,0 +1,50 @@
+# =============================================================================
+# Railway Deployment Configuration — bossboard-web (Next.js)
+# =============================================================================
+# Used by the Railway service `bossboard-web` (created 2026-04-11) which
+# serves the Next.js 15 marketing landing + auth + dashboard at
+# https://bossboard.instilligent.com.
+#
+# This file exists alongside the original railway.toml (which pins
+# Dockerfile.api for the bossboard-api service). Without a service-
+# specific config file the bossboard-web service was inheriting the
+# API's railway.toml and building from Dockerfile.api — i.e. it kept
+# building the Express backend instead of the Next.js webapp, then
+# failing the API healthcheck because that container doesn't expose /.
+#
+# To make this file take effect on a service, set the service's
+# railwayConfigFile setting to "railway.web.toml" (done out-of-band
+# via the Railway GraphQL serviceInstanceUpdate mutation).
+# =============================================================================
+
+[build]
+# Use the Next.js-specific Dockerfile written for this service.
+dockerfilePath = "Dockerfile.nextweb"
+
+# Trigger rebuilds only when something the webapp actually depends on
+# changes. Stops every API or mobile commit from kicking off a webapp
+# rebuild.
+watchPatterns = [
+  "apps/web/**",
+  "packages/shared/**",
+  "Dockerfile.nextweb",
+  "package.json",
+  "package-lock.json",
+  "railway.web.toml",
+]
+
+[deploy]
+# Healthcheck hits the marketing landing at `/`. Next.js standalone
+# server returns 200 for /, so this is the simplest viable check.
+# Headroom of 60s because cold-starting Next.js standalone has to
+# load the runtime + the page bundle on first request.
+healthcheckPath = "/"
+healthcheckTimeout = 60
+
+# If the container crashes, retry a few times before marking the
+# deployment failed.
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+# Railway sets $PORT automatically; the Next.js standalone server
+# already reads process.env.PORT (next start respects it).
