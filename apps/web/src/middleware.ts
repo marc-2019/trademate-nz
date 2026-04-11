@@ -2,17 +2,21 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { ACCESS_TOKEN_COOKIE } from './lib/constants';
 
+// Routes anyone (logged-in or not) can hit. Marketing landing at `/` is
+// included as an exact match — it can't go in PUBLIC_PATHS because
+// pathname.startsWith('/') would match every URL.
 const PUBLIC_PATHS = ['/login', '/register', '/verify-email', '/onboarding', '/invoice'];
+const PUBLIC_EXACT = new Set<string>(['/', '/favicon.ico', '/robots.txt', '/sitemap.xml']);
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Allow public paths, API routes, and static assets
   if (
+    PUBLIC_EXACT.has(pathname) ||
     PUBLIC_PATHS.some(p => pathname.startsWith(p)) ||
     pathname.startsWith('/api/') ||
-    pathname.startsWith('/_next/') ||
-    pathname === '/favicon.ico'
+    pathname.startsWith('/_next/')
   ) {
     return NextResponse.next();
   }
