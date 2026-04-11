@@ -70,6 +70,9 @@ RUN addgroup --system --gid 1001 nodejs \
 # bundle.
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
+# public/ is empty for now (no favicon, robots.txt, etc.) but keep the
+# COPY so future static assets get picked up automatically. The folder
+# is committed with a .gitkeep so the source path always exists.
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 
 USER nextjs
