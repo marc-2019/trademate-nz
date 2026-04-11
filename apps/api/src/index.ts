@@ -15,6 +15,27 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
+// Load the marketing landing page once at startup so the / route serves it
+// from memory. The HTML lives at ./landing.html so it can be edited as a
+// real file instead of buried in a template literal. The previous version
+// of this file inlined a "Boss Board / Coming Soon" placeholder — that's
+// what bossboard.instilligent.com was serving and what tripped Apple's
+// review (App Store reviewers see "Coming Soon" → reject under 2.1).
+//
+// __dirname is the CommonJS free variable; this file is compiled to CJS by
+// tsc + NodeNext (no "type":"module" in package.json), so import.meta.url
+// is not available here. The build copies src/landing.html → dist/landing
+// .html so __dirname/landing.html resolves correctly in production too.
+let LANDING_HTML = '';
+try {
+  LANDING_HTML = readFileSync(join(__dirname, 'landing.html'), 'utf8');
+} catch (err) {
+  console.error('[startup] Failed to load landing.html, falling back to minimal HTML:', err);
+  LANDING_HTML = '<!DOCTYPE html><html><head><title>BossBoard</title></head><body><h1>BossBoard</h1><p>NZ tradies SaaS. <a href="mailto:support@instilligent.com">Contact us</a>.</p></body></html>';
+}
 
 import { config } from './config/index.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
@@ -155,116 +176,15 @@ app.use('/api/v1/compliance', apiLimiter, swmsRoutes);
 // =============================================================================
 
 app.get('/', (_req: Request, res: Response) => {
-  res.setHeader('Content-Security-Policy', "default-src 'self'; style-src 'unsafe-inline'; font-src https://fonts.gstatic.com; link-src https://fonts.googleapis.com;");
+  // Allow Google Fonts (used by the landing page) and inline styles. The
+  // previous CSP only allowed 'self' for fonts, which broke the polished
+  // landing's Inter typeface.
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self';"
+  );
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.status(200).send(`<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Boss Board — NZ Trade Compliance Platform</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #f8fafc;
-      color: #1e293b;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-    }
-    .card {
-      background: #fff;
-      border-radius: 1rem;
-      box-shadow: 0 4px 24px rgba(30,64,175,0.08);
-      padding: 3rem 2.5rem;
-      max-width: 520px;
-      width: 100%;
-      text-align: center;
-    }
-    .logo {
-      font-size: 2.5rem;
-      font-weight: 800;
-      color: #7C3AED;
-      letter-spacing: -0.03em;
-      margin-bottom: 0.5rem;
-    }
-    .tagline {
-      font-size: 1.1rem;
-      color: #475569;
-      margin-bottom: 2rem;
-      line-height: 1.5;
-    }
-    .badge {
-      display: inline-block;
-      background: #F5F3FF;
-      color: #7C3AED;
-      font-weight: 700;
-      font-size: 0.85rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      border-radius: 9999px;
-      padding: 0.35rem 1.1rem;
-      margin-bottom: 2rem;
-      border: 1.5px solid #DDD6FE;
-    }
-    .links {
-      margin: 1.5rem 0;
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-    .btn {
-      display: inline-block;
-      background: #7C3AED;
-      color: #fff;
-      text-decoration: none;
-      border-radius: 0.5rem;
-      padding: 0.75rem 1.5rem;
-      font-weight: 600;
-      font-size: 1rem;
-      transition: background 0.15s;
-    }
-    .btn:hover { background: #6D28D9; }
-    .btn-outline {
-      background: transparent;
-      color: #7C3AED;
-      border: 1.5px solid #7C3AED;
-    }
-    .btn-outline:hover { background: #F5F3FF; }
-    .contact {
-      margin-top: 1.75rem;
-      font-size: 0.9rem;
-      color: #64748b;
-    }
-    .contact a { color: #7C3AED; text-decoration: none; }
-    .contact a:hover { text-decoration: underline; }
-    footer {
-      margin-top: 2.5rem;
-      font-size: 0.8rem;
-      color: #94a3b8;
-    }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <div class="logo">Boss Board</div>
-    <p class="tagline">NZ's trade compliance platform for Kiwi tradies</p>
-    <div class="badge">Coming Soon</div>
-    <div class="links">
-      <a class="btn" href="https://ournewnormal.co.nz" target="_blank" rel="noopener">View our ONN Listing</a>
-      <a class="btn btn-outline" href="mailto:info@instilligent.com">Get Early Access</a>
-    </div>
-    <div class="contact">
-      Questions? <a href="mailto:info@instilligent.com">info@instilligent.com</a>
-    </div>
-  </div>
-  <footer>&copy; ${new Date().getFullYear()} Instilligent Limited. All rights reserved.</footer>
-</body>
-</html>`);
+  res.status(200).send(LANDING_HTML);
 });
 
 // =============================================================================

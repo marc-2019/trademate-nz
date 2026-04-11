@@ -37,7 +37,7 @@
       },
       "env": {
         "APP_ENV": "preview",
-        "EXPO_PUBLIC_API_URL": "https://trademate-nz-production.up.railway.app"
+        "EXPO_PUBLIC_API_URL": "https://api.instilligent.com"
       },
       "channel": "preview"
     },
@@ -55,7 +55,7 @@
       },
       "env": {
         "APP_ENV": "production",
-        "EXPO_PUBLIC_API_URL": "https://trademate-nz-production.up.railway.app"
+        "EXPO_PUBLIC_API_URL": "https://api.instilligent.com"
       },
       "channel": "production"
     }

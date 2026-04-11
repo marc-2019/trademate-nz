@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BossBoard | The All-in-One App for NZ Tradies</title>
+    <meta name="description" content="Run your trade business like a boss. Jobs, teams, compliance and cashflow in one app. Built for NZ electricians, plumbers, builders and tradies. From $4.99/week.">
+    <meta name="keywords" content="tradie app, NZ tradies, SWMS generator, trade compliance, invoice app, job management, WorkSafe NZ, health and safety, BossBoard">
+    <link rel="canonical" href="https://bossboard.instilligent.com/">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="BossBoard | The All-in-One App for NZ Tradies">
+    <meta property="og:description" content="Jobs, teams, compliance and cashflow in one app. Built for Kiwi tradies. From $4.99/week.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://bossboard.instilligent.com">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --primary: #7c3aed;
+            --primary-dark: #6d28d9;
+            --primary-light: #a78bfa;
+            --accent: #f59e0b;
+            --bg: #0f0f1a;
+            --bg-card: #1a1a2e;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --success: #22c55e;
+        }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        a { color: var(--primary-light); text-decoration: none; }
+
+        /* Nav */
+        nav {
+            position: fixed; top: 0; width: 100%; z-index: 50;
+            background: rgba(15,15,26,0.95); backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(124,58,237,0.2);
+            padding: 0 24px;
+        }
+        .nav-inner {
+            max-width: 1200px; margin: 0 auto;
+            display: flex; align-items: center; justify-content: space-between;
+            height: 64px;
+        }
+        .nav-logo { font-size: 20px; font-weight: 800; color: white; }
+        .nav-logo span { color: var(--primary-light); }
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-links a { color: var(--text-muted); font-size: 14px; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: white; }
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 24px; border-radius: 8px; font-weight: 600;
+            font-size: 14px; transition: all 0.2s; border: none; cursor: pointer;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+        .btn-outline { background: transparent; color: var(--primary-light); border: 1px solid var(--primary); }
+        .btn-outline:hover { background: var(--primary); color: white; }
+        .btn-large { padding: 14px 32px; font-size: 16px; border-radius: 10px; }
+
+        /* Hero */
+        .hero {
+            padding: 140px 24px 80px; text-align: center;
+            background: linear-gradient(180deg, rgba(124,58,237,0.15) 0%, transparent 60%);
+        }
+        .hero-badge {
+            display: inline-block; padding: 6px 16px; border-radius: 20px;
+            background: rgba(124,58,237,0.2); border: 1px solid rgba(124,58,237,0.3);
+            font-size: 13px; font-weight: 500; color: var(--primary-light);
+            margin-bottom: 24px;
+        }
+        .hero h1 {
+            font-size: clamp(36px, 6vw, 64px); font-weight: 900;
+            line-height: 1.1; margin-bottom: 20px;
+            background: linear-gradient(135deg, white, var(--primary-light));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .hero p {
+            font-size: clamp(16px, 2vw, 20px); color: var(--text-muted);
+            max-width: 600px; margin: 0 auto 32px;
+        }
+        .hero-cta { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+        .hero-price {
+            margin-top: 24px; font-size: 14px; color: var(--text-muted);
+        }
+        .hero-price strong { color: var(--accent); }
+
+        /* Section */
+        section { padding: 80px 24px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .section-title {
+            text-align: center; margin-bottom: 48px;
+        }
+        .section-title h2 {
+            font-size: clamp(28px, 4vw, 40px); font-weight: 800;
+            margin-bottom: 12px;
+        }
+        .section-title p { color: var(--text-muted); font-size: 18px; max-width: 600px; margin: 0 auto; }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+        .feature-card {
+            background: var(--bg-card); border: 1px solid rgba(124,58,237,0.15);
+            border-radius: 16px; padding: 32px;
+            transition: border-color 0.3s, transform 0.2s;
+        }
+        .feature-card:hover { border-color: rgba(124,58,237,0.4); transform: translateY(-2px); }
+        .feature-icon { font-size: 36px; margin-bottom: 16px; }
+        .feature-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+        .feature-card p { color: var(--text-muted); font-size: 14px; line-height: 1.7; }
+
+        /* Pricing */
+        .pricing-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px; max-width: 900px; margin: 0 auto;
+        }
+        .price-card {
+            background: var(--bg-card); border: 1px solid rgba(124,58,237,0.15);
+            border-radius: 16px; padding: 32px; text-align: center;
+            position: relative;
+        }
+        .price-card.featured {
+            border-color: var(--primary);
+            box-shadow: 0 0 30px rgba(124,58,237,0.2);
+        }
+        .price-card.featured::before {
+            content: 'Most Popular'; position: absolute; top: -12px; left: 50%;
+            transform: translateX(-50%); background: var(--primary); color: white;
+            padding: 4px 16px; border-radius: 12px; font-size: 12px; font-weight: 600;
+        }
+        .price-name { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+        .price-amount {
+            font-size: 40px; font-weight: 900; margin: 16px 0 4px;
+        }
+        .price-amount span { font-size: 16px; font-weight: 400; color: var(--text-muted); }
+        .price-period { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
+        .price-features { list-style: none; text-align: left; margin-bottom: 24px; }
+        .price-features li {
+            padding: 8px 0; font-size: 14px; color: var(--text-muted);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .price-features li::before { content: '\2713'; color: var(--success); font-weight: 700; }
+
+        /* NZ Section */
+        .nz-section { background: linear-gradient(135deg, rgba(124,58,237,0.1), rgba(245,158,11,0.05)); }
+        .nz-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .nz-item {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 16px; background: rgba(255,255,255,0.03); border-radius: 12px;
+        }
+        .nz-item .icon { font-size: 24px; flex-shrink: 0; }
+        .nz-item h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+        .nz-item p { font-size: 13px; color: var(--text-muted); }
+
+        /* CTA */
+        .cta-section {
+            text-align: center; padding: 80px 24px;
+            background: linear-gradient(180deg, transparent, rgba(124,58,237,0.1));
+        }
+        .cta-section h2 { font-size: clamp(28px, 4vw, 40px); font-weight: 800; margin-bottom: 16px; }
+        .cta-section p { color: var(--text-muted); font-size: 18px; margin-bottom: 32px; }
+
+        /* Footer */
+        footer {
+            padding: 40px 24px; border-top: 1px solid rgba(124,58,237,0.15);
+            text-align: center; color: var(--text-muted); font-size: 13px;
+        }
+        footer a { color: var(--text-muted); }
+        footer a:hover { color: white; }
+        .footer-links { display: flex; gap: 24px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+
+        @media (max-width: 768px) {
+            .nav-links a:not(.btn) { display: none; }
+            .features-grid { grid-template-columns: 1fr; }
+            .pricing-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Nav -->
+    <nav>
+        <div class="nav-inner">
+            <a href="#" class="nav-logo">Boss<span>Board</span></a>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#pricing">Pricing</a>
+                <a href="#nz">Why NZ</a>
+                <a href="https://bossboard-api-production.up.railway.app" class="btn btn-primary">Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-badge">Built for NZ tradies, by NZ builders</div>
+            <h1>Your whole business.<br>One screen.</h1>
+            <p>Jobs, teams, compliance and cashflow in one app. BossBoard helps electricians, plumbers, builders and tradies across New Zealand run their business from their pocket.</p>
+            <div class="hero-cta">
+                <a href="https://bossboard-api-production.up.railway.app" class="btn btn-primary btn-large">Start Free</a>
+                <a href="#features" class="btn btn-outline btn-large">See Features</a>
+            </div>
+            <p class="hero-price">Free to start. Upgrade from <strong>$4.99/week</strong> when you're ready.</p>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features">
+        <div class="container">
+            <div class="section-title">
+                <h2>Everything a tradie needs</h2>
+                <p>Stop juggling spreadsheets, paper forms, and five different apps. BossBoard puts it all in one place.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#x1F6E1;</div>
+                    <h3>Compliance Made Easy</h3>
+                    <p>Generate Safe Work Method Statements with one tap. AI-powered hazard identification for your trade. Compliant with the Health and Safety at Work Act 2015.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#x1F4CB;</div>
+                    <h3>Professional Invoicing</h3>
+                    <p>Create and send invoices on the spot. Track payments, chase overdue invoices, and know your cashflow position at a glance. GST built in.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#x1F4DD;</div>
+                    <h3>Quotes & Estimates</h3>
+                    <p>Build professional quotes on site. Convert accepted quotes to invoices with one tap. Track quote status from sent to accepted.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#x1F477;</div>
+                    <h3>Team Management</h3>
+                    <p>Manage your crew, assign jobs, track who's where. Invite team members, set roles, and keep everyone on the same page.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#x1F4F7;</div>
+                    <h3>Photo Documentation</h3>
+                    <p>Snap photos of work before, during, and after. Attached to jobs, invoices, and SWMS automatically. GPS tagged for proof of work.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#x23F0;</div>
+                    <h3>Job Logging & Time Tracking</h3>
+                    <p>Clock in and out of jobs. Track hours per site, per worker. Full audit trail for billing and compliance.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section id="pricing" style="background: rgba(124,58,237,0.03);">
+        <div class="container">
+            <div class="section-title">
+                <h2>Less than a coffee a week</h2>
+                <p>Simple pricing. No contracts. Cancel anytime.</p>
+            </div>
+            <div class="pricing-grid">
+                <div class="price-card">
+                    <div class="price-name">Free</div>
+                    <div class="price-amount">$0</div>
+                    <div class="price-period">forever</div>
+                    <ul class="price-features">
+                        <li>3 invoices per month</li>
+                        <li>2 SWMS per month</li>
+                        <li>Basic dashboard</li>
+                        <li>Photo documentation</li>
+                        <li>Single user</li>
+                    </ul>
+                    <a href="https://bossboard-api-production.up.railway.app" class="btn btn-outline" style="width:100%; justify-content:center;">Get Started</a>
+                </div>
+                <div class="price-card featured">
+                    <div class="price-name">Tradie</div>
+                    <div class="price-amount">$4.99<span>/week</span></div>
+                    <div class="price-period">~$19.99/month</div>
+                    <ul class="price-features">
+                        <li>Unlimited invoices & quotes</li>
+                        <li>Unlimited SWMS</li>
+                        <li>AI hazard identification</li>
+                        <li>PDF exports</li>
+                        <li>Email invoices</li>
+                        <li>Expense tracking</li>
+                        <li>Certification reminders</li>
+                        <li>Job logging & time tracking</li>
+                    </ul>
+                    <a href="https://bossboard-api-production.up.railway.app" class="btn btn-primary" style="width:100%; justify-content:center;">Start Free Trial</a>
+                </div>
+                <div class="price-card">
+                    <div class="price-name">Team</div>
+                    <div class="price-amount">$9.99<span>/week</span></div>
+                    <div class="price-period">~$39.99/month</div>
+                    <ul class="price-features">
+                        <li>Everything in Tradie</li>
+                        <li>Up to 5 team members</li>
+                        <li>Team scheduling</li>
+                        <li>Job assignment & dispatch</li>
+                        <li>Team roles & permissions</li>
+                    </ul>
+                    <a href="https://bossboard-api-production.up.railway.app" class="btn btn-outline" style="width:100%; justify-content:center;">Start Free Trial</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- NZ Section -->
+    <section id="nz" class="nz-section">
+        <div class="container">
+            <div class="section-title">
+                <h2>Built for Aotearoa</h2>
+                <p>Not another US app with NZ bolted on. BossBoard is designed from the ground up for how Kiwi tradies actually work.</p>
+            </div>
+            <div class="nz-grid">
+                <div class="nz-item">
+                    <div class="icon">&#x1F3D7;</div>
+                    <div>
+                        <h4>WorkSafe NZ Compliant</h4>
+                        <p>SWMS templates built to Health and Safety at Work Act 2015 standards.</p>
+                    </div>
+                </div>
+                <div class="nz-item">
+                    <div class="icon">&#x1F4B0;</div>
+                    <div>
+                        <h4>GST Built In</h4>
+                        <p>15% GST calculated automatically on every invoice and quote.</p>
+                    </div>
+                </div>
+                <div class="nz-item">
+                    <div class="icon">&#x1F4F6;</div>
+                    <div>
+                        <h4>Works Offline</h4>
+                        <p>No signal on the job site? No worries. BossBoard works offline and syncs when you're back online.</p>
+                    </div>
+                </div>
+                <div class="nz-item">
+                    <div class="icon">&#x1F4B2;</div>
+                    <div>
+                        <h4>NZD Pricing</h4>
+                        <p>No currency conversion surprises. Pay in NZ dollars, priced for NZ businesses.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>Ready to run your business like a boss?</h2>
+            <p>Join hundreds of Kiwi tradies who've ditched the paperwork.</p>
+            <a href="https://bossboard-api-production.up.railway.app" class="btn btn-primary btn-large">Start Free Today</a>
+            <p style="margin-top: 16px; font-size: 14px; color: var(--text-muted);">No credit card required. Free plan available forever.</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="#features">Features</a>
+                <a href="#pricing">Pricing</a>
+                <a href="https://instilligent.com" target="_blank">Instilligent</a>
+                <a href="mailto:support@instilligent.com">Contact</a>
+                <a href="https://instilligent.com/pages/privacy.html" target="_blank">Privacy</a>
+            </div>
+            <p>BossBoard is a product of <a href="https://instilligent.com" target="_blank">Instilligent Limited</a> | NZBN 9429051598102 | New Zealand</p>
+        </div>
+    </footer>
+</body>
+</html>
