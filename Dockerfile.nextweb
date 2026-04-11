@@ -42,11 +42,11 @@ WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
-# Copy hoisted node_modules from deps stage + the workspace package roots
-# (so npm workspaces still resolves @bossboard/shared correctly).
+# npm workspaces HOISTS all dependencies to the root /app/node_modules.
+# There are no per-workspace node_modules folders to copy. Earlier
+# versions of this Dockerfile tried to COPY packages/shared/node_modules
+# and apps/web/node_modules and failed because they don't exist.
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
-COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
 
 # Now bring in the actual source.
 COPY package.json package-lock.json ./
