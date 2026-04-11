@@ -34,6 +34,12 @@ watchPatterns = [
 ]
 
 [deploy]
+# Override Railway's auto-detected start command. The runner stage
+# contains only the Next.js standalone output (no node_modules/.bin),
+# so `npm start` / `next start` would fail with "next: not found".
+# The standalone server.js reads process.env.PORT automatically.
+startCommand = "node apps/web/server.js"
+
 # Healthcheck hits the marketing landing at `/`. Next.js standalone
 # server returns 200 for /, so this is the simplest viable check.
 # Headroom of 60s because cold-starting Next.js standalone has to
