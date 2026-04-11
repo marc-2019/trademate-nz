@@ -1,5 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="6" fill="#1e3a5f"/>
-  <text x="3" y="23" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="18" fill="#fbbf24">T</text>
-  <text x="15" y="23" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="18" fill="#ffffff">M</text>
+  <!-- Stopgap BossBoard favicon: white "BB" on the BossBoard purple gradient.
+       Not the polished mark — the canonical lockup lives at apps/mobile/assets/icon.png
+       (1024x1024 PNG). Replace this when a vector version of the full mark is produced. -->
+  <defs>
+    <linearGradient id="bb-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7b2cbf"/>
+      <stop offset="100%" stop-color="#5a189a"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="6" fill="url(#bb-bg)"/>
+  <text x="16" y="22" text-anchor="middle"
+        font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="16"
+        fill="#ffffff" letter-spacing="-0.5">BB</text>
 </svg>
