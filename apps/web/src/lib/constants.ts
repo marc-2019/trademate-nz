@@ -1,5 +1,11 @@
-/** Server-side API URL (internal, not exposed to browser) */
-export const API_URL = process.env.API_URL || 'http://localhost:29000';
+/** Server-side API URL (internal, not exposed to browser).
+ *  In production (Railway), this should be set to the API service's internal URL
+ *  or the public URL. Falls back to production public URL. */
+export const API_URL = process.env.API_URL || (
+  process.env.RAILWAY_ENVIRONMENT
+    ? 'https://api.instilligent.com'
+    : 'http://localhost:29000'
+);
 
 /** Cookie names */
 export const ACCESS_TOKEN_COOKIE = 'bb_access_token';
