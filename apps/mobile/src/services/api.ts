@@ -291,6 +291,9 @@ export const authApi = {
 
   resetPassword: (email: string, code: string, newPassword: string) =>
     api.post('/api/v1/auth/reset-password', { email, code, newPassword }),
+
+  deleteAccount: () =>
+    api.delete('/api/v1/auth/account'),
 };
 
 // SWMS-specific API calls

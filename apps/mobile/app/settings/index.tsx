@@ -14,7 +14,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { notificationsApi } from '../../src/services/api';
+import { authApi, notificationsApi } from '../../src/services/api';
 import { registerForPushNotificationsAsync } from '../../src/hooks/useNotifications';
 
 interface MenuItem {
@@ -41,6 +41,43 @@ export default function SettingsScreen() {
         },
       },
     ]);
+  }
+
+  async function handleDeleteAccount() {
+    Alert.alert(
+      'Delete Account',
+      'This will permanently delete your account and all associated data including invoices, quotes, expenses, job logs, SWMS documents, certifications, and team memberships.\n\nThis action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete My Account',
+          style: 'destructive',
+          onPress: () => {
+            // Double-confirm for safety
+            Alert.alert(
+              'Are you absolutely sure?',
+              'All your data will be permanently deleted. You will be signed out immediately.',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Yes, Delete Everything',
+                  style: 'destructive',
+                  onPress: async () => {
+                    try {
+                      await authApi.deleteAccount();
+                      await logout();
+                      Alert.alert('Account Deleted', 'Your account and all data have been permanently deleted.');
+                    } catch (error: any) {
+                      Alert.alert('Error', error.message || 'Failed to delete account. Please try again or contact support@instilligent.com.');
+                    }
+                  },
+                },
+              ]
+            );
+          },
+        },
+      ]
+    );
   }
 
   async function handleTestNotification() {
@@ -110,6 +147,13 @@ export default function SettingsScreen() {
           label: 'Sign Out',
           color: '#EF4444',
           onPress: handleLogout,
+        },
+        {
+          id: 'delete-account',
+          icon: 'trash-outline',
+          label: 'Delete Account',
+          color: '#DC2626',
+          onPress: handleDeleteAccount,
         },
       ],
     },

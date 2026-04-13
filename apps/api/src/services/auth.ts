@@ -510,6 +510,43 @@ async function storeRefreshToken(userId: string, token: string): Promise<void> {
   );
 }
 
+/**
+ * Delete a user account and all associated data.
+ * Google Play policy requires in-app account deletion (effective Dec 2023).
+ * Cascading deletes remove all user-owned data across every table.
+ */
+async function deleteAccount(userId: string): Promise<void> {
+  await db.transaction(async (client) => {
+    // Remove user from any team they belong to
+    await client.query('DELETE FROM team_members WHERE user_id = $1', [userId]);
+
+    // Delete teams the user owns (and their members/invites)
+    const ownedTeams = await client.query(
+      'SELECT id FROM teams WHERE owner_id = $1',
+      [userId]
+    );
+    for (const team of ownedTeams.rows) {
+      await client.query('DELETE FROM team_invites WHERE team_id = $1', [team.id]);
+      await client.query('DELETE FROM team_members WHERE team_id = $1', [team.id]);
+      await client.query('DELETE FROM teams WHERE id = $1', [team.id]);
+    }
+
+    // Delete all user data (order matters for FK constraints)
+    await client.query('DELETE FROM photos WHERE user_id = $1', [userId]);
+    await client.query('DELETE FROM expenses WHERE user_id = $1', [userId]);
+    await client.query('DELETE FROM job_logs WHERE user_id = $1', [userId]);
+    await client.query('DELETE FROM certifications WHERE user_id = $1', [userId]);
+    await client.query('DELETE FROM quotes WHERE user_id = $1', [userId]);
+    await client.query('DELETE FROM recurring_invoices WHERE user_id = $1', [userId]);
+    await client.query('DELETE FROM invoices WHERE user_id = $1', [userId]);
+    await client.query('DELETE FROM swms_documents WHERE user_id = $1', [userId]);
+    await client.query('DELETE FROM refresh_tokens WHERE user_id = $1', [userId]);
+
+    // Finally, delete the user record
+    await client.query('DELETE FROM users WHERE id = $1', [userId]);
+  });
+}
+
 export default {
   register,
   login,
@@ -522,6 +559,7 @@ export default {
   completeOnboarding,
   forgotPassword,
   resetPassword,
+  deleteAccount,
 };
 
 

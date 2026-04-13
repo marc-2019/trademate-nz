@@ -100,6 +100,28 @@
       }
     }
   },
+  "dataDeletion": {
+    "url": "https://api.instilligent.com/legal/delete-account",
+    "note": "Google Play requires a web URL for account/data deletion. This page is also accessible from Settings > Delete Account within the app."
+  },
+  "dataSafety": {
+    "note": "Fill these declarations in Google Play Console > Data safety form. Must match actual SDK behaviour.",
+    "dataCollected": [
+      { "type": "Email address", "purpose": "App functionality, Account management", "optional": false },
+      { "type": "Name", "purpose": "App functionality", "optional": true },
+      { "type": "Phone number", "purpose": "App functionality", "optional": true },
+      { "type": "Photos", "purpose": "App functionality (receipt/site photos)", "optional": true },
+      { "type": "Approximate location", "purpose": "App functionality (site address auto-fill)", "optional": true },
+      { "type": "App interactions", "purpose": "Analytics", "optional": false },
+      { "type": "Crash logs", "purpose": "App functionality", "optional": false }
+    ],
+    "dataShared": [],
+    "securityPractices": {
+      "encryptedInTransit": true,
+      "deletionMechanism": true,
+      "deletionUrl": "https://api.instilligent.com/legal/delete-account"
+    }
+  },
   "reviewAccount": {
     "note": "CRITICAL: this password MUST be the real working password for reviewer@instilligent.com BEFORE you copy this metadata into App Store Connect. The literal string SET_BEFORE_SUBMISSION was sent to reviewers in the previous submission, which is the most likely cause of the 2026-03-19 Apple rejection — reviewers couldn't log in.",
     "email": "reviewer@instilligent.com",

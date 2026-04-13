@@ -76,7 +76,7 @@ Under the New Zealand Privacy Act 2020, you have the right to:
 - Export your data
 - Withdraw consent
 
-To exercise these rights, contact us at privacy@your-domain.co.nz
+To exercise these rights, contact us at privacy@instilligent.com
 
 ## 6. Children's Privacy
 
@@ -89,11 +89,11 @@ We may update this Privacy Policy from time to time. We will notify you of signi
 ## 8. Contact Us
 
 **Instilligent Limited**
-Email: privacy@your-domain.co.nz
-Website: https://your-domain.co.nz/privacy
+Email: privacy@instilligent.com
+Website: https://api.instilligent.com/legal/privacy
 
 **Privacy Officer**
-For privacy concerns, contact our Privacy Officer at privacy@your-domain.co.nz
+For privacy concerns, contact our Privacy Officer at privacy@instilligent.com
 
 ---
 

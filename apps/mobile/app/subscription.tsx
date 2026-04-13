@@ -139,7 +139,7 @@ export default function SubscriptionScreen() {
     if (tier === currentTier) return;
     Alert.alert(
       'Coming Soon',
-      'Subscription upgrades will be available soon via Stripe. During the beta, all features are free!',
+      'Subscription upgrades will be available soon. During our launch period, all features are completely free!',
       [{ text: 'OK' }]
     );
   }
@@ -195,13 +195,13 @@ export default function SubscriptionScreen() {
     >
       <Stack.Screen options={{ title: 'Subscription' }} />
 
-      {/* Beta Banner */}
+      {/* Launch Banner */}
       <View style={styles.betaBanner}>
         <Ionicons name="gift-outline" size={20} color="#059669" />
         <View style={styles.betaTextWrap}>
-          <Text style={styles.betaTitle}>Beta Access</Text>
+          <Text style={styles.betaTitle}>Launch Pricing</Text>
           <Text style={styles.betaSubtitle}>
-            All features are free during the beta period!
+            All features are completely free during our launch period!
           </Text>
         </View>
       </View>

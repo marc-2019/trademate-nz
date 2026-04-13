@@ -1,0 +1,53 @@
+# BossBoard
+
+> Mobile-first compliance and business management app for New Zealand tradespeople. Jobs, teams, compliance and cashflow in one app.
+
+## About
+
+BossBoard (also known as TradeMate NZ) is a mobile-first micro-SaaS platform built for New Zealand tradies and small service businesses — plumbers, electricians, builders, landscapers, and other trades. It replaces the patchwork of spreadsheets, paper forms, and multiple apps with a single affordable tool that handles compliance, invoicing, quoting, job tracking, and team management.
+
+Built by Instilligent Limited, BossBoard leverages AI to generate compliant Safe Work Method Statements (SWMS) and surface business insights. It is designed to work offline-first via React Native with local SQLite storage, syncing when connectivity is available.
+
+Target market: 100,000-150,000 NZ SMEs in the trades and service sectors.
+
+## Features
+
+- AI-powered SWMS generation compliant with the Health and Safety at Work Act 2015
+- Professional invoicing with GST built in, payment tracking, and overdue invoice chasing
+- Quotes and estimates with one-tap conversion to invoices
+- Job logging with clock in/out, per-site and per-worker time tracking
+- Team management with invites, role assignment, and job allocation
+- Photo documentation with GPS tagging, attached to jobs, invoices, and SWMS
+- Certification and licence tracking with automated expiry alerts
+- Expense tracking
+- Dashboard with cashflow overview and AI-generated business insights
+- Offline-first mobile app (iOS and Android via React Native / Expo)
+
+## Pricing
+
+All prices in NZD. No contracts, cancel anytime.
+
+- **Free**: $0 forever — 3 invoices/month, 2 SWMS/month, basic dashboard
+- **Tradie**: $4.99/week (~$19.99/month) — unlimited everything, single user
+- **Team**: $9.99/week (~$39.99/month) — everything plus up to 5 team members
+
+## Technology
+
+- Mobile: React Native (Expo) with SQLite offline storage
+- Backend: Node.js / Express with TypeScript
+- Database: PostgreSQL 16 with Redis caching
+- AI: Anthropic Claude API for compliance document generation
+- Payments: Stripe NZ
+- Hosting: Railway
+
+## Links
+
+- [BossBoard App](https://bossboard.instilligent.com)
+- [Landing Page](https://bossboard.instilligent.com)
+- [Parent Company — Instilligent](https://instilligent.com)
+
+## Contact
+
+- Email: info@instilligent.com
+- Parent company: Instilligent Limited (NZBN: 9429051796284)
+- Location: New Zealand

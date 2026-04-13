@@ -214,6 +214,24 @@ router.post('/logout', authenticate, async (req: Request, res: Response) => {
 });
 
 /**
+ * DELETE /api/v1/auth/account
+ * Delete user account and all associated data.
+ * Required by Google Play Account Deletion policy (effective Dec 2023).
+ */
+router.delete('/account', authenticate, async (req: Request, res: Response) => {
+  try {
+    await authService.deleteAccount(req.user!.userId);
+
+    res.json({
+      success: true,
+      message: 'Account and all associated data have been permanently deleted.',
+    });
+  } catch (error) {
+    throw error;
+  }
+});
+
+/**
  * GET /api/v1/auth/me
  * Get current user profile
  */
