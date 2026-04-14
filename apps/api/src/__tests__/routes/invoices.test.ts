@@ -369,4 +369,71 @@ describe('Invoice Routes', () => {
       expect(response.status).toBe(404);
     });
   });
+
+  // Additional branch coverage tests
+
+  describe('PUT /api/v1/invoices/:id — validation error branch', () => {
+    it('should return 400 when line item amount is negative in update', async () => {
+      const response = await request(app)
+        .put('/api/v1/invoices/inv-1')
+        .send({ lineItems: [{ description: 'Work', amount: -50 }] });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('VALIDATION_ERROR');
+    });
+
+    it('should return 400 when clientEmail is not a valid email in update', async () => {
+      const response = await request(app)
+        .put('/api/v1/invoices/inv-1')
+        .send({ clientEmail: 'not-a-valid-email' });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('VALIDATION_ERROR');
+    });
+
+  });
+
+  describe('POST /api/v1/invoices/:id/email — additional branches', () => {
+    it('should return 404 when invoice not found after SMTP configured', async () => {
+      mockIsEmailConfigured.mockReturnValue(true);
+      mockGetInvoiceByIdRaw.mockResolvedValue(null);
+
+      const response = await request(app)
+        .post('/api/v1/invoices/inv-1/email')
+        .send({ recipientEmail: 'client@example.com' });
+
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('NOT_FOUND');
+    });
+
+    it('should return 503 when email service throws SMTP error', async () => {
+      mockIsEmailConfigured.mockReturnValue(true);
+      mockGetInvoiceByIdRaw.mockResolvedValue({ id: 'inv-1', invoiceNumber: 'INV-001', status: 'draft' });
+      mockGenerateInvoicePDF.mockResolvedValue(Buffer.from('pdf'));
+      mockSendInvoiceEmail.mockRejectedValue(new Error('SMTP connection refused'));
+
+      const response = await request(app)
+        .post('/api/v1/invoices/inv-1/email')
+        .send({ recipientEmail: 'client@example.com' });
+
+      expect(response.status).toBe(503);
+      expect(response.body.error).toBe('EMAIL_SEND_FAILED');
+    });
+
+    it('should not auto-mark as sent when invoice is already sent', async () => {
+      mockIsEmailConfigured.mockReturnValue(true);
+      mockGetInvoiceByIdRaw.mockResolvedValue({ id: 'inv-1', invoiceNumber: 'INV-001', status: 'sent' });
+      mockGenerateInvoicePDF.mockResolvedValue(Buffer.from('pdf'));
+      mockSendInvoiceEmail.mockResolvedValue({ messageId: 'msg-2' });
+      mockGetInvoiceById.mockResolvedValue({ id: 'inv-1', status: 'sent' });
+
+      const response = await request(app)
+        .post('/api/v1/invoices/inv-1/email')
+        .send({ recipientEmail: 'client@example.com' });
+
+      expect(response.status).toBe(200);
+      expect(mockMarkAsSent).not.toHaveBeenCalled();
+    });
+  });
+
 });

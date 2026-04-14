@@ -215,5 +215,79 @@ describe('Subscription Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body.data.url).toContain('stripe.com');
     });
+
+    it('should accept a localhost returnUrl and pass it to createPortalSession', async () => {
+      mockIsBetaMode.mockReturnValue(false);
+      mockGetUserSubscription.mockResolvedValue({ tier: 'tradie', stripeCustomerId: 'cus_123' });
+      mockCreatePortalSession.mockResolvedValue('https://billing.stripe.com/session');
+
+      const response = await request(app)
+        .post('/api/v1/subscriptions/portal')
+        .send({ returnUrl: 'http://localhost:3000/billing' });
+
+      expect(response.status).toBe(200);
+      expect(mockCreatePortalSession).toHaveBeenCalledWith('cus_123', 'http://localhost:3000/billing');
+    });
+
+    it('should ignore an external returnUrl and use default', async () => {
+      mockIsBetaMode.mockReturnValue(false);
+      mockGetUserSubscription.mockResolvedValue({ tier: 'tradie', stripeCustomerId: 'cus_123' });
+      mockCreatePortalSession.mockResolvedValue('https://billing.stripe.com/session');
+
+      const response = await request(app)
+        .post('/api/v1/subscriptions/portal')
+        .send({ returnUrl: 'https://evil.example.com/steal' });
+
+      expect(response.status).toBe(200);
+      // Should not pass the external URL through
+      expect(mockCreatePortalSession).toHaveBeenCalledWith('cus_123', expect.not.stringContaining('evil.example.com'));
+    });
+
+    it('should propagate service errors from portal', async () => {
+      mockIsBetaMode.mockReturnValue(false);
+      mockGetUserSubscription.mockResolvedValue({ tier: 'tradie', stripeCustomerId: 'cus_123' });
+      mockCreatePortalSession.mockRejectedValue(new Error('Stripe unavailable'));
+
+      const response = await request(app).post('/api/v1/subscriptions/portal');
+
+      expect(response.status).toBe(500);
+    });
+  });
+
+  describe('Error propagation — unexpected service failures', () => {
+    it('should propagate errors from GET /me', async () => {
+      mockGetUserSubscription.mockRejectedValue(new Error('DB unavailable'));
+
+      const response = await request(app).get('/api/v1/subscriptions/me');
+
+      expect(response.status).toBe(500);
+    });
+
+    it('should propagate errors from GET /usage', async () => {
+      mockGetUserSubscription.mockRejectedValue(new Error('DB unavailable'));
+
+      const response = await request(app).get('/api/v1/subscriptions/usage');
+
+      expect(response.status).toBe(500);
+    });
+
+    it('should propagate errors from GET /limits', async () => {
+      mockGetUserSubscription.mockRejectedValue(new Error('DB unavailable'));
+
+      const response = await request(app).get('/api/v1/subscriptions/limits');
+
+      expect(response.status).toBe(500);
+    });
+
+    it('should propagate errors from POST /checkout', async () => {
+      mockIsBetaMode.mockReturnValue(false);
+      mockDbQuery.mockRejectedValue(new Error('DB unavailable'));
+
+      const response = await request(app)
+        .post('/api/v1/subscriptions/checkout')
+        .send({ tier: 'tradie' });
+
+      expect(response.status).toBe(500);
+    });
   });
 });

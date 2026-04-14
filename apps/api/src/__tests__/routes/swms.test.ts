@@ -384,5 +384,36 @@ describe('SWMS Routes', () => {
         error: 'VALIDATION_ERROR',
       });
     });
+
+    it('should return 404 when SWMS document not found during sign', async () => {
+      mockSignSWMS.mockResolvedValue(null);
+
+      const response = await request(app)
+        .post('/api/v1/swms/non-existent/sign')
+        .set('Authorization', 'Bearer mock-token')
+        .send({ signature: 'valid-signature-data', role: 'supervisor' });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toMatchObject({
+        success: false,
+        error: 'NOT_FOUND',
+      });
+    });
   });
+
+  describe('PUT /api/v1/swms/:id — validation error branch', () => {
+    it('should return 400 when status is invalid enum value', async () => {
+      const response = await request(app)
+        .put('/api/v1/swms/swms-123')
+        .set('Authorization', 'Bearer mock-token')
+        .send({ status: 'invalid-status' });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toMatchObject({
+        success: false,
+        error: 'VALIDATION_ERROR',
+      });
+    });
+  });
+
 });
