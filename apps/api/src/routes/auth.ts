@@ -14,25 +14,49 @@ import redis from '../services/redis.js';
 const MAX_CODE_ATTEMPTS = 5;
 const CODE_LOCKOUT_SECONDS = 900; // 15 minutes
 
+// In-memory fallback when Redis is unavailable: { key -> { count, expiresAt } }
+const memoryAttempts = new Map<string, { count: number; expiresAt: number }>();
+
+function memoryCheckAttempts(key: string): { allowed: boolean; attempts: number } {
+  const now = Date.now();
+  const entry = memoryAttempts.get(key);
+  if (!entry || entry.expiresAt < now) {
+    memoryAttempts.set(key, { count: 1, expiresAt: now + CODE_LOCKOUT_SECONDS * 1000 });
+    return { allowed: true, attempts: 1 };
+  }
+  entry.count += 1;
+  return { allowed: entry.count <= MAX_CODE_ATTEMPTS, attempts: entry.count };
+}
+
+function memoryClearAttempts(key: string): void {
+  memoryAttempts.delete(key);
+}
+
 async function checkCodeAttempts(key: string): Promise<{ allowed: boolean; attempts: number }> {
   try {
     const client = redis.getClient();
-    if (!client.isOpen) return { allowed: true, attempts: 0 };
+    if (!client.isOpen) return memoryCheckAttempts(key);
     const attempts = await client.incr(key);
     if (attempts === 1) {
       await client.expire(key, CODE_LOCKOUT_SECONDS);
     }
     return { allowed: attempts <= MAX_CODE_ATTEMPTS, attempts };
   } catch {
-    return { allowed: true, attempts: 0 }; // Fail open if Redis is down
+    return memoryCheckAttempts(key);
   }
 }
 
 async function clearCodeAttempts(key: string): Promise<void> {
   try {
     const client = redis.getClient();
-    if (client.isOpen) await client.del(key);
-  } catch { /* ignore */ }
+    if (client.isOpen) {
+      await client.del(key);
+    } else {
+      memoryClearAttempts(key);
+    }
+  } catch {
+    memoryClearAttempts(key);
+  }
 }
 
 // App error type for error handling
