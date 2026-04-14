@@ -3,7 +3,7 @@
  * /api/v1/quotes/*
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import quotesService from '../services/quotes.js';
 import pdfService from '../services/pdf.js';
@@ -63,7 +63,7 @@ const updateSchema = z.object({
  * POST /api/v1/quotes
  * Create a new quote
  */
-router.post('/', authenticate, attachSubscription, requireFeature('quotes'), async (req: Request, res: Response) => {
+router.post('/', authenticate, attachSubscription, requireFeature('quotes'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = createSchema.safeParse(req.body);
     if (!validation.success) {
@@ -90,7 +90,7 @@ router.post('/', authenticate, attachSubscription, requireFeature('quotes'), asy
       message: 'Quote created successfully',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -98,7 +98,7 @@ router.post('/', authenticate, attachSubscription, requireFeature('quotes'), asy
  * GET /api/v1/quotes
  * List user's quotes
  */
-router.get('/', authenticate, async (req: Request, res: Response) => {
+router.get('/', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { status, limit, offset } = req.query;
 
@@ -113,7 +113,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -121,7 +121,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
  * GET /api/v1/quotes/:id
  * Get specific quote
  */
-router.get('/:id', authenticate, async (req: Request, res: Response) => {
+router.get('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const quote = await quotesService.getQuoteById(id, req.user!.userId);
@@ -140,7 +140,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
       data: { quote },
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -148,7 +148,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
  * GET /api/v1/quotes/:id/pdf
  * Download quote as PDF
  */
-router.get('/:id/pdf', authenticate, attachSubscription, requireFeature('quotes'), async (req: Request, res: Response) => {
+router.get('/:id/pdf', authenticate, attachSubscription, requireFeature('quotes'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const quote = await quotesService.getQuoteByIdRaw(id, req.user!.userId);
@@ -170,7 +170,7 @@ router.get('/:id/pdf', authenticate, attachSubscription, requireFeature('quotes'
     res.setHeader('Content-Length', pdfBuffer.length);
     res.send(pdfBuffer);
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -178,7 +178,7 @@ router.get('/:id/pdf', authenticate, attachSubscription, requireFeature('quotes'
  * PUT /api/v1/quotes/:id
  * Update quote (only draft quotes)
  */
-router.put('/:id', authenticate, async (req: Request, res: Response) => {
+router.put('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = updateSchema.safeParse(req.body);
     if (!validation.success) {
@@ -221,7 +221,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
       });
       return;
     }
-    throw error;
+    next(error);
   }
 });
 
@@ -229,7 +229,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
  * DELETE /api/v1/quotes/:id
  * Delete quote
  */
-router.delete('/:id', authenticate, async (req: Request, res: Response) => {
+router.delete('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const deleted = await quotesService.deleteQuote(id, req.user!.userId);
@@ -248,7 +248,7 @@ router.delete('/:id', authenticate, async (req: Request, res: Response) => {
       message: 'Quote deleted successfully',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -256,7 +256,7 @@ router.delete('/:id', authenticate, async (req: Request, res: Response) => {
  * POST /api/v1/quotes/:id/send
  * Mark quote as sent
  */
-router.post('/:id/send', authenticate, async (req: Request, res: Response) => {
+router.post('/:id/send', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const quote = await quotesService.markAsSent(id, req.user!.userId);
@@ -276,7 +276,7 @@ router.post('/:id/send', authenticate, async (req: Request, res: Response) => {
       message: 'Quote marked as sent',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -284,7 +284,7 @@ router.post('/:id/send', authenticate, async (req: Request, res: Response) => {
  * POST /api/v1/quotes/:id/accept
  * Mark quote as accepted
  */
-router.post('/:id/accept', authenticate, async (req: Request, res: Response) => {
+router.post('/:id/accept', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const quote = await quotesService.markAsAccepted(id, req.user!.userId);
@@ -304,7 +304,7 @@ router.post('/:id/accept', authenticate, async (req: Request, res: Response) => 
       message: 'Quote marked as accepted',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -312,7 +312,7 @@ router.post('/:id/accept', authenticate, async (req: Request, res: Response) => 
  * POST /api/v1/quotes/:id/decline
  * Mark quote as declined
  */
-router.post('/:id/decline', authenticate, async (req: Request, res: Response) => {
+router.post('/:id/decline', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const quote = await quotesService.markAsDeclined(id, req.user!.userId);
@@ -332,7 +332,7 @@ router.post('/:id/decline', authenticate, async (req: Request, res: Response) =>
       message: 'Quote marked as declined',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -340,7 +340,7 @@ router.post('/:id/decline', authenticate, async (req: Request, res: Response) =>
  * POST /api/v1/quotes/:id/convert
  * Convert quote to invoice
  */
-router.post('/:id/convert', authenticate, async (req: Request, res: Response) => {
+router.post('/:id/convert', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const result = await quotesService.convertToInvoice(id, req.user!.userId);
@@ -369,7 +369,7 @@ router.post('/:id/convert', authenticate, async (req: Request, res: Response) =>
       });
       return;
     }
-    throw error;
+    next(error);
   }
 });
 

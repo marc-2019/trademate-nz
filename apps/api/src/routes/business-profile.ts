@@ -3,7 +3,7 @@
  * /api/v1/business-profile/*
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import businessProfileService from '../services/business-profile.js';
 import { authenticate } from '../middleware/auth.js';
@@ -45,7 +45,7 @@ const upsertSchema = z.object({
  * GET /api/v1/business-profile
  * Get user's business profile (or null if not set up)
  */
-router.get('/', authenticate, async (req: Request, res: Response) => {
+router.get('/', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const profile = await businessProfileService.getBusinessProfile(
       req.user!.userId
@@ -56,7 +56,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
       data: { profile },
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -64,7 +64,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
  * PUT /api/v1/business-profile
  * Upsert business profile (create or update)
  */
-router.put('/', authenticate, async (req: Request, res: Response) => {
+router.put('/', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = upsertSchema.safeParse(req.body);
     if (!validation.success) {
@@ -88,7 +88,7 @@ router.put('/', authenticate, async (req: Request, res: Response) => {
       message: 'Business profile updated successfully',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 

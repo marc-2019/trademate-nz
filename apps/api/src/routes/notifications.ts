@@ -3,7 +3,7 @@
  * Push token management and notification preferences
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { authenticate } from '../middleware/auth.js';
 import { config } from '../config/index.js';
@@ -27,7 +27,7 @@ const registerTokenSchema = z.object({
 /**
  * POST /api/v1/notifications/push-token - Register push token
  */
-router.post('/push-token', authenticate, async (req: Request, res: Response) => {
+router.post('/push-token', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = registerTokenSchema.safeParse(req.body);
     if (!validation.success) {
@@ -55,14 +55,14 @@ router.post('/push-token', authenticate, async (req: Request, res: Response) => 
       });
       return;
     }
-    throw error;
+    next(error);
   }
 });
 
 /**
  * DELETE /api/v1/notifications/push-token - Remove push token (on logout)
  */
-router.delete('/push-token', authenticate, async (req: Request, res: Response) => {
+router.delete('/push-token', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.userId;
     await notificationsService.removePushToken(userId);
@@ -80,14 +80,14 @@ router.delete('/push-token', authenticate, async (req: Request, res: Response) =
       });
       return;
     }
-    throw error;
+    next(error);
   }
 });
 
 /**
  * POST /api/v1/notifications/test - Send a test notification to the current user
  */
-router.post('/test', authenticate, async (req: Request, res: Response) => {
+router.post('/test', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.userId;
     const token = await notificationsService.getPushToken(userId);
@@ -124,7 +124,7 @@ router.post('/test', authenticate, async (req: Request, res: Response) => {
       });
       return;
     }
-    throw error;
+    next(error);
   }
 });
 
@@ -132,7 +132,7 @@ router.post('/test', authenticate, async (req: Request, res: Response) => {
  * POST /api/v1/notifications/check-expiry - Manually trigger cert expiry check
  * (Admin/debug endpoint)
  */
-router.post('/check-expiry', authenticate, async (_req: Request, res: Response) => {
+router.post('/check-expiry', authenticate, async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await cronService.runCertExpiryCheckNow();
 
@@ -149,7 +149,7 @@ router.post('/check-expiry', authenticate, async (_req: Request, res: Response) 
       });
       return;
     }
-    throw error;
+    next(error);
   }
 });
 

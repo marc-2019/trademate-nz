@@ -3,7 +3,7 @@
  * Time tracking for job sites
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { authenticate } from '../middleware/auth.js';
 import { attachSubscription, requireFeature } from '../middleware/subscription.js';
@@ -41,7 +41,7 @@ const clockOutSchema = z.object({
 /**
  * POST /api/v1/job-logs - Create job log (clock in)
  */
-router.post('/', authenticate, attachSubscription, requireFeature('jobLogs'), async (req: Request, res: Response) => {
+router.post('/', authenticate, attachSubscription, requireFeature('jobLogs'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = createJobLogSchema.safeParse(req.body);
     if (!validation.success) {
@@ -69,14 +69,14 @@ router.post('/', authenticate, attachSubscription, requireFeature('jobLogs'), as
       });
       return;
     }
-    throw error;
+    next(error);
   }
 });
 
 /**
  * GET /api/v1/job-logs/active - Get current active job log
  */
-router.get('/active', authenticate, async (req: Request, res: Response) => {
+router.get('/active', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.userId;
     const jobLog = await jobLogsService.getActiveJobLog(userId);
@@ -94,14 +94,14 @@ router.get('/active', authenticate, async (req: Request, res: Response) => {
       });
       return;
     }
-    throw error;
+    next(error);
   }
 });
 
 /**
  * GET /api/v1/job-logs/stats - Get job log stats
  */
-router.get('/stats', authenticate, async (req: Request, res: Response) => {
+router.get('/stats', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.userId;
     const stats = await jobLogsService.getJobLogStats(userId);
@@ -119,14 +119,14 @@ router.get('/stats', authenticate, async (req: Request, res: Response) => {
       });
       return;
     }
-    throw error;
+    next(error);
   }
 });
 
 /**
  * GET /api/v1/job-logs - List job logs
  */
-router.get('/', authenticate, async (req: Request, res: Response) => {
+router.get('/', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.userId;
     const { status, customerId, startDate, endDate, limit, offset } = req.query;
@@ -156,14 +156,14 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
       });
       return;
     }
-    throw error;
+    next(error);
   }
 });
 
 /**
  * GET /api/v1/job-logs/:id - Get job log by ID
  */
-router.get('/:id', authenticate, async (req: Request, res: Response) => {
+router.get('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.userId;
     const jobLog = await jobLogsService.getJobLog(userId, req.params.id as string);
@@ -181,14 +181,14 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
       });
       return;
     }
-    throw error;
+    next(error);
   }
 });
 
 /**
  * PUT /api/v1/job-logs/:id - Update job log
  */
-router.put('/:id', authenticate, async (req: Request, res: Response) => {
+router.put('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = updateJobLogSchema.safeParse(req.body);
     if (!validation.success) {
@@ -216,14 +216,14 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
       });
       return;
     }
-    throw error;
+    next(error);
   }
 });
 
 /**
  * POST /api/v1/job-logs/:id/clock-out - Clock out of a job
  */
-router.post('/:id/clock-out', authenticate, async (req: Request, res: Response) => {
+router.post('/:id/clock-out', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = clockOutSchema.safeParse(req.body);
     if (!validation.success) {
@@ -251,14 +251,14 @@ router.post('/:id/clock-out', authenticate, async (req: Request, res: Response) 
       });
       return;
     }
-    throw error;
+    next(error);
   }
 });
 
 /**
  * DELETE /api/v1/job-logs/:id - Delete job log
  */
-router.delete('/:id', authenticate, async (req: Request, res: Response) => {
+router.delete('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.userId;
     await jobLogsService.deleteJobLog(userId, req.params.id as string);
@@ -276,7 +276,7 @@ router.delete('/:id', authenticate, async (req: Request, res: Response) => {
       });
       return;
     }
-    throw error;
+    next(error);
   }
 });
 

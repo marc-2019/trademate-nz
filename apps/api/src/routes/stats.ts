@@ -3,7 +3,7 @@
  * /api/v1/stats/*
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import db from '../services/database.js';
 import invoicesService from '../services/invoices.js';
 import quotesService from '../services/quotes.js';
@@ -18,7 +18,7 @@ const router = Router();
  * GET /api/v1/stats/dashboard
  * Get dashboard statistics for the authenticated user
  */
-router.get('/dashboard', authenticate, async (req: Request, res: Response) => {
+router.get('/dashboard', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.userId;
 
@@ -65,7 +65,7 @@ router.get('/dashboard', authenticate, async (req: Request, res: Response) => {
       data: { stats },
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -73,7 +73,7 @@ router.get('/dashboard', authenticate, async (req: Request, res: Response) => {
  * GET /api/v1/stats/insights
  * Get business insights: revenue trends, invoice aging, top customers
  */
-router.get('/insights', authenticate, async (req: Request, res: Response) => {
+router.get('/insights', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.userId;
     const insights = await insightsService.getInsights(userId);
@@ -83,7 +83,7 @@ router.get('/insights', authenticate, async (req: Request, res: Response) => {
       data: { insights },
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 

@@ -3,7 +3,7 @@
  * /api/v1/bank-transactions/*
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import bankTransactionsService from '../services/bank-transactions.js';
 import { authenticate } from '../middleware/auth.js';
@@ -27,7 +27,7 @@ const uploadSchema = z.object({
  * POST /api/v1/bank-transactions/upload
  * Upload Wise CSV (base64-encoded content in JSON body)
  */
-router.post('/upload', authenticate, async (req: Request, res: Response) => {
+router.post('/upload', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = uploadSchema.safeParse(req.body);
     if (!validation.success) {
@@ -64,7 +64,7 @@ router.post('/upload', authenticate, async (req: Request, res: Response) => {
       message: `Imported ${result.imported} transactions (${result.duplicates} duplicates skipped)`,
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -72,7 +72,7 @@ router.post('/upload', authenticate, async (req: Request, res: Response) => {
  * GET /api/v1/bank-transactions
  * List bank transactions with filters
  */
-router.get('/', authenticate, async (req: Request, res: Response) => {
+router.get('/', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { isReconciled, startDate, endDate, batchId, limit, offset } = req.query;
 
@@ -93,7 +93,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -101,7 +101,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
  * POST /api/v1/bank-transactions/auto-match
  * Run simple matching algorithm against outstanding invoices
  */
-router.post('/auto-match', authenticate, async (req: Request, res: Response) => {
+router.post('/auto-match', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await bankTransactionsService.autoMatch(req.user!.userId);
 
@@ -111,7 +111,7 @@ router.post('/auto-match', authenticate, async (req: Request, res: Response) => 
       message: `Found ${result.matched} potential matches`,
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -119,7 +119,7 @@ router.post('/auto-match', authenticate, async (req: Request, res: Response) => 
  * POST /api/v1/bank-transactions/:id/confirm
  * Confirm a match: mark transaction reconciled and invoice as paid
  */
-router.post('/:id/confirm', authenticate, async (req: Request, res: Response) => {
+router.post('/:id/confirm', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const transaction = await bankTransactionsService.confirmMatch(
@@ -142,7 +142,7 @@ router.post('/:id/confirm', authenticate, async (req: Request, res: Response) =>
       message: 'Match confirmed and invoice marked as paid',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -150,7 +150,7 @@ router.post('/:id/confirm', authenticate, async (req: Request, res: Response) =>
  * POST /api/v1/bank-transactions/:id/unmatch
  * Remove match from transaction
  */
-router.post('/:id/unmatch', authenticate, async (req: Request, res: Response) => {
+router.post('/:id/unmatch', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const transaction = await bankTransactionsService.unmatchTransaction(
@@ -173,7 +173,7 @@ router.post('/:id/unmatch', authenticate, async (req: Request, res: Response) =>
       message: 'Match removed',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -181,7 +181,7 @@ router.post('/:id/unmatch', authenticate, async (req: Request, res: Response) =>
  * GET /api/v1/bank-transactions/summary
  * Get transaction summary stats
  */
-router.get('/summary', authenticate, async (req: Request, res: Response) => {
+router.get('/summary', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const summary = await bankTransactionsService.getTransactionSummary(
       req.user!.userId
@@ -192,7 +192,7 @@ router.get('/summary', authenticate, async (req: Request, res: Response) => {
       data: { summary },
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 

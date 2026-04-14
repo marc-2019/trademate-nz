@@ -3,7 +3,7 @@
  * /api/v1/invoices/*
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import invoicesService from '../services/invoices.js';
 import pdfService from '../services/pdf.js';
@@ -66,7 +66,7 @@ const updateSchema = z.object({
  * POST /api/v1/invoices
  * Create a new invoice
  */
-router.post('/', authenticate, attachSubscription, checkLimit('invoice'), async (req: Request, res: Response) => {
+router.post('/', authenticate, attachSubscription, checkLimit('invoice'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = createSchema.safeParse(req.body);
     if (!validation.success) {
@@ -93,7 +93,7 @@ router.post('/', authenticate, attachSubscription, checkLimit('invoice'), async 
       message: 'Invoice created successfully',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -101,7 +101,7 @@ router.post('/', authenticate, attachSubscription, checkLimit('invoice'), async 
  * GET /api/v1/invoices
  * List user's invoices
  */
-router.get('/', authenticate, async (req: Request, res: Response) => {
+router.get('/', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { status, limit, offset } = req.query;
 
@@ -119,7 +119,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -127,7 +127,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
  * GET /api/v1/invoices/:id
  * Get specific invoice
  */
-router.get('/:id', authenticate, async (req: Request, res: Response) => {
+router.get('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const invoice = await invoicesService.getInvoiceById(id, req.user!.userId);
@@ -146,7 +146,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
       data: { invoice },
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -154,7 +154,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
  * GET /api/v1/invoices/:id/pdf
  * Download invoice as PDF
  */
-router.get('/:id/pdf', authenticate, attachSubscription, requireFeature('pdfExport'), async (req: Request, res: Response) => {
+router.get('/:id/pdf', authenticate, attachSubscription, requireFeature('pdfExport'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const invoice = await invoicesService.getInvoiceByIdRaw(id, req.user!.userId);
@@ -175,7 +175,7 @@ router.get('/:id/pdf', authenticate, attachSubscription, requireFeature('pdfExpo
     res.setHeader('Content-Length', pdfBuffer.length);
     res.send(pdfBuffer);
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -183,7 +183,7 @@ router.get('/:id/pdf', authenticate, attachSubscription, requireFeature('pdfExpo
  * PUT /api/v1/invoices/:id
  * Update invoice (only draft invoices)
  */
-router.put('/:id', authenticate, async (req: Request, res: Response) => {
+router.put('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = updateSchema.safeParse(req.body);
     if (!validation.success) {
@@ -226,7 +226,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
       });
       return;
     }
-    throw error;
+    next(error);
   }
 });
 
@@ -234,7 +234,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
  * DELETE /api/v1/invoices/:id
  * Delete invoice
  */
-router.delete('/:id', authenticate, async (req: Request, res: Response) => {
+router.delete('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const deleted = await invoicesService.deleteInvoice(id, req.user!.userId);
@@ -253,7 +253,7 @@ router.delete('/:id', authenticate, async (req: Request, res: Response) => {
       message: 'Invoice deleted successfully',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -261,7 +261,7 @@ router.delete('/:id', authenticate, async (req: Request, res: Response) => {
  * POST /api/v1/invoices/:id/send
  * Mark invoice as sent
  */
-router.post('/:id/send', authenticate, async (req: Request, res: Response) => {
+router.post('/:id/send', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const invoice = await invoicesService.markAsSent(id, req.user!.userId);
@@ -281,7 +281,7 @@ router.post('/:id/send', authenticate, async (req: Request, res: Response) => {
       message: 'Invoice marked as sent',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -289,7 +289,7 @@ router.post('/:id/send', authenticate, async (req: Request, res: Response) => {
  * POST /api/v1/invoices/:id/email
  * Email invoice to client with PDF attachment
  */
-router.post('/:id/email', authenticate, attachSubscription, requireFeature('emailInvoice'), async (req: Request, res: Response) => {
+router.post('/:id/email', authenticate, attachSubscription, requireFeature('emailInvoice'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const { recipientEmail, customMessage } = req.body;
@@ -366,7 +366,7 @@ router.post('/:id/email', authenticate, attachSubscription, requireFeature('emai
       });
       return;
     }
-    throw error;
+    next(error);
   }
 });
 
@@ -374,7 +374,7 @@ router.post('/:id/email', authenticate, attachSubscription, requireFeature('emai
  * POST /api/v1/invoices/:id/paid
  * Mark invoice as paid
  */
-router.post('/:id/paid', authenticate, async (req: Request, res: Response) => {
+router.post('/:id/paid', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const invoice = await invoicesService.markAsPaid(id, req.user!.userId);
@@ -394,7 +394,7 @@ router.post('/:id/paid', authenticate, async (req: Request, res: Response) => {
       message: 'Invoice marked as paid',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -402,7 +402,7 @@ router.post('/:id/paid', authenticate, async (req: Request, res: Response) => {
  * POST /api/v1/invoices/:id/share
  * Generate a shareable link for an invoice
  */
-router.post('/:id/share', authenticate, async (req: Request, res: Response) => {
+router.post('/:id/share', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const token = await invoicesService.generateShareToken(id, req.user!.userId);
@@ -426,7 +426,7 @@ router.post('/:id/share', authenticate, async (req: Request, res: Response) => {
       message: 'Share link generated',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 

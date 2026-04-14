@@ -3,7 +3,7 @@
  * /api/v1/certifications/*
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import certificationsService from '../services/certifications.js';
 import { authenticate } from '../middleware/auth.js';
@@ -50,7 +50,7 @@ const updateSchema = z.object({
  * POST /api/v1/certifications
  * Create a new certification
  */
-router.post('/', authenticate, async (req: Request, res: Response) => {
+router.post('/', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = createSchema.safeParse(req.body);
     if (!validation.success) {
@@ -74,7 +74,7 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
       message: 'Certification created successfully',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -82,7 +82,7 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
  * GET /api/v1/certifications
  * List user's certifications
  */
-router.get('/', authenticate, async (req: Request, res: Response) => {
+router.get('/', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { limit, offset } = req.query;
 
@@ -99,7 +99,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -107,7 +107,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
  * GET /api/v1/certifications/expiring
  * Get certifications expiring soon
  */
-router.get('/expiring', authenticate, async (req: Request, res: Response) => {
+router.get('/expiring', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const days = req.query.days ? parseInt(req.query.days as string, 10) : 30;
 
@@ -121,7 +121,7 @@ router.get('/expiring', authenticate, async (req: Request, res: Response) => {
       data: { certifications },
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -129,7 +129,7 @@ router.get('/expiring', authenticate, async (req: Request, res: Response) => {
  * GET /api/v1/certifications/:id
  * Get specific certification
  */
-router.get('/:id', authenticate, async (req: Request, res: Response) => {
+router.get('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const certification = await certificationsService.getCertificationById(
@@ -151,7 +151,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
       data: { certification },
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -159,7 +159,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
  * PUT /api/v1/certifications/:id
  * Update certification
  */
-router.put('/:id', authenticate, async (req: Request, res: Response) => {
+router.put('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = updateSchema.safeParse(req.body);
     if (!validation.success) {
@@ -193,7 +193,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
       message: 'Certification updated successfully',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -201,7 +201,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
  * DELETE /api/v1/certifications/:id
  * Delete certification
  */
-router.delete('/:id', authenticate, async (req: Request, res: Response) => {
+router.delete('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const deleted = await certificationsService.deleteCertification(
@@ -223,7 +223,7 @@ router.delete('/:id', authenticate, async (req: Request, res: Response) => {
       message: 'Certification deleted successfully',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 

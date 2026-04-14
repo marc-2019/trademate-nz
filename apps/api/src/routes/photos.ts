@@ -3,7 +3,7 @@
  * /api/v1/photos/*
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
@@ -64,7 +64,7 @@ const uploadSchema = z.object({
  * POST /api/v1/photos
  * Upload a photo and attach to an entity
  */
-router.post('/', authenticate, attachSubscription, requireFeature('photos'), upload.single('photo'), async (req: Request, res: Response) => {
+router.post('/', authenticate, attachSubscription, requireFeature('photos'), upload.single('photo'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     if (!req.file) {
       res.status(400).json({
@@ -122,7 +122,7 @@ router.post('/', authenticate, attachSubscription, requireFeature('photos'), upl
       });
       return;
     }
-    throw error;
+    next(error);
   }
 });
 
@@ -130,7 +130,7 @@ router.post('/', authenticate, attachSubscription, requireFeature('photos'), upl
  * GET /api/v1/photos/:entityType/:entityId
  * List photos for an entity
  */
-router.get('/:entityType/:entityId', authenticate, async (req: Request, res: Response) => {
+router.get('/:entityType/:entityId', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const entityType = req.params.entityType as string;
     const entityId = req.params.entityId as string;
@@ -156,7 +156,7 @@ router.get('/:entityType/:entityId', authenticate, async (req: Request, res: Res
       data: { photos },
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -164,7 +164,7 @@ router.get('/:entityType/:entityId', authenticate, async (req: Request, res: Res
  * GET /api/v1/photos/:id/file
  * Serve the actual photo file
  */
-router.get('/:id/file', authenticate, async (req: Request, res: Response) => {
+router.get('/:id/file', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const photo = await photosService.getPhotoById(id, req.user!.userId);
@@ -191,7 +191,7 @@ router.get('/:id/file', authenticate, async (req: Request, res: Response) => {
     }
     res.sendFile(resolvedPath);
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -199,7 +199,7 @@ router.get('/:id/file', authenticate, async (req: Request, res: Response) => {
  * DELETE /api/v1/photos/:id
  * Delete a photo
  */
-router.delete('/:id', authenticate, async (req: Request, res: Response) => {
+router.delete('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const deleted = await photosService.deletePhoto(id, req.user!.userId);
@@ -218,7 +218,7 @@ router.delete('/:id', authenticate, async (req: Request, res: Response) => {
       message: 'Photo deleted successfully',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 

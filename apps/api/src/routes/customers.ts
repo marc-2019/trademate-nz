@@ -3,7 +3,7 @@
  * /api/v1/customers/*
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import customersService from '../services/customers.js';
 import { authenticate } from '../middleware/auth.js';
@@ -43,7 +43,7 @@ const updateSchema = z.object({
  * POST /api/v1/customers
  * Create a new customer
  */
-router.post('/', authenticate, async (req: Request, res: Response) => {
+router.post('/', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = createSchema.safeParse(req.body);
     if (!validation.success) {
@@ -67,7 +67,7 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
       message: 'Customer created successfully',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -75,7 +75,7 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
  * GET /api/v1/customers
  * List user's customers
  */
-router.get('/', authenticate, async (req: Request, res: Response) => {
+router.get('/', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { search, limit, offset, includeInactive } = req.query;
 
@@ -94,7 +94,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -102,7 +102,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
  * GET /api/v1/customers/:id
  * Get specific customer
  */
-router.get('/:id', authenticate, async (req: Request, res: Response) => {
+router.get('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const customer = await customersService.getCustomerById(
@@ -124,7 +124,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
       data: { customer },
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -132,7 +132,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
  * PUT /api/v1/customers/:id
  * Update customer
  */
-router.put('/:id', authenticate, async (req: Request, res: Response) => {
+router.put('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = updateSchema.safeParse(req.body);
     if (!validation.success) {
@@ -166,7 +166,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
       message: 'Customer updated successfully',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -174,7 +174,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
  * DELETE /api/v1/customers/:id
  * Soft-delete customer (set is_active = false)
  */
-router.delete('/:id', authenticate, async (req: Request, res: Response) => {
+router.delete('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const deleted = await customersService.deleteCustomer(
@@ -196,7 +196,7 @@ router.delete('/:id', authenticate, async (req: Request, res: Response) => {
       message: 'Customer deactivated successfully',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 

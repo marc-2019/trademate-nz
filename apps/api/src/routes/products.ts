@@ -3,7 +3,7 @@
  * /api/v1/products/*
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import productsService from '../services/products.js';
 import { authenticate } from '../middleware/auth.js';
@@ -41,7 +41,7 @@ const updateSchema = z.object({
  * POST /api/v1/products
  * Create a new product/service
  */
-router.post('/', authenticate, async (req: Request, res: Response) => {
+router.post('/', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = createSchema.safeParse(req.body);
     if (!validation.success) {
@@ -65,7 +65,7 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
       message: 'Product created successfully',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -73,7 +73,7 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
  * GET /api/v1/products
  * List user's products/services
  */
-router.get('/', authenticate, async (req: Request, res: Response) => {
+router.get('/', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { search, type, limit, offset } = req.query;
 
@@ -92,7 +92,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -100,7 +100,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
  * GET /api/v1/products/:id
  * Get specific product/service
  */
-router.get('/:id', authenticate, async (req: Request, res: Response) => {
+router.get('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const product = await productsService.getProductById(
@@ -122,7 +122,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
       data: { product },
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -130,7 +130,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
  * PUT /api/v1/products/:id
  * Update product/service
  */
-router.put('/:id', authenticate, async (req: Request, res: Response) => {
+router.put('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = updateSchema.safeParse(req.body);
     if (!validation.success) {
@@ -164,7 +164,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
       message: 'Product updated successfully',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -172,7 +172,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
  * DELETE /api/v1/products/:id
  * Soft-delete product/service
  */
-router.delete('/:id', authenticate, async (req: Request, res: Response) => {
+router.delete('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const deleted = await productsService.deleteProduct(
@@ -194,7 +194,7 @@ router.delete('/:id', authenticate, async (req: Request, res: Response) => {
       message: 'Product deactivated successfully',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 

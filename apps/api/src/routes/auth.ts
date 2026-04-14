@@ -3,7 +3,7 @@
  * /api/v1/auth/*
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import authService from '../services/auth.js';
 import { authenticate } from '../middleware/auth.js';
@@ -80,7 +80,7 @@ const updateProfileSchema = z.object({
  * POST /api/v1/auth/register
  * Register a new user
  */
-router.post('/register', async (req: Request, res: Response) => {
+router.post('/register', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = registerSchema.safeParse(req.body);
     if (!validation.success) {
@@ -114,7 +114,7 @@ router.post('/register', async (req: Request, res: Response) => {
       });
       return;
     }
-    throw error;
+    next(error);
   }
 });
 
@@ -122,7 +122,7 @@ router.post('/register', async (req: Request, res: Response) => {
  * POST /api/v1/auth/login
  * Login a user
  */
-router.post('/login', async (req: Request, res: Response) => {
+router.post('/login', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = loginSchema.safeParse(req.body);
     if (!validation.success) {
@@ -154,7 +154,7 @@ router.post('/login', async (req: Request, res: Response) => {
       });
       return;
     }
-    throw error;
+    next(error);
   }
 });
 
@@ -162,7 +162,7 @@ router.post('/login', async (req: Request, res: Response) => {
  * POST /api/v1/auth/refresh
  * Refresh access token
  */
-router.post('/refresh', async (req: Request, res: Response) => {
+router.post('/refresh', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = refreshSchema.safeParse(req.body);
     if (!validation.success) {
@@ -191,7 +191,7 @@ router.post('/refresh', async (req: Request, res: Response) => {
       });
       return;
     }
-    throw error;
+    next(error);
   }
 });
 
@@ -199,7 +199,7 @@ router.post('/refresh', async (req: Request, res: Response) => {
  * POST /api/v1/auth/logout
  * Logout user (revoke refresh token)
  */
-router.post('/logout', authenticate, async (req: Request, res: Response) => {
+router.post('/logout', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { refreshToken } = req.body;
     await authService.logout(req.user!.userId, refreshToken);
@@ -209,7 +209,7 @@ router.post('/logout', authenticate, async (req: Request, res: Response) => {
       message: 'Logged out successfully',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -218,7 +218,7 @@ router.post('/logout', authenticate, async (req: Request, res: Response) => {
  * Delete user account and all associated data.
  * Required by Google Play Account Deletion policy (effective Dec 2023).
  */
-router.delete('/account', authenticate, async (req: Request, res: Response) => {
+router.delete('/account', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     await authService.deleteAccount(req.user!.userId);
 
@@ -227,7 +227,7 @@ router.delete('/account', authenticate, async (req: Request, res: Response) => {
       message: 'Account and all associated data have been permanently deleted.',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -235,7 +235,7 @@ router.delete('/account', authenticate, async (req: Request, res: Response) => {
  * GET /api/v1/auth/me
  * Get current user profile
  */
-router.get('/me', authenticate, async (req: Request, res: Response) => {
+router.get('/me', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = await authService.getUserById(req.user!.userId);
 
@@ -253,7 +253,7 @@ router.get('/me', authenticate, async (req: Request, res: Response) => {
       data: { user },
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -261,7 +261,7 @@ router.get('/me', authenticate, async (req: Request, res: Response) => {
  * PUT /api/v1/auth/me
  * Update current user profile
  */
-router.put('/me', authenticate, async (req: Request, res: Response) => {
+router.put('/me', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = updateProfileSchema.safeParse(req.body);
     if (!validation.success) {
@@ -290,7 +290,7 @@ router.put('/me', authenticate, async (req: Request, res: Response) => {
       message: 'Profile updated successfully',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -312,7 +312,7 @@ const resetPasswordSchema = z.object({
  * POST /api/v1/auth/forgot-password
  * Request a password reset code (unauthenticated)
  */
-router.post('/forgot-password', async (req: Request, res: Response) => {
+router.post('/forgot-password', async (req: Request, res: Response, _next: NextFunction) => {
   try {
     const validation = forgotPasswordSchema.safeParse(req.body);
     if (!validation.success) {
@@ -344,7 +344,7 @@ router.post('/forgot-password', async (req: Request, res: Response) => {
  * POST /api/v1/auth/reset-password
  * Reset password with code (unauthenticated)
  */
-router.post('/reset-password', async (req: Request, res: Response) => {
+router.post('/reset-password', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = resetPasswordSchema.safeParse(req.body);
     if (!validation.success) {
@@ -391,7 +391,7 @@ router.post('/reset-password', async (req: Request, res: Response) => {
       });
       return;
     }
-    throw error;
+    next(error);
   }
 });
 
@@ -407,7 +407,7 @@ const verifyEmailSchema = z.object({
  * POST /api/v1/auth/verify-email
  * Verify email with 6-digit code
  */
-router.post('/verify-email', authenticate, async (req: Request, res: Response) => {
+router.post('/verify-email', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = verifyEmailSchema.safeParse(req.body);
     if (!validation.success) {
@@ -451,7 +451,7 @@ router.post('/verify-email', authenticate, async (req: Request, res: Response) =
       });
       return;
     }
-    throw error;
+    next(error);
   }
 });
 
@@ -459,7 +459,7 @@ router.post('/verify-email', authenticate, async (req: Request, res: Response) =
  * POST /api/v1/auth/resend-verification
  * Resend verification code
  */
-router.post('/resend-verification', authenticate, async (req: Request, res: Response) => {
+router.post('/resend-verification', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { verificationCode } = await authService.resendVerification(req.user!.userId);
 
@@ -480,7 +480,7 @@ router.post('/resend-verification', authenticate, async (req: Request, res: Resp
       });
       return;
     }
-    throw error;
+    next(error);
   }
 });
 
@@ -488,7 +488,7 @@ router.post('/resend-verification', authenticate, async (req: Request, res: Resp
  * POST /api/v1/auth/complete-onboarding
  * Mark onboarding as completed
  */
-router.post('/complete-onboarding', authenticate, async (req: Request, res: Response) => {
+router.post('/complete-onboarding', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = await authService.completeOnboarding(req.user!.userId);
 
@@ -507,7 +507,7 @@ router.post('/complete-onboarding', authenticate, async (req: Request, res: Resp
       });
       return;
     }
-    throw error;
+    next(error);
   }
 });
 

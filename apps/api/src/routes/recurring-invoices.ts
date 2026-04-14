@@ -3,7 +3,7 @@
  * /api/v1/recurring-invoices/*
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import recurringInvoicesService from '../services/recurring-invoices.js';
 import { authenticate } from '../middleware/auth.js';
@@ -56,7 +56,7 @@ const generateSchema = z.object({
  * POST /api/v1/recurring-invoices
  * Create a recurring invoice with line items
  */
-router.post('/', authenticate, async (req: Request, res: Response) => {
+router.post('/', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = createSchema.safeParse(req.body);
     if (!validation.success) {
@@ -80,7 +80,7 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
       message: 'Recurring invoice created successfully',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -88,7 +88,7 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
  * GET /api/v1/recurring-invoices
  * List recurring invoices
  */
-router.get('/', authenticate, async (req: Request, res: Response) => {
+router.get('/', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { limit, offset } = req.query;
 
@@ -105,7 +105,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -113,7 +113,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
  * GET /api/v1/recurring-invoices/pending
  * Get recurring invoices that are due for generation
  */
-router.get('/pending', authenticate, async (req: Request, res: Response) => {
+router.get('/pending', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await recurringInvoicesService.getPendingRecurringInvoices(
       req.user!.userId
@@ -124,7 +124,7 @@ router.get('/pending', authenticate, async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -132,7 +132,7 @@ router.get('/pending', authenticate, async (req: Request, res: Response) => {
  * GET /api/v1/recurring-invoices/:id
  * Get recurring invoice detail with customer and line items
  */
-router.get('/:id', authenticate, async (req: Request, res: Response) => {
+router.get('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const recurring = await recurringInvoicesService.getRecurringInvoiceById(
@@ -154,7 +154,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
       data: { recurring },
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -162,7 +162,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
  * PUT /api/v1/recurring-invoices/:id
  * Update recurring invoice
  */
-router.put('/:id', authenticate, async (req: Request, res: Response) => {
+router.put('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = updateSchema.safeParse(req.body);
     if (!validation.success) {
@@ -196,7 +196,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
       message: 'Recurring invoice updated successfully',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -204,7 +204,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
  * DELETE /api/v1/recurring-invoices/:id
  * Delete recurring invoice
  */
-router.delete('/:id', authenticate, async (req: Request, res: Response) => {
+router.delete('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const deleted = await recurringInvoicesService.deleteRecurringInvoice(
@@ -226,7 +226,7 @@ router.delete('/:id', authenticate, async (req: Request, res: Response) => {
       message: 'Recurring invoice deleted successfully',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -234,7 +234,7 @@ router.delete('/:id', authenticate, async (req: Request, res: Response) => {
  * POST /api/v1/recurring-invoices/:id/generate
  * Generate a draft invoice from recurring config
  */
-router.post('/:id/generate', authenticate, async (req: Request, res: Response) => {
+router.post('/:id/generate', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = generateSchema.safeParse(req.body);
     if (!validation.success) {
@@ -259,7 +259,7 @@ router.post('/:id/generate', authenticate, async (req: Request, res: Response) =
       message: 'Draft invoice generated successfully',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -267,7 +267,7 @@ router.post('/:id/generate', authenticate, async (req: Request, res: Response) =
  * GET /api/v1/recurring-invoices/:id/last-amounts
  * Get previous invoice's line item amounts as reference
  */
-router.get('/:id/last-amounts', authenticate, async (req: Request, res: Response) => {
+router.get('/:id/last-amounts', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const lastAmounts = await recurringInvoicesService.getLastAmounts(
@@ -280,7 +280,7 @@ router.get('/:id/last-amounts', authenticate, async (req: Request, res: Response
       data: { lastAmounts },
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 

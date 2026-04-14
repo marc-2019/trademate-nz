@@ -3,7 +3,7 @@
  * /api/v1/swms/*
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import swmsService from '../services/swms.js';
 import { authenticate } from '../middleware/auth.js';
@@ -69,7 +69,7 @@ router.get('/templates', (_req: Request, res: Response) => {
  * GET /api/v1/swms/templates/:tradeType
  * Get specific SWMS template
  */
-router.get('/templates/:tradeType', (req: Request, res: Response) => {
+router.get('/templates/:tradeType', (req: Request, res: Response, next: NextFunction) => {
   try {
     const { tradeType } = req.params;
     const template = swmsService.getTemplate(tradeType as any);
@@ -87,7 +87,7 @@ router.get('/templates/:tradeType', (req: Request, res: Response) => {
       });
       return;
     }
-    throw error;
+    next(error);
   }
 });
 
@@ -95,7 +95,7 @@ router.get('/templates/:tradeType', (req: Request, res: Response) => {
  * POST /api/v1/swms/generate
  * Generate a new SWMS document
  */
-router.post('/generate', authenticate, attachSubscription, checkLimit('swms'), async (req: Request, res: Response) => {
+router.post('/generate', authenticate, attachSubscription, checkLimit('swms'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = generateSchema.safeParse(req.body);
     if (!validation.success) {
@@ -116,7 +116,7 @@ router.post('/generate', authenticate, attachSubscription, checkLimit('swms'), a
       message: 'SWMS document generated successfully',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -124,7 +124,7 @@ router.post('/generate', authenticate, attachSubscription, checkLimit('swms'), a
  * GET /api/v1/swms
  * List user's SWMS documents
  */
-router.get('/', authenticate, async (req: Request, res: Response) => {
+router.get('/', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { status, limit, offset } = req.query;
 
@@ -139,7 +139,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -147,7 +147,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
  * GET /api/v1/swms/:id
  * Get specific SWMS document
  */
-router.get('/:id', authenticate, async (req: Request, res: Response) => {
+router.get('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const document = await swmsService.getSWMSById(id as string, req.user!.userId);
@@ -166,7 +166,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
       data: { document },
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -174,7 +174,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
  * PUT /api/v1/swms/:id
  * Update SWMS document
  */
-router.put('/:id', authenticate, async (req: Request, res: Response) => {
+router.put('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = updateSchema.safeParse(req.body);
     if (!validation.success) {
@@ -208,7 +208,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
       message: 'SWMS document updated successfully',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -216,7 +216,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
  * DELETE /api/v1/swms/:id
  * Delete SWMS document
  */
-router.delete('/:id', authenticate, async (req: Request, res: Response) => {
+router.delete('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const deleted = await swmsService.deleteSWMS(id as string, req.user!.userId);
@@ -235,7 +235,7 @@ router.delete('/:id', authenticate, async (req: Request, res: Response) => {
       message: 'SWMS document deleted successfully',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
@@ -243,7 +243,7 @@ router.delete('/:id', authenticate, async (req: Request, res: Response) => {
  * POST /api/v1/swms/:id/sign
  * Sign SWMS document
  */
-router.post('/:id/sign', authenticate, async (req: Request, res: Response) => {
+router.post('/:id/sign', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validation = signSchema.safeParse(req.body);
     if (!validation.success) {
@@ -278,7 +278,7 @@ router.post('/:id/sign', authenticate, async (req: Request, res: Response) => {
       message: 'SWMS document signed successfully',
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 
