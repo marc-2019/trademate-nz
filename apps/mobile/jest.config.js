@@ -3,7 +3,10 @@ module.exports = {
   testEnvironment: 'node',
   testMatch: ['**/__tests__/**/*.test.ts', '**/__tests__/**/*.test.tsx'],
   transform: {
-    '^.+\\.tsx?$': ['ts-jest', {
+    // .tsx files (React component tests) — use babel-jest so JSX is transformed
+    '^.+\\.tsx$': 'babel-jest',
+    // .ts files — use ts-jest for type-safe transforms
+    '^.+\\.ts$': ['ts-jest', {
       tsconfig: 'tsconfig.json',
       diagnostics: false,
     }],
@@ -13,4 +16,9 @@ module.exports = {
   ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   testTimeout: 10000,
+  moduleNameMapper: {
+    // Force all react imports to the root copy so react-test-renderer uses the same React instance
+    '^react$': '<rootDir>/../../node_modules/react',
+    '^react/(.*)$': '<rootDir>/../../node_modules/react/$1',
+  },
 };
