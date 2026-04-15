@@ -311,6 +311,39 @@ function invoiceTemplate(invoice: Invoice, senderName: string, customMessage?: s
   return { subject, html, text: textLines.filter(l => l !== undefined).join('\n') };
 }
 
+function paymentFailedTemplate(opts: {
+  userName?: string;
+}): { subject: string; html: string; text: string } {
+  const name = appName();
+  const greeting = opts.userName ? `Hi ${opts.userName},` : 'Hi there,';
+  const subject = `${name} — Action required: payment failed`;
+
+  const html = layout(
+    '#DC2626',
+    'Payment Failed',
+    name,
+    `<p style="margin: 0 0 16px; color: #374151; font-size: 16px;">${greeting}</p>
+     <p style="margin: 0 0 16px; color: #374151;">We were unable to process your subscription payment. Your access to ${name} will remain active for now, but please update your payment method as soon as possible to avoid any interruption.</p>
+     <div style="margin: 24px 0; text-align: center;">
+       <a href="#" style="display: inline-block; padding: 12px 28px; background: #DC2626; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px;">Update Payment Method</a>
+     </div>
+     <p style="margin: 0; color: #6B7280; font-size: 13px;">If you believe this is a mistake, please contact your bank or try a different card. Reply to this email if you need help.</p>`
+  );
+
+  const text = [
+    greeting,
+    '',
+    `We were unable to process your ${name} subscription payment.`,
+    'Please update your payment method to avoid any interruption to your service.',
+    '',
+    'Open the app and go to Settings → Subscription to update your card details.',
+    '',
+    'If you need help, reply to this email.',
+  ].join('\n');
+
+  return { subject, html, text };
+}
+
 // ---------------------------------------------------------------------------
 // Send functions
 // ---------------------------------------------------------------------------
@@ -399,6 +432,13 @@ export async function sendPortfolioAlert(
   return send(recipientEmail, portfolioAlertTemplate(opts));
 }
 
+export async function sendPaymentFailedEmail(
+  recipientEmail: string,
+  opts: { userName?: string } = {}
+): Promise<{ messageId: string }> {
+  return send(recipientEmail, paymentFailedTemplate(opts));
+}
+
 export default {
   isEmailConfigured,
   isSmtpConfigured,
@@ -408,4 +448,5 @@ export default {
   sendInvoiceEmail,
   sendTradeConfirmation,
   sendPortfolioAlert,
+  sendPaymentFailedEmail,
 };
