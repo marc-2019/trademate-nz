@@ -85,10 +85,15 @@ function transformForMobile(rec: RecurringInvoice): Record<string, unknown> {
 }
 
 /**
- * Compute next generation date from day_of_month
+ * Compute next generation date from day_of_month.
+ *
+ * When dayOfMonth exceeds the number of days in the target month (e.g. day 31
+ * in April, or day 29–31 in February), clamp to the last day of that month so
+ * the invoice still fires on the closest valid date rather than producing an
+ * invalid date string that PostgreSQL would reject.
  */
-function computeNextGenerationDate(dayOfMonth: number): string {
-  const now = new Date();
+export function computeNextGenerationDate(dayOfMonth: number, from?: Date): string {
+  const now = from ?? new Date();
   let year = now.getFullYear();
   let month = now.getMonth(); // 0-indexed
 
@@ -101,9 +106,14 @@ function computeNextGenerationDate(dayOfMonth: number): string {
     }
   }
 
+  // Clamp to the actual last day of the target month so we never produce an
+  // invalid date (e.g. "2026-04-31" or "2026-02-30").
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const day = Math.min(dayOfMonth, daysInMonth);
+
   // Format as YYYY-MM-DD
   const m = String(month + 1).padStart(2, '0');
-  const d = String(dayOfMonth).padStart(2, '0');
+  const d = String(day).padStart(2, '0');
   return `${year}-${m}-${d}`;
 }
 
