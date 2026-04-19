@@ -18,8 +18,10 @@ test.describe('Production Smoke Tests', () => {
   test('landing page loads', async ({ page }) => {
     const res = await page.goto(PROD_URL);
     expect(res?.status()).toBe(200);
-    await expect(page.getByText('BossBoard')).toBeVisible();
-    await expect(page.getByText('Get Started')).toBeVisible();
+    // The nav logo splits "Boss" + "Board" across elements, so match on
+    // the page title + the Get Started CTA instead of a single text node.
+    await expect(page).toHaveTitle(/BossBoard/i);
+    await expect(page.getByRole('link', { name: /Get Started/i }).first()).toBeVisible();
   });
 
   test('API health check', async ({ request }) => {
@@ -93,7 +95,8 @@ test.describe('Production Smoke Tests', () => {
       },
     });
 
-    expect(res.status()).toBe(200);
+    // API returns 201 Created on successful registration.
+    expect([200, 201]).toContain(res.status());
     const json = await res.json();
     expect(json.success).toBe(true);
     expect(json.data.user.email).toBe(testEmail);
