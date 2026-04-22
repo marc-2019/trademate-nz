@@ -115,4 +115,63 @@ test.describe('Production Smoke Tests', () => {
     expect(cssErrors).toHaveLength(0);
     expect(jsErrors).toHaveLength(0);
   });
+
+  test('end-to-end signup → login → dashboard access', async ({ page, context }) => {
+    // Exercises the full revenue-critical flow that BossBoard's 2026-04-13
+    // API_URL-localhost outage would have caught: signup via UI proxy,
+    // auto-login redirect, cookie-based session, then re-login with the
+    // same credentials and access an authenticated page.
+    const testEmail = `e2e-smoke-${Date.now()}@instilligent.com`;
+    const testPassword = 'E2eSmoke123!';
+
+    await page.goto(`${PROD_URL}/register`);
+    await expect(page.getByRole('heading', { name: 'Create your account' })).toBeVisible();
+
+    await page.getByLabel('Name').fill('E2E Smoke Test');
+    await page.getByLabel('Email').fill(testEmail);
+    await page.getByLabel('Password').fill(testPassword);
+
+    const signupResponsePromise = page.waitForResponse(
+      (res) => res.url().includes('/api/auth/register') && res.request().method() === 'POST',
+      { timeout: 15000 }
+    );
+    await page.getByRole('button', { name: 'Create account' }).click();
+    const signupRes = await signupResponsePromise;
+
+    // Proxy must return JSON (not HTML 502) and indicate success.
+    expect(signupRes.status()).not.toBe(502);
+    expect(signupRes.headers()['content-type']).toMatch(/application\/json/);
+    const signupBody = await signupRes.json();
+    expect(signupBody).not.toHaveProperty('error', 'PROXY_ERROR');
+    expect(signupBody.success).toBe(true);
+
+    // Auto-login redirects straight to the dashboard.
+    await page.waitForURL(/\/dashboard/, { timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+
+    // Clear cookies to simulate a fresh session, then log back in.
+    await context.clearCookies();
+    await page.goto(`${PROD_URL}/login`);
+
+    await page.getByLabel('Email').fill(testEmail);
+    await page.getByLabel('Password').fill(testPassword);
+
+    const loginResponsePromise = page.waitForResponse(
+      (res) => res.url().includes('/api/auth/login') && res.request().method() === 'POST',
+      { timeout: 15000 }
+    );
+    await page.getByRole('button', { name: 'Sign in' }).click();
+    const loginRes = await loginResponsePromise;
+
+    expect(loginRes.status()).toBe(200);
+    expect(loginRes.headers()['content-type']).toMatch(/application\/json/);
+    const loginBody = await loginRes.json();
+    expect(loginBody).not.toHaveProperty('error', 'PROXY_ERROR');
+    expect(loginBody.success).toBe(true);
+
+    // Basic post-auth action: dashboard loads with its widgets.
+    await page.waitForURL(/\/dashboard/, { timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+    await expect(page.getByText('SWMS This Month')).toBeVisible();
+  });
 });
