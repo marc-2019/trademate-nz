@@ -18,6 +18,8 @@ import { config } from '../config/index.js';
 import { SubscriptionTier } from '../types/index.js';
 import { updateSubscriptionTier } from './subscriptions.js';
 import db from './database.js';
+import { sendPaymentFailedEmail, isEmailConfigured } from './email.js';
+import notifications from './notifications.js';
 
 // ---------------------------------------------------------------------------
 // Stripe client
@@ -203,18 +205,14 @@ export function constructWebhookEvent(
  */
 async function markEventProcessed(eventId: string): Promise<boolean> {
   try {
-    await db.query(
+    const result = await db.query(
       `INSERT INTO stripe_webhook_events (event_id, processed_at)
        VALUES ($1, NOW())
        ON CONFLICT (event_id) DO NOTHING`,
       [eventId]
     );
-    // If rowCount is 0, the event was already processed
-    const check = await db.query<{ count: string }>(
-      'SELECT COUNT(*) as count FROM stripe_webhook_events WHERE event_id = $1 AND processed_at > NOW() - INTERVAL \'5 seconds\'',
-      [eventId]
-    );
-    return parseInt(check.rows[0].count, 10) > 0;
+    // rowCount = 1 means we inserted (new event), 0 means already existed (duplicate)
+    return (result.rowCount ?? 0) > 0;
   } catch {
     // Table might not exist yet in dev — allow processing but log warning
     console.warn('[Stripe] stripe_webhook_events table not found, skipping dedup check');
@@ -377,7 +375,38 @@ async function handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
 
   const { id: userId, email } = result.rows[0];
   console.warn(`[Stripe] Payment failed for user ${userId} (${email})`);
-  // TODO: trigger push notification / email to user about payment failure
+
+  // Notify the user via push notification (if they have a token) and email.
+  // Both channels are attempted independently so one failure doesn't silence the other.
+
+  // Push notification
+  try {
+    const pushToken = await notifications.getPushToken(userId);
+    if (pushToken) {
+      await notifications.sendPushNotifications([{
+        to: pushToken,
+        title: '⚠️ Payment failed',
+        body: 'We couldn\'t process your subscription payment. Tap to update your payment method.',
+        data: { type: 'payment_failed' },
+        sound: 'default',
+      }]);
+      console.log(`[Stripe] Push notification sent to user ${userId}`);
+    }
+  } catch (err) {
+    console.error(`[Stripe] Failed to send push notification to user ${userId}:`, err);
+  }
+
+  // Email
+  try {
+    if (isEmailConfigured()) {
+      await sendPaymentFailedEmail(email);
+      console.log(`[Stripe] Payment-failed email sent to ${email}`);
+    } else {
+      console.warn('[Stripe] Email not configured — skipping payment-failed email');
+    }
+  } catch (err) {
+    console.error(`[Stripe] Failed to send payment-failed email to ${email}:`, err);
+  }
 }
 
 export default {
