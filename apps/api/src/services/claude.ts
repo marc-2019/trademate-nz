@@ -41,13 +41,11 @@ async function chatCompletion(prompt: string): Promise<string> {
     console.log(`[AI] Model: ${LM_STUDIO_MODEL}`);
     console.log(`[AI] Prompt length: ${prompt.length} chars`);
 
+    const startTime = Date.now();
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), LM_STUDIO_TIMEOUT);
+
     try {
-      const startTime = Date.now();
-
-      // Create AbortController for timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), LM_STUDIO_TIMEOUT);
-
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -59,8 +57,6 @@ async function chatCompletion(prompt: string): Promise<string> {
         }),
         signal: controller.signal,
       });
-
-      clearTimeout(timeoutId);
 
       const elapsed = Date.now() - startTime;
       console.log(`[AI] LM Studio responded in ${elapsed}ms with status ${response.status}`);
@@ -95,6 +91,10 @@ async function chatCompletion(prompt: string): Promise<string> {
         console.error(`[AI] LM Studio call failed: ${error.message}`);
       }
       throw error;
+    } finally {
+      // Always clear the timeout so the timer doesn't keep the process alive
+      // (Jest workers hang on this in CI, failing the run)
+      clearTimeout(timeoutId);
     }
   } else {
     // Use Anthropic API
