@@ -503,9 +503,15 @@ async function storeRefreshToken(userId: string, token: string): Promise<void> {
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + 7);
 
+  // ON CONFLICT (token) DO NOTHING handles the JWT iat-collision case:
+  // when register and login happen within the same second for one user,
+  // the JWTs are byte-identical (same payload + same secret => same
+  // signature). The row already exists from the prior call, so a no-op
+  // is correct — the client gets back the same valid token.
   await db.query(
     `INSERT INTO refresh_tokens (id, user_id, token, expires_at)
-     VALUES ($1, $2, $3, $4)`,
+     VALUES ($1, $2, $3, $4)
+     ON CONFLICT (token) DO NOTHING`,
     [uuidv4(), userId, token, expiresAt]
   );
 }
