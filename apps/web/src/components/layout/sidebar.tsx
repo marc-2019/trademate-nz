@@ -6,6 +6,8 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   FileText,
+  ClipboardList,
+  Settings,
   Smartphone,
   Menu,
   X,
@@ -19,6 +21,8 @@ import {
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Invoices', href: '/invoices', icon: FileText },
+  { label: 'Quotes', href: '/quotes', icon: ClipboardList },
+  { label: 'Settings', href: '/settings', icon: Settings },
 ];
 
 export function Sidebar() {

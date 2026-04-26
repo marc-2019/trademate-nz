@@ -77,3 +77,36 @@ export const invoicesClient = {
       { method: 'POST' },
     ),
 };
+
+/** Quotes API (read-only first ship — list + detail + convert-to-invoice).
+ *  Create / edit / send live in the BossBoard mobile app for v1. */
+export const quotesClient = {
+  list: () =>
+    clientFetch<{ quotes: import('@bossboard/shared').Quote[] }>('/api/quotes'),
+
+  get: (id: string) =>
+    clientFetch<{ quote: import('@bossboard/shared').Quote }>(`/api/quotes/${id}`),
+
+  convert: (id: string) =>
+    clientFetch<{ invoice: import('@bossboard/shared').Invoice }>(
+      `/api/quotes/${id}/convert`,
+      { method: 'POST' },
+    ),
+};
+
+/** Subscriptions API (read-only).
+ *  Plan changes / Stripe checkout still happen in the mobile app. */
+export const subscriptionsClient = {
+  me: () =>
+    clientFetch<{ subscription: import('@bossboard/shared').SubscriptionInfo }>(
+      '/api/subscriptions/me',
+    ),
+
+  usage: () =>
+    clientFetch<{ usage: import('@bossboard/shared').TierUsage }>('/api/subscriptions/usage'),
+
+  limits: () =>
+    clientFetch<{ limits: import('@bossboard/shared').TierLimits }>(
+      '/api/subscriptions/limits',
+    ),
+};

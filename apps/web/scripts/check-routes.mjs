@@ -69,7 +69,8 @@ const APP_DIR = resolve(WEB_ROOT, 'src/app');
 function appPathToRoute(absPath) {
   // /home/marc/.../apps/web/src/app/(dashboard)/invoices/[id]/page.tsx
   // -> /invoices/[id]
-  let route = '/' + relative(APP_DIR, absPath).replace(/\/page\.[tj]sx?$/, '');
+  let route = '/' + relative(APP_DIR, absPath);
+  route = route.replace(/\/page\.[tj]sx?$/, '');
   // Drop (group) segments — they don't appear in URL.
   route = route.replace(/\/\([^/]+\)/g, '');
   // Root index page.
