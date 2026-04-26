@@ -103,6 +103,12 @@ const sourceFiles = allFiles.filter((f) => SOURCE_EXTS.has(extname(f)));
 const HREF_PATTERNS = [
   // <Link href="/foo">  or  <Link href={"/foo"}> or <a href="/foo">
   /\b(?:Link|a)\s+[^>]*?\bhref\s*=\s*(?:"([^"]+)"|\{\s*["'`]([^"'`]+)["'`]\s*\})/g,
+  // Object-literal nav entries: { href: '/foo' } or { ..., href: "/foo" }
+  // This is the actual PIR pattern — sidebar NAV_ITEMS arrays where each
+  // entry holds an href that's later spread into a <Link href={item.href}>.
+  // The pure-JSX regex above can't see these because the literal lives in
+  // the array, not the tag.
+  /\bhref\s*:\s*["'`](\/[^"'`\s${}]*)["'`]/g,
   // router.push("/foo") / router.replace / router.prefetch
   /\brouter\.(?:push|replace|prefetch)\s*\(\s*["'`]([^"'`]+)["'`]/g,
   // redirect("/foo") from next/navigation
