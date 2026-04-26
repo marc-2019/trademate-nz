@@ -7,8 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "check:routes": "node scripts/check-routes.mjs",
     "test:e2e": "playwright test",
-    "test:e2e:headed": "playwright test --headed"
+    "test:e2e:headed": "playwright test --headed",
+    "test:smoke": "playwright test --config=playwright.smoke.config.ts"
   },
   "dependencies": {
     "@bossboard/shared": "*",

@@ -5,18 +5,20 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
+  FileText,
   Smartphone,
   Menu,
   X,
 } from 'lucide-react';
 
-// Web app currently surfaces only the dashboard. Other product features
-// (SWMS, invoices, quotes, expenses, job logs, teams, settings) live in
-// the mobile app for the beta. Adding nav links to routes whose pages
-// don't exist yet gives users 404s on click — strip the nav until those
-// pages ship.
+// Sidebar lists ONLY routes that have a corresponding page.tsx in this
+// app. The check-routes script (npm run check:routes) enforces this at
+// build time — any href here without a backing page fails CI. Add a new
+// nav item ONLY when the page exists; restore items as their pages
+// land. See PIR 2026-04-27-bossboard-dashboard-404s.
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'Invoices', href: '/invoices', icon: FileText },
 ];
 
 export function Sidebar() {

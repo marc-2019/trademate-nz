@@ -60,3 +60,20 @@ export const authClient = {
   me: () =>
     clientFetch<{ user: import('@bossboard/shared').User }>('/api/auth/me'),
 };
+
+/** Invoices API (read-only first ship — list + detail + share link).
+ *  Send / email / PDF actions are intentionally out of scope for the v1
+ *  web view; tradies do those flows in the BossBoard mobile app. */
+export const invoicesClient = {
+  list: () =>
+    clientFetch<{ invoices: import('@bossboard/shared').Invoice[] }>('/api/invoices'),
+
+  get: (id: string) =>
+    clientFetch<{ invoice: import('@bossboard/shared').Invoice }>(`/api/invoices/${id}`),
+
+  share: (id: string) =>
+    clientFetch<{ shareToken: string; shareUrl: string }>(
+      `/api/invoices/${id}/share`,
+      { method: 'POST' },
+    ),
+};

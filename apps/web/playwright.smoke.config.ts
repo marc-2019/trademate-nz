@@ -21,7 +21,7 @@ import { defineConfig } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './e2e',
-  testMatch: ['production-smoke.spec.ts', 'password-reset-smoke.spec.ts'],
+  testMatch: ['production-smoke.spec.ts', 'password-reset-smoke.spec.ts', 'nav-link-smoke.spec.ts'],
 
   timeout: 60_000,
   expect: { timeout: 10_000 },
