@@ -23,9 +23,17 @@ export default function DashboardPage() {
         </Card>
       </div>
       <Card className="mt-6">
-        <p className="text-gray-500 text-center py-8">
-          Dashboard with live data coming in Phase 2. Auth and navigation are working.
-        </p>
+        <div className="py-6 px-4 text-center">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Welcome to BossBoard web</h2>
+          <p className="text-gray-600 max-w-xl mx-auto">
+            BossBoard is in beta. The web view shows your account dashboard;
+            day-to-day features (SWMS, invoices, quotes, expenses, job logs,
+            teams) live in the BossBoard mobile app.
+          </p>
+          <p className="text-sm text-gray-500 mt-3">
+            App Store + Google Play release coming soon.
+          </p>
+        </div>
       </Card>
     </div>
   );
