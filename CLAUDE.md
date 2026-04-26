@@ -438,6 +438,7 @@ Copy `.env.example` to `.env` and fill in your credentials.
 - [x] Subscription middleware (attachSubscription, requireTier, requireFeature, checkLimit)
 - [x] Mobile subscription management screen
 - [x] Email verification (6-digit code)
+- [x] Password reset (6-digit code, Mobile + Web)
 - [x] 3-step onboarding wizard (trade type, company details, bank details)
 - [x] Beta mode (all users get tradie-level access)
 
