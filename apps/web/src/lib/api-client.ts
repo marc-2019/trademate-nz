@@ -94,6 +94,34 @@ export const quotesClient = {
     ),
 };
 
+/** Teams API (v1 web scope: view team + invite members + cancel invites).
+ *  Remove member, change role, leave team, create team are mobile-only
+ *  for now — bigger UX considerations than this v1 covers. */
+export const teamsClient = {
+  myTeam: () =>
+    clientFetch<{
+      team: import('@bossboard/shared').Team | null;
+      role: import('@bossboard/shared').TeamRole | null;
+      members: import('@bossboard/shared').TeamMember[];
+    }>('/api/teams/my-team'),
+
+  listInvites: (teamId: string) =>
+    clientFetch<{ invites: import('@bossboard/shared').TeamInvite[] }>(
+      `/api/teams/${teamId}/invites`,
+    ),
+
+  invite: (teamId: string, data: { email: string; role?: import('@bossboard/shared').TeamRole }) =>
+    clientFetch<{ invite: import('@bossboard/shared').TeamInvite }>(
+      `/api/teams/${teamId}/invites`,
+      { method: 'POST', body: data },
+    ),
+
+  cancelInvite: (teamId: string, inviteId: string) =>
+    clientFetch<{ ok: boolean }>(`/api/teams/${teamId}/invites/${inviteId}`, {
+      method: 'DELETE',
+    }),
+};
+
 /** Subscriptions API (read-only).
  *  Plan changes / Stripe checkout still happen in the mobile app. */
 export const subscriptionsClient = {
