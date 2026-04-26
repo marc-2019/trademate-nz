@@ -23,6 +23,7 @@ import {
   getAllTiers,
   isBetaMode,
   getUserSubscription,
+  updateSubscriptionTier,
   getTierUsage,
   canCreateInvoice,
   canCreateSwms,
@@ -182,6 +183,104 @@ describe('Subscription Service', () => {
 
       const result = await canAddTeamMember('user-1', 'team');
       expect(result.allowed).toBe(true);
+    });
+  });
+
+  describe('updateSubscriptionTier', () => {
+    function makeSubRow(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+      return {
+        subscription_tier: 'tradie',
+        stripe_customer_id: 'cus_123',
+        stripe_subscription_id: 'sub_123',
+        subscription_started_at: new Date('2026-01-01'),
+        subscription_expires_at: new Date('2026-02-01'),
+        ...overrides,
+      };
+    }
+
+    it('upgrades a user to tradie tier and persists stripe data', async () => {
+      mockDbQuery.mockResolvedValue({ rows: [makeSubRow()] });
+
+      const info = await updateSubscriptionTier('user-1', 'tradie', {
+        stripeCustomerId: 'cus_123',
+        stripeSubscriptionId: 'sub_123',
+        startedAt: new Date('2026-01-01'),
+      });
+
+      expect(info.tier).toBe('tradie');
+      expect(info.stripeCustomerId).toBe('cus_123');
+      expect(info.stripeSubscriptionId).toBe('sub_123');
+      expect(mockDbQuery).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE users SET'),
+        expect.arrayContaining(['user-1', 'tradie'])
+      );
+    });
+
+    it('upgrades a user to team tier', async () => {
+      mockDbQuery.mockResolvedValue({
+        rows: [makeSubRow({ subscription_tier: 'team', stripe_subscription_id: 'sub_team_1' })],
+      });
+
+      const info = await updateSubscriptionTier('user-1', 'team', {
+        stripeSubscriptionId: 'sub_team_1',
+      });
+
+      expect(info.tier).toBe('team');
+      expect(info.stripeSubscriptionId).toBe('sub_team_1');
+    });
+
+    it('downgrades user to free tier (cancellation flow)', async () => {
+      mockDbQuery.mockResolvedValue({
+        rows: [makeSubRow({
+          subscription_tier: 'free',
+          stripe_customer_id: 'cus_123',
+          stripe_subscription_id: null,
+        })],
+      });
+
+      const info = await updateSubscriptionTier('user-1', 'free', {
+        stripeSubscriptionId: undefined,
+        expiresAt: new Date(),
+      });
+
+      expect(info.tier).toBe('free');
+      expect(info.stripeSubscriptionId).toBeNull();
+    });
+
+    it('updates expiresAt when provided', async () => {
+      const expiresAt = new Date('2026-12-31');
+      mockDbQuery.mockResolvedValue({
+        rows: [makeSubRow({ subscription_expires_at: expiresAt })],
+      });
+
+      const info = await updateSubscriptionTier('user-1', 'tradie', { expiresAt });
+
+      expect(info.expiresAt).toEqual(expiresAt);
+      expect(mockDbQuery).toHaveBeenCalledWith(
+        expect.stringContaining('subscription_expires_at'),
+        expect.any(Array)
+      );
+    });
+
+    it('throws USER_NOT_FOUND when user does not exist or is inactive', async () => {
+      mockDbQuery.mockResolvedValue({ rows: [] });
+
+      await expect(updateSubscriptionTier('missing', 'tradie'))
+        .rejects.toThrow('User not found');
+    });
+
+    it('updates tier only when no stripeData provided', async () => {
+      mockDbQuery.mockResolvedValue({ rows: [makeSubRow({ subscription_tier: 'tradie' })] });
+
+      await updateSubscriptionTier('user-1', 'tradie');
+
+      const [sql, params] = mockDbQuery.mock.calls[0];
+      // SET clause should only contain subscription_tier and updated_at — verify by checking
+      // that params array has exactly the expected values: [userId, tier]
+      expect(params).toEqual(['user-1', 'tradie']);
+      // SET clause in the UPDATE body should NOT include stripe fields
+      const setClause = sql.split('RETURNING')[0];
+      expect(setClause).not.toContain('stripe_customer_id');
     });
   });
 
