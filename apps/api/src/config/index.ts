@@ -23,10 +23,10 @@ export const config = {
   // Redis
   redisUrl: process.env.REDIS_URL || 'redis://localhost:29379',
 
-  // JWT
+  // JWT — no fallback: missing secret = startup failure in all environments
   jwt: {
-    secret: process.env.JWT_SECRET || 'bossboard_jwt_dev_secret_2026',
-    refreshSecret: process.env.JWT_REFRESH_SECRET || 'bossboard_jwt_refresh_dev_2026',
+    secret: process.env.JWT_SECRET as string,
+    refreshSecret: process.env.JWT_REFRESH_SECRET as string,
     accessTokenExpiry: '15m',
     refreshTokenExpiry: '7d',
   },

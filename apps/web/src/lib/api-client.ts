@@ -51,6 +51,12 @@ export const authClient = {
   logout: () =>
     clientFetch('/api/auth/logout', { method: 'POST' }),
 
+  forgotPassword: (email: string) =>
+    clientFetch('/api/auth/forgot-password', { method: 'POST', body: { email } }),
+
+  resetPassword: (data: { email: string; code: string; newPassword: string }) =>
+    clientFetch('/api/auth/reset-password', { method: 'POST', body: data }),
+
   me: () =>
     clientFetch<{ user: import('@bossboard/shared').User }>('/api/auth/me'),
 };

@@ -66,6 +66,14 @@ function LoginForm() {
           placeholder="Min. 8 characters"
           required
         />
+        <div className="flex justify-end">
+          <Link
+            href="/forgot-password"
+            className="text-sm text-accent font-medium hover:underline"
+          >
+            Forgot password?
+          </Link>
+        </div>
         <Button type="submit" loading={loading} className="w-full">
           Sign in
         </Button>

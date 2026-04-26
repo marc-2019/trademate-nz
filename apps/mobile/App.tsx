@@ -16,16 +16,23 @@ import {
 } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Network from 'expo-network';
+import { getSWMSList } from './src/services/offline';
+import { getPendingSyncItems } from './src/services/syncQueue';
+import { getItemAsync } from './src/utils/storage';
+import { setAuthToken } from './src/services/api';
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
-// App configuration
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:29000';
+// Storage keys (must match AuthContext.tsx)
+const TOKEN_KEY = 'bossboard_access_token';
+const USER_KEY = 'bossboard_user';
 
 interface AppState {
   isReady: boolean;
   isOnline: boolean;
+  isAuthenticated: boolean;
+  cachedDocCount: number;
   error: string | null;
 }
 
@@ -33,6 +40,8 @@ export default function App() {
   const [state, setState] = useState<AppState>({
     isReady: false,
     isOnline: true,
+    isAuthenticated: false,
+    cachedDocCount: 0,
     error: null,
   });
 
@@ -43,13 +52,36 @@ export default function App() {
         const networkState = await Network.getNetworkStateAsync();
         const isOnline = networkState.isConnected && networkState.isInternetReachable;
 
-        // TODO: Initialize SQLite database
-        // TODO: Load cached data
-        // TODO: Check authentication status
+        // Initialize SQLite database — triggers openDatabaseAsync and schema
+        // migrations for both the offline storage tables (swms_documents,
+        // certifications, sync_queue, user_data) and the enhanced sync queue
+        // tables (sync_queue_v2, sync_metrics, sync_conflicts).
+        const [cachedDocs] = await Promise.all([
+          getSWMSList(),       // warms offline.ts DB (swms + user_data tables)
+          getPendingSyncItems(), // warms syncQueue.ts DB (sync_queue_v2 tables)
+        ]);
+
+        // Load cached data — SWMS list was already fetched above for DB init;
+        // capture the count so the UI can show offline document availability.
+        const cachedDocCount = cachedDocs.length;
+
+        // Check authentication status — read JWT from SecureStore and restore
+        // the in-memory auth token so API requests made before the AuthProvider
+        // mounts (e.g. background sync) are already authenticated.
+        const [storedToken, storedUser] = await Promise.all([
+          getItemAsync(TOKEN_KEY),
+          getItemAsync(USER_KEY),
+        ]);
+        const isAuthenticated = !!(storedToken && storedUser);
+        if (storedToken) {
+          setAuthToken(storedToken);
+        }
 
         setState({
           isReady: true,
           isOnline: isOnline ?? false,
+          isAuthenticated,
+          cachedDocCount,
           error: null,
         });
       } catch (e) {
@@ -57,6 +89,8 @@ export default function App() {
         setState({
           isReady: true,
           isOnline: false,
+          isAuthenticated: false,
+          cachedDocCount: 0,
           error: e instanceof Error ? e.message : 'Unknown error',
         });
       } finally {
@@ -129,6 +163,14 @@ export default function App() {
           <Text style={styles.statusText}>
             Status: {state.isOnline ? '🟢 Online' : '🟡 Offline'}
           </Text>
+          <Text style={styles.statusText}>
+            Auth: {state.isAuthenticated ? '🔐 Signed in' : '🔓 Not signed in'}
+          </Text>
+          {state.cachedDocCount > 0 && (
+            <Text style={styles.statusText}>
+              Cached: {state.cachedDocCount} document{state.cachedDocCount !== 1 ? 's' : ''}
+            </Text>
+          )}
           <Text style={styles.versionText}>Version 0.1.0</Text>
         </View>
       </View>

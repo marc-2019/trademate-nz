@@ -4,7 +4,7 @@
 export const API_URL = process.env.API_URL || (
   process.env.RAILWAY_ENVIRONMENT
     ? 'https://api.instilligent.com'
-    : 'http://localhost:29000'
+    : (process.env.NODE_ENV === 'development' ? 'http://bossboard-dev-api:29000' : 'http://localhost:29000')
 );
 
 /** Cookie names */
