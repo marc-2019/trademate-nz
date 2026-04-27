@@ -226,12 +226,17 @@ const PORT = config.port;
 
 // Async startup: run migrations, connect Redis, then start server
 async function startServer() {
-  // Run database migrations first
-  try {
-    await runMigrations();
-  } catch (err) {
-    console.error('Database migration failed:', err);
-    console.error('Server will start but database may be incomplete.');
+  // Run database migrations first. Production environments that manage
+  // schema via dedicated deployment scripts can opt out with SKIP_MIGRATIONS=true.
+  if (process.env.SKIP_MIGRATIONS === 'true') {
+    console.log('[startup] SKIP_MIGRATIONS=true, skipping database migration check');
+  } else {
+    try {
+      await runMigrations();
+    } catch (err) {
+      console.error('Database migration failed:', err);
+      console.error('Server will start but database may be incomplete.');
+    }
   }
 
   // Connect Redis (non-blocking)
