@@ -115,10 +115,13 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Stricter rate limit for auth endpoints
+// Stricter rate limit for auth endpoints. Env-overridable so the
+// staging tier can bump the cap when running the full e2e suite (which
+// can fire 30+ auth calls in quick succession from the test runner's
+// single source IP). Production default stays at 20/15min per IP.
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // limit each IP to 20 auth requests per windowMs
+  max: parseInt(process.env.AUTH_RATE_LIMIT_MAX || '20', 10),
   message: {
     success: false,
     error: 'RATE_LIMIT_EXCEEDED',
