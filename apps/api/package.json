@@ -18,6 +18,8 @@
   "dependencies": {
     "@bossboard/shared": "*",
     "@anthropic-ai/sdk": "^0.39.0",
+    "@sentry/integrations": "^7.120.4",
+    "@sentry/node": "^7.120.4",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",

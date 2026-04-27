@@ -21,6 +21,10 @@ services:
       - LM_STUDIO_MODEL=${LM_STUDIO_MODEL:-qwen/qwen3-vl-4b}
       - JWT_SECRET=${JWT_SECRET:-bossboard_jwt_dev_secret_2026}
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-bossboard_jwt_refresh_dev_2026}
+      # Sentry: optional. When unset, services/sentry.ts no-ops so local
+      # dev + CI stay frictionless. Set in Railway prod env to enable.
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - SENTRY_RELEASE=${SENTRY_RELEASE:-}
     depends_on:
       bossboard-postgres:
         condition: service_healthy

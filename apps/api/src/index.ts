@@ -17,6 +17,12 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import {
+  initSentry,
+  sentryRequestHandler,
+  sentryTracingHandler,
+  sentryErrorHandler,
+} from './services/sentry.js';
 
 // Load the marketing landing page once at startup so the / route serves it
 // from memory. The HTML lives at ./landing.html so it can be edited as a
@@ -69,6 +75,14 @@ import legalRoutes from './routes/legal.js';
 import cronService from './services/cron.js';
 
 const app = express();
+
+// =============================================================================
+// SENTRY (must be installed BEFORE any other middleware so it captures
+// every request — see services/sentry.ts. No-op when SENTRY_DSN unset.)
+// =============================================================================
+initSentry(app);
+app.use(sentryRequestHandler());
+app.use(sentryTracingHandler());
 
 // =============================================================================
 // MIDDLEWARE
@@ -196,6 +210,11 @@ app.get('/', (_req: Request, res: Response) => {
 
 // 404 handler
 app.use(notFoundHandler);
+
+// Sentry error handler MUST come before the global errorHandler so it
+// captures the error before the JSON response is written. No-op when
+// SENTRY_DSN is unset (see services/sentry.ts).
+app.use(sentryErrorHandler());
 
 // Global error handler
 app.use(errorHandler);
