@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   FileText,
   ClipboardList,
+  Award,
   Users,
   Settings,
   Smartphone,
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Invoices', href: '/invoices', icon: FileText },
   { label: 'Quotes', href: '/quotes', icon: ClipboardList },
+  { label: 'Certifications', href: '/certifications', icon: Award },
   { label: 'Team', href: '/teams', icon: Users },
   { label: 'Settings', href: '/settings', icon: Settings },
 ];

@@ -94,6 +94,14 @@ export const quotesClient = {
     ),
 };
 
+/** Certifications API (v1 read-only — list. Add / edit / delete in mobile). */
+export const certificationsClient = {
+  list: () =>
+    clientFetch<{ certifications: import('@bossboard/shared').Certification[] }>(
+      '/api/certifications',
+    ),
+};
+
 /** Teams API (v1 web scope: view team + invite members + cancel invites).
  *  Remove member, change role, leave team, create team are mobile-only
  *  for now — bigger UX considerations than this v1 covers. */
