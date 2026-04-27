@@ -3,7 +3,7 @@
  * /api/v1/expenses/*
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { authenticate } from '../middleware/auth.js';
 import { attachSubscription, requireFeature } from '../middleware/subscription.js';
@@ -46,131 +46,159 @@ const updateExpenseSchema = z.object({
  * POST /api/v1/expenses
  * Create a new expense
  */
-router.post('/', authenticate, attachSubscription, requireFeature('expenses'), async (req: Request, res: Response) => {
-  const validation = createExpenseSchema.safeParse(req.body);
-  if (!validation.success) {
-    res.status(400).json({
-      success: false,
-      error: 'VALIDATION_ERROR',
-      message: validation.error.errors.map((e) => e.message).join(', '),
+router.post('/', authenticate, attachSubscription, requireFeature('expenses'), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const validation = createExpenseSchema.safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: validation.error.errors.map((e) => e.message).join(', '),
+      });
+      return;
+    }
+
+    const userId = req.user!.userId;
+    const expense = await expensesService.createExpense(userId, validation.data);
+
+    res.status(201).json({
+      success: true,
+      data: { expense },
     });
-    return;
+  } catch (error) {
+    next(error);
   }
-
-  const userId = req.user!.userId;
-  const expense = await expensesService.createExpense(userId, validation.data);
-
-  res.status(201).json({
-    success: true,
-    data: { expense },
-  });
 });
 
 /**
  * GET /api/v1/expenses
  * List expenses with optional filtering
  */
-router.get('/', authenticate, async (req: Request, res: Response) => {
-  const userId = req.user!.userId;
-  const { category, startDate, endDate, limit, offset } = req.query;
+router.get('/', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user!.userId;
+    const { category, startDate, endDate, limit, offset } = req.query;
 
-  const result = await expensesService.listExpenses(userId, {
-    category: category as string | undefined,
-    startDate: startDate as string | undefined,
-    endDate: endDate as string | undefined,
-    limit: limit ? parseInt(limit as string, 10) : undefined,
-    offset: offset ? parseInt(offset as string, 10) : undefined,
-  });
+    const result = await expensesService.listExpenses(userId, {
+      category: category as string | undefined,
+      startDate: startDate as string | undefined,
+      endDate: endDate as string | undefined,
+      limit: limit ? parseInt(limit as string, 10) : undefined,
+      offset: offset ? parseInt(offset as string, 10) : undefined,
+    });
 
-  res.json({
-    success: true,
-    data: result,
-  });
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 /**
  * GET /api/v1/expenses/stats
  * Get expense statistics
  */
-router.get('/stats', authenticate, async (req: Request, res: Response) => {
-  const userId = req.user!.userId;
-  const stats = await expensesService.getExpenseStats(userId);
+router.get('/stats', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user!.userId;
+    const stats = await expensesService.getExpenseStats(userId);
 
-  res.json({
-    success: true,
-    data: { stats },
-  });
+    res.json({
+      success: true,
+      data: { stats },
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 /**
  * GET /api/v1/expenses/monthly
  * Get monthly totals
  */
-router.get('/monthly', authenticate, async (req: Request, res: Response) => {
-  const userId = req.user!.userId;
-  const months = req.query.months ? parseInt(req.query.months as string, 10) : 6;
-  const totals = await expensesService.getMonthlyTotals(userId, months);
+router.get('/monthly', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user!.userId;
+    const months = req.query.months ? parseInt(req.query.months as string, 10) : 6;
+    const totals = await expensesService.getMonthlyTotals(userId, months);
 
-  res.json({
-    success: true,
-    data: { totals },
-  });
+    res.json({
+      success: true,
+      data: { totals },
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 /**
  * GET /api/v1/expenses/:id
  * Get a single expense
  */
-router.get('/:id', authenticate, async (req: Request, res: Response) => {
-  const userId = req.user!.userId;
-  const expense = await expensesService.getExpense(userId, req.params.id as string);
+router.get('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user!.userId;
+    const expense = await expensesService.getExpense(userId, req.params.id as string);
 
-  res.json({
-    success: true,
-    data: { expense },
-  });
+    res.json({
+      success: true,
+      data: { expense },
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 /**
  * PUT /api/v1/expenses/:id
  * Update an expense
  */
-router.put('/:id', authenticate, async (req: Request, res: Response) => {
-  const validation = updateExpenseSchema.safeParse(req.body);
-  if (!validation.success) {
-    res.status(400).json({
-      success: false,
-      error: 'VALIDATION_ERROR',
-      message: validation.error.errors.map((e) => e.message).join(', '),
+router.put('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const validation = updateExpenseSchema.safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: validation.error.errors.map((e) => e.message).join(', '),
+      });
+      return;
+    }
+
+    const userId = req.user!.userId;
+    const expense = await expensesService.updateExpense(
+      userId,
+      req.params.id as string,
+      validation.data
+    );
+
+    res.json({
+      success: true,
+      data: { expense },
     });
-    return;
+  } catch (error) {
+    next(error);
   }
-
-  const userId = req.user!.userId;
-  const expense = await expensesService.updateExpense(
-    userId,
-    req.params.id as string,
-    validation.data
-  );
-
-  res.json({
-    success: true,
-    data: { expense },
-  });
 });
 
 /**
  * DELETE /api/v1/expenses/:id
  * Delete an expense
  */
-router.delete('/:id', authenticate, async (req: Request, res: Response) => {
-  const userId = req.user!.userId;
-  await expensesService.deleteExpense(userId, req.params.id as string);
+router.delete('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user!.userId;
+    await expensesService.deleteExpense(userId, req.params.id as string);
 
-  res.json({
-    success: true,
-    message: 'Expense deleted successfully',
-  });
+    res.json({
+      success: true,
+      message: 'Expense deleted successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 export default router;
