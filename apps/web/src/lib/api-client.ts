@@ -102,6 +102,18 @@ export const certificationsClient = {
     ),
 };
 
+/** Expenses API (v1 read-only). Receipts + create/edit live in mobile. */
+export const expensesClient = {
+  list: () =>
+    clientFetch<{ expenses: import('@bossboard/shared').Expense[] }>('/api/expenses'),
+};
+
+/** Job logs API (v1 read-only). Clock in/out lives in mobile. */
+export const jobLogsClient = {
+  list: () =>
+    clientFetch<{ jobLogs: import('@bossboard/shared').JobLog[] }>('/api/job-logs'),
+};
+
 /** Teams API (v1 web scope: view team + invite members + cancel invites).
  *  Remove member, change role, leave team, create team are mobile-only
  *  for now — bigger UX considerations than this v1 covers. */

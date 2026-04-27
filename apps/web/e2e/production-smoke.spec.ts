@@ -1,9 +1,15 @@
 import { test, expect } from '@playwright/test';
+import { testDataName } from './helpers/test-data';
 
 /**
  * Production smoke tests — run against the live production URL.
  * These catch deployment issues like the API_URL misconfiguration
  * that broke registration on 2026-04-13.
+ *
+ * Honours cf_standing_directives.e2e-test-data-lifecycle: any user
+ * created during a test is deleted in afterEach via DELETE /account
+ * with the captured access token. The createdAccessTokens array gives
+ * us a teardown hook that runs even when assertions fail.
  *
  * Run with: npx playwright test e2e/production-smoke.spec.ts
  * Requires: PROD_URL env var (defaults to https://bossboard.instilligent.com)
@@ -12,8 +18,29 @@ import { test, expect } from '@playwright/test';
 const PROD_URL = process.env.PROD_URL || 'https://bossboard.instilligent.com';
 const API_URL = process.env.PROD_API_URL || 'https://api.instilligent.com';
 
+// Per-test list of access tokens whose owning accounts must be deleted
+// in afterEach. Tests push their own captured tokens here.
+const createdAccessTokens: string[] = [];
+
 test.describe('Production Smoke Tests', () => {
   test.describe.configure({ mode: 'serial' });
+
+  test.afterEach(async ({ request }) => {
+    // Drain the queue so each test cleans only what it created. Best
+    // effort — never fail the test on cleanup errors.
+    while (createdAccessTokens.length > 0) {
+      const token = createdAccessTokens.shift();
+      if (!token) continue;
+      try {
+        await request.delete(`${API_URL}/api/v1/auth/account`, {
+          headers: { Authorization: `Bearer ${token}` },
+          failOnStatusCode: false,
+        });
+      } catch {
+        // ignore
+      }
+    }
+  });
 
   test('landing page loads', async ({ page }) => {
     const res = await page.goto(PROD_URL);
@@ -85,22 +112,18 @@ test.describe('Production Smoke Tests', () => {
   });
 
   test('API registration endpoint returns JSON', async ({ request }) => {
-    const testEmail = `api-smoke-${Date.now()}@instilligent.com`;
+    const data = testDataName('apismoke');
     const res = await request.post(`${API_URL}/api/v1/auth/register`, {
-      data: {
-        email: testEmail,
-        password: 'SmokeTest123!',
-        fullName: 'API Smoke Test',
-        businessName: 'Smoke Test Ltd',
-      },
+      data: { email: data.email, password: data.password, name: data.name },
     });
 
     // API returns 201 Created on successful registration.
     expect([200, 201]).toContain(res.status());
     const json = await res.json();
     expect(json.success).toBe(true);
-    expect(json.data.user.email).toBe(testEmail);
+    expect(json.data.user.email).toBe(data.email);
     expect(json.data.tokens.accessToken).toBeTruthy();
+    createdAccessTokens.push(json.data.tokens.accessToken);
   });
 
   test('static assets load (CSS, JS)', async ({ page }) => {
@@ -121,8 +144,9 @@ test.describe('Production Smoke Tests', () => {
     // API_URL-localhost outage would have caught: signup via UI proxy,
     // auto-login redirect, cookie-based session, then re-login with the
     // same credentials and access an authenticated page.
-    const testEmail = `e2e-smoke-${Date.now()}@instilligent.com`;
-    const testPassword = 'E2eSmoke123!';
+    const data = testDataName('e2eflow');
+    const testEmail = data.email;
+    const testPassword = data.password;
 
     await page.goto(`${PROD_URL}/register`);
     await expect(page.getByRole('heading', { name: 'Create your account' })).toBeVisible();
@@ -173,5 +197,13 @@ test.describe('Production Smoke Tests', () => {
     await page.waitForURL(/\/dashboard/, { timeout: 10000 });
     await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
     await expect(page.getByText('SWMS This Month')).toBeVisible();
+
+    // Cleanup hook: pluck the access token cookie out of the browser so
+    // afterEach can DELETE the account. The Next proxy strips tokens
+    // from the JSON response (they live in httpOnly cookies), so this
+    // is the only way to capture them from a UI-driven flow.
+    const cookies = await context.cookies();
+    const access = cookies.find((c) => c.name.includes('access_token') || c.name === 'bb_access');
+    if (access?.value) createdAccessTokens.push(access.value);
   });
 });
