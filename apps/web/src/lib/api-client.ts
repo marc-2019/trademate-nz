@@ -114,6 +114,15 @@ export const jobLogsClient = {
     clientFetch<{ jobLogs: import('@bossboard/shared').JobLog[] }>('/api/job-logs'),
 };
 
+/** SWMS API (v1 read-only list). Generation, signing, photos, PDF
+ *  download all live in the BossBoard mobile app — those are
+ *  on-site / signature-pad workflows that don't translate to a
+ *  desktop web view. */
+export const swmsClient = {
+  list: () =>
+    clientFetch<{ documents: import('@bossboard/shared').SWMSDocument[] }>('/api/swms'),
+};
+
 /** Teams API (v1 web scope: view team + invite members + cancel invites).
  *  Remove member, change role, leave team, create team are mobile-only
  *  for now — bigger UX considerations than this v1 covers. */

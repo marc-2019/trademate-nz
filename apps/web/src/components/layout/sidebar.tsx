@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
+  HardHat,
   FileText,
   ClipboardList,
   Receipt,
@@ -24,6 +25,7 @@ import {
 // land. See PIR 2026-04-27-bossboard-dashboard-404s.
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'SWMS', href: '/swms', icon: HardHat },
   { label: 'Invoices', href: '/invoices', icon: FileText },
   { label: 'Quotes', href: '/quotes', icon: ClipboardList },
   { label: 'Expenses', href: '/expenses', icon: Receipt },
