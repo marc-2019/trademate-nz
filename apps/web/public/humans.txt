@@ -1,9 +1,13 @@
+# humanstxt.org — https://bossboard.instilligent.com/humans.txt
+# The humans responsible & technology colophon
+
 /* TEAM */
 Instilligent: CEO
 Marc Armstrong: marc@instilligent.com
-https://instilligent.com/
+Site: https://instilligent.com/
 
 /* SITE */
+Site: bossboard.instilligent.com
 Last update: 2026-04-29
 Standards: HTML5, CSS3
 Components: Next.js + React
