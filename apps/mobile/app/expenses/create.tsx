@@ -29,6 +29,20 @@ const CATEGORIES = [
   { key: 'other', label: 'Other', icon: 'ellipsis-horizontal', color: '#6B7280' },
 ];
 
+// Strip everything except digits and a single decimal point so non-numeric paste/IME input
+// can't reach parseFloat. decimal-pad keyboard alone doesn't guarantee numeric input on web/Android.
+function sanitizeAmountInput(raw: string): string {
+  const cleaned = raw.replace(/[^0-9.]/g, '');
+  const firstDot = cleaned.indexOf('.');
+  if (firstDot === -1) return cleaned;
+  return cleaned.slice(0, firstDot + 1) + cleaned.slice(firstDot + 1).replace(/\./g, '');
+}
+
+function parseAmountDollars(raw: string): number {
+  const n = parseFloat(raw);
+  return Number.isFinite(n) ? n : NaN;
+}
+
 export default function CreateExpenseScreen() {
   const router = useRouter();
   const [amount, setAmount] = useState('');
@@ -41,14 +55,15 @@ export default function CreateExpenseScreen() {
   const [isSaving, setIsSaving] = useState(false);
 
   async function handleSave() {
-    if (!amount || parseFloat(amount) <= 0) {
-      Alert.alert('Error', 'Please enter an amount');
+    const dollars = parseAmountDollars(amount);
+    if (!Number.isFinite(dollars) || dollars <= 0) {
+      Alert.alert('Error', 'Please enter a valid amount greater than zero');
       return;
     }
 
     setIsSaving(true);
     try {
-      const amountCents = Math.round(parseFloat(amount) * 100);
+      const amountCents = Math.round(dollars * 100);
 
       await expensesApi.create({
         date,
@@ -74,7 +89,10 @@ export default function CreateExpenseScreen() {
   }
 
   // Calculate GST preview
-  const amountCents = amount ? Math.round(parseFloat(amount) * 100) : 0;
+  const parsedDollars = parseAmountDollars(amount);
+  const amountCents = Number.isFinite(parsedDollars) && parsedDollars > 0
+    ? Math.round(parsedDollars * 100)
+    : 0;
   const gstAmount = isGstClaimable && amountCents > 0
     ? Math.round(amountCents * 0.15 / 1.15)
     : 0;
@@ -93,7 +111,7 @@ export default function CreateExpenseScreen() {
             <TextInput
               style={styles.amountInput}
               value={amount}
-              onChangeText={setAmount}
+              onChangeText={(text) => setAmount(sanitizeAmountInput(text))}
               placeholder="0.00"
               placeholderTextColor="#D1D5DB"
               keyboardType="decimal-pad"
