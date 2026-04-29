@@ -1,8 +1,7 @@
+/* https://bossboard.instilligent.com/ */
+
 /* TEAM */
 Instilligent: Marc Armstrong, marc@instilligent.com
 
 /* SITE */
 Last update: 2026-04-29
-
-/* URL */
-https://bossboard.instilligent.com/
