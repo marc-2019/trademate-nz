@@ -1,0 +1,8 @@
+{
+  "task_id": "d077014b-d684-4f0e-86e6-7324595bd470",
+  "task_name": "Add a unit test for PriorityEngine.calculate_priority edge case",
+  "reason": "unexpected head_moved+dirty on TradeMate-NZ during task declared for project_id=cortexforge",
+  "head_sha": "e65837f7c232ab6ba53e23c69468cee66346f598",
+  "kind": "head_moved",
+  "ts": "20260429T193433Z"
+}

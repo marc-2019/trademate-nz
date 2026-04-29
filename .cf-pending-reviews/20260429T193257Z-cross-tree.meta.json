@@ -1,0 +1,8 @@
+{
+  "task_id": "d077014b-d684-4f0e-86e6-7324595bd470",
+  "task_name": null,
+  "reason": "unexpected head_moved on TradeMate-NZ during task declared for project_id=cortexforge",
+  "head_sha": "30759f41e0148e744a7940e52a13d394bea3ca59",
+  "kind": "head_moved",
+  "ts": "20260429T193257Z"
+}

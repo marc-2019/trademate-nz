@@ -1,0 +1,36 @@
+commit 30759f41e0148e744a7940e52a13d394bea3ca59
+Author: CortexForge LLM Agent <cf-llm@instilligent.com>
+Date:   Wed Apr 29 19:28:58 2026 +0000
+
+    audit_eval(trademate-nz): Add a React Native test for AuthContext.log...
+    
+    Task-ID: 7a50a4c2-925e-42d0-82a3-e4b109f4172d
+    Agent: Ollama+Tools (qwen3-coder:30b-a3b-q8_0)
+    
+    Committed by CortexForge autonomous executor.
+
+diff --git a/apps/mobile/__tests__/contexts/AuthContext.test.tsx b/apps/mobile/__tests__/contexts/AuthContext.test.tsx
+new file mode 100644
+index 0000000..7bcd55b
+--- /dev/null
++++ b/apps/mobile/__tests__/contexts/AuthContext.test.tsx
+@@ -0,0 +1,18 @@
++import { describe, it, expect, jest } from '@jest/globals';
++
++// Mock SecureStore
++jest.mock('expo-secure-store', () => ({
++  deleteItemAsync: jest.fn(),
++}));
++
++describe('AuthContext logout', () => {
++  it('should clear the persisted JWT from SecureStore', async () => {
++    // Import the actual logout function
++    const { logout } = require('../../src/contexts/AuthContext');
++    const { deleteItemAsync } = require('expo-secure-store');
++    
++    await logout();
++    
++    expect(deleteItemAsync).toHaveBeenCalledWith('jwt_token');
++  });
++});
+\ No newline at end of file
