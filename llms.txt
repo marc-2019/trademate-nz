@@ -20,7 +20,7 @@ Target market: 100,000-150,000 NZ SMEs in the trades and service sectors.
 - Photo documentation with GPS tagging, attached to jobs, invoices, and SWMS
 - Certification and licence tracking with automated expiry alerts
 - Expense tracking
-- Dashboard with cashflow overview and AI-generated business insights
+- Dashboard with revenue insights and basic cashflow overview (Xero integration + full cashflow forecasting coming Q2 2026)
 - Offline-first mobile app (iOS and Android via React Native / Expo)
 
 ## Pricing
