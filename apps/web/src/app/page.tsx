@@ -316,7 +316,7 @@ export default function Home() {
       <section className="cta-section">
         <div className="lp-container">
           <h2>Ready to run your business like a boss?</h2>
-          <p>Join hundreds of Kiwi tradies who&apos;ve ditched the paperwork.</p>
+          <p>Join early Kiwi tradies in beta who are ditching the paperwork.</p>
           <Link href="/register" className="lp-btn lp-btn-primary lp-btn-large">
             Start Free Today
           </Link>
