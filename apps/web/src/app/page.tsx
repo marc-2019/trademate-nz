@@ -244,8 +244,6 @@ export default function Home() {
               <ul className="price-features">
                 <li>Everything in Tradie</li>
                 <li>Up to 5 team members</li>
-                <li>Team scheduling</li>
-                <li>Job assignment &amp; dispatch</li>
                 <li>Team roles &amp; permissions</li>
               </ul>
               <Link
