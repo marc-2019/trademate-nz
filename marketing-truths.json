@@ -1,0 +1,132 @@
+{
+  "$schema": "https://instilligent.com/schemas/marketing-truths.v1.json",
+  "product_name": "BossBoard",
+  "product_status": "beta-ready (v0.5.0)",
+  "last_full_audit_date": "2026-04-30",
+  "last_full_audit_by": "claude+marc",
+  "audit_doc": "~/cf-research/marketing-audits/bossboard-2026-04-30.md",
+  "cf_directive": "customer-facing-copy-requires-product-claim-audit",
+  "_note": "Fourth marketing-truths.json in the portfolio. BossBoard had the highest FTA risk fact pattern in the audit (paid Team-tier features that didn't exist in code). Recall PR #2 dropped those; this PR softens the residual user-count + cashflow framing.",
+  "product_claims": [
+    {
+      "id": "bossboard.user-count",
+      "claim": "Join early Kiwi tradies in beta who are ditching the paperwork.",
+      "surfaces": ["apps/web/src/app/page.tsx#L321"],
+      "evidence_references": ["CLAUDE.md states <50-user beta target"],
+      "verdict": "IMPLEMENTED",
+      "last_verified": "2026-04-30",
+      "previous_overclaim": "Was 'Join hundreds of Kiwi tradies who've ditched the paperwork'. Recalled 2026-04-30 — beta target is <50 users."
+    },
+    {
+      "id": "bossboard.cashflow-forecasting",
+      "claim": "Cashflow Forecasting (Coming Q2 2026): Xero integration, invoice chasing, full cashflow position",
+      "surfaces": ["README.md#L10", "llms.txt#L23"],
+      "code_references": ["Module 2 in CLAUDE.md (Q2-Q3 2026 — UNRELEASED)"],
+      "verdict": "ABSENT",
+      "decision": "Framed as Coming Q2 2026 (truthful future-tense)",
+      "last_verified": "2026-04-30",
+      "previous_overclaim": "Was framed as available core feature. Reality: Xero integration is Q2-Q3 2026, dashboard shows revenue history only."
+    },
+    {
+      "id": "bossboard.team-tier-features.recalled",
+      "claim_dropped_2026_04_30": "Team scheduling + Job assignment & dispatch (in Team-tier pricing card)",
+      "verdict": "ABSENT",
+      "evidence_references": ["https://github.com/marc-2019/trademate-nz/pull/2 (Team-tier recall)"],
+      "reason": "No scheduling routes, no assignment routes, no dispatch logic. Not in CLAUDE.md What's Built or What's Next (Unreleased). Highest FTA s9/s13 fact pattern in 2026-04-30 audit."
+    },
+    {
+      "id": "bossboard.swms",
+      "claim": "AI-powered SWMS generation compliant with Health and Safety at Work Act 2015",
+      "surfaces": ["apps/web/src/app/page.tsx#L135-137", "llms.txt#L15"],
+      "code_references": ["apps/api/src/services/swms.ts", "apps/api/src/services/claude.ts"],
+      "verdict": "IMPLEMENTED",
+      "last_verified": "2026-04-30"
+    },
+    {
+      "id": "bossboard.invoicing",
+      "claim": "Professional invoicing with GST built in (15%)",
+      "surfaces": ["apps/web/src/app/page.tsx#L142-146", "llms.txt#L16"],
+      "code_references": ["apps/api/src/routes/invoices.ts", "database/migrations/001_enhanced_invoicing.sql"],
+      "verdict": "IMPLEMENTED",
+      "last_verified": "2026-04-30"
+    },
+    {
+      "id": "bossboard.quotes",
+      "claim": "Quotes and estimates with one-tap conversion to invoices",
+      "surfaces": ["apps/web/src/app/page.tsx#L151-156", "llms.txt#L17"],
+      "code_references": ["apps/api/src/routes/quotes.ts (POST /convert)"],
+      "verdict": "IMPLEMENTED",
+      "last_verified": "2026-04-30"
+    },
+    {
+      "id": "bossboard.jobs",
+      "claim": "Job logging with clock in/out, per-site and per-worker time tracking",
+      "surfaces": ["apps/web/src/app/page.tsx#L177-181", "llms.txt#L18"],
+      "code_references": ["apps/api/src/routes/job-logs.ts"],
+      "verdict": "IMPLEMENTED",
+      "last_verified": "2026-04-30"
+    },
+    {
+      "id": "bossboard.teams",
+      "claim": "Team management with invites, role assignment",
+      "surfaces": ["apps/web/src/app/page.tsx#L161-163", "llms.txt#L19"],
+      "code_references": ["apps/api/src/routes/teams.ts (admin/worker roles)"],
+      "verdict": "IMPLEMENTED",
+      "last_verified": "2026-04-30"
+    },
+    {
+      "id": "bossboard.photos",
+      "claim": "Photo documentation with GPS tagging, attached to jobs/invoices/SWMS",
+      "surfaces": ["apps/web/src/app/page.tsx#L168-172", "llms.txt#L20"],
+      "code_references": ["apps/api/src/routes/photos.ts", "database/migrations/002_photos.sql"],
+      "verdict": "IMPLEMENTED",
+      "last_verified": "2026-04-30"
+    },
+    {
+      "id": "bossboard.certifications",
+      "claim": "Certification and licence tracking with automated expiry alerts (push notifications at 30/14/7/1 day intervals)",
+      "surfaces": ["llms.txt#L21"],
+      "code_references": ["apps/api/src/routes/certifications.ts", "apps/api/src/services/cron.ts"],
+      "verdict": "IMPLEMENTED",
+      "last_verified": "2026-04-30"
+    },
+    {
+      "id": "bossboard.expenses",
+      "claim": "Expense tracking (7 categories incl subcontractor)",
+      "surfaces": ["llms.txt#L22"],
+      "code_references": ["apps/api/src/routes/expenses.ts", "database/migrations/004_expenses.sql"],
+      "verdict": "IMPLEMENTED",
+      "last_verified": "2026-04-30"
+    },
+    {
+      "id": "bossboard.offline",
+      "claim": "Offline-first mobile app (iOS/Android via React Native/Expo); works offline and syncs when back online",
+      "surfaces": ["apps/web/src/app/page.tsx#L298-300", "llms.txt#L24"],
+      "code_references": ["apps/mobile/src/services/offline.ts", "apps/mobile/src/services/syncQueue.ts"],
+      "verdict": "IMPLEMENTED",
+      "last_verified": "2026-04-30"
+    },
+    {
+      "id": "bossboard.pricing-tiers",
+      "claim": "Free $0 (3 invoices/mo, 2 SWMS/mo) · Tradie $4.99/wk · Team $9.99/wk (up to 5 team members + roles)",
+      "surfaces": ["apps/web/src/app/page.tsx#L196-258", "llms.txt#L30-32"],
+      "code_references": ["apps/api/src/services/subscriptions.ts (tier definitions, Stripe NZ pending)"],
+      "verdict": "IMPLEMENTED",
+      "last_verified": "2026-04-30",
+      "notes": "Beta mode currently — all users get tradie-tier access. Stripe NZ integration pending at ~50 paying users target."
+    }
+  ],
+  "verified_clean_directives": [
+    "No 'accounting/bookkeeping/ledger/tax filing' language (Marc directive — product is invoicing, not accounting)",
+    "BossBoard spelled as one word (Marc directive)",
+    "No Anthropic/Microsoft/AWS Partner claims",
+    "No X/Twitter integration claims"
+  ],
+  "open_items": [
+    "Cashflow forecasting + Xero integration: Module 2 (Q2-Q3 2026 per CLAUDE.md)",
+    "Visa/hiring compliance: Module 3 (Q3-Q4 2026 per CLAUDE.md)",
+    "Stripe NZ integration: pending at ~50 paying users target",
+    "App Store production submission (iOS): in flight per memory",
+    "Land master branch ahead of origin/master (12 commits) — separate housekeeping concern flagged from PR #2 push"
+  ]
+}
